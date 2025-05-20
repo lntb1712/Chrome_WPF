@@ -1,0 +1,220 @@
+﻿<Window
+    x:Class="Chrome_WPF.Views.LoginWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:Chrome_WPF.Converters"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+    Title="Login"
+    Width="500"
+    Height="600"
+    AllowsTransparency="True"
+    Background="Transparent"
+    KeyDown="btnLogin_KeyDown"
+    WindowStartupLocation="CenterScreen"
+    WindowStyle="None">
+    <Window.Resources>
+        <local:LengthToVisibilityConverter x:Key="LengthToVisibilityConverter"/>
+        <local:StringNullOrEmptyToVisibilityConverter x:Key="StringNullOrEmptyToVisibilityConverter"/>
+    </Window.Resources>
+    <Grid>
+        <Border
+            Margin="20"
+            Padding="20"
+            Background="White"
+            CornerRadius="20">
+            <Border.Effect>
+                <DropShadowEffect
+                    BlurRadius="15"
+                    Direction="270"
+                    ShadowDepth="5"
+                    Color="Gray" />
+            </Border.Effect>
+            <Grid>
+                <StackPanel
+                    Width="350"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+                    <Image
+                        Width="150"
+                        Height="150"
+                        Margin="0,0,0,20"
+                        Source="pack://application:,,,/Resources/img/logo1.png"
+                        Stretch="Uniform" />
+                    <TextBlock
+                        Margin="0,0,0,30"
+                        HorizontalAlignment="Center"
+                        FontFamily="Segoe UI"
+                        FontSize="30"
+                        FontWeight="Bold"
+                        Foreground="#333"
+                        Text="CHROME" />
+
+                    <Border
+                        Margin="0,10,0,0"
+                        Background="#F9F9F9"
+                        BorderBrush="#DDD"
+                        BorderThickness="1"
+                        CornerRadius="8">
+                        <Grid>
+                            <TextBox
+                                Height="45"
+                                Padding="10"
+                                VerticalContentAlignment="Center"
+                                BorderThickness="0"
+                                FontSize="16"
+                                Text="{Binding LoginRequestDTO.Username, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock
+                                Margin="10,0,0,0"
+                                VerticalAlignment="Center"
+                                FontSize="16"
+                                Foreground="Gray"
+                                IsHitTestVisible="False"
+                                Text="Tên đăng nhập"
+                                Visibility="{Binding LoginRequestDTO.Username, Converter={StaticResource LengthToVisibilityConverter}}" />
+                        </Grid>
+                    </Border>
+
+                    <!--  Password với Watermark  -->
+                    <Border
+                        Margin="0,15,0,0"
+                        Background="#F9F9F9"
+                        BorderBrush="#DDD"
+                        BorderThickness="1"
+                        CornerRadius="8">
+                        <Grid>
+                            <PasswordBox
+                                x:Name="txtPassword"
+                                Height="45"
+                                Padding="10"
+                                VerticalContentAlignment="Center"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                FontSize="16"
+                                PasswordChanged="PasswordBox_PasswordChanged" />
+
+                            <!--  Watermark Text  -->
+                            <TextBlock
+                                x:Name="passwordPlaceholder"
+                                Margin="10,0,0,0"
+                                VerticalAlignment="Center"
+                                FontSize="16"
+                                Foreground="Gray"
+                                IsHitTestVisible="False"
+                                Text="Mật khẩu"
+                                Visibility="{Binding LoginRequestDTO.Password, Converter={StaticResource StringNullOrEmptyToVisibilityConverter}}" />
+
+                            <!--  TextBox để hiển thị mật khẩu khi cần  -->
+                            <TextBox
+                                x:Name="txtVisiblePassword"
+                                Height="45"
+                                Padding="10"
+                                VerticalContentAlignment="Center"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                FontSize="16"
+                                TextChanged="TxtVisiblePassword_TextChanged"
+                                Visibility="Collapsed" />
+
+                            <!--  Nút ẩn hiện mật khẩu với icon MaterialDesign  -->
+                            <Button
+                                x:Name="TogglePasswordButton"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                Background="Transparent"
+                                BorderBrush="Transparent"
+                                Click="TogglePasswordVisibility_Click">
+                                <materialDesign:PackIcon
+                                    x:Name="ToggleIcon"
+                                    Width="20"
+                                    Height="20"
+                                    Foreground="Gray"
+                                    Kind="Eye" />
+                            </Button>
+                        </Grid>
+                    </Border>
+
+                    <!--  Login Button  -->
+                    <Button
+                        x:Name="btnLogin"
+                        Height="50"
+                        Margin="0,30,0,0"
+                        Background="#007ACC"
+                        BorderThickness="0"
+                        Command="{Binding LoginCommand}"
+                        Content="Đăng Nhập"
+                        Cursor="Hand"
+                        FontSize="18"
+                        FontWeight="Bold"
+                        Foreground="White">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}" CornerRadius="8">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#005F9E" />
+                                    </Trigger>
+                                    <Trigger Property="IsPressed" Value="True">
+                                        <Setter Property="Background" Value="#004C7A" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+
+                    <!--  Login Button  -->
+                    <Button
+                        Height="50"
+                        Margin="0,10,0,0"
+                        Background="#007ACC"
+                        BorderThickness="0"
+                        Click="Button_Click"
+                        Content="Thoát"
+                        Cursor="Hand"
+                        FontSize="18"
+                        FontWeight="Bold"
+                        Foreground="White">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}" CornerRadius="8">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#005F9E" />
+                                    </Trigger>
+                                    <Trigger Property="IsPressed" Value="True">
+                                        <Setter Property="Background" Value="#004C7A" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+
+                </StackPanel>
+                <materialDesign:Snackbar
+                    x:Name="LoginSnackbar"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Bottom">
+                    <materialDesign:Snackbar.MessageQueue>
+                        <materialDesign:SnackbarMessageQueue />
+                    </materialDesign:Snackbar.MessageQueue>
+
+                </materialDesign:Snackbar>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
