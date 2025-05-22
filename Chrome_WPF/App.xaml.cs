@@ -44,7 +44,11 @@ namespace Chrome_WPF
                     provider.GetRequiredService<INotificationService>()));
 
             //Register MainWindow
-            services.AddTransient<MainWindow>();
+            services.AddTransient<AuthViewModel>();
+            services.AddTransient<MainWindow>(provider=>
+                new MainWindow(
+                    provider.GetRequiredService<AuthViewModel>(),
+                    provider.GetRequiredService<INotificationService>()));
         }
         protected override void OnStartup(StartupEventArgs e)
         {

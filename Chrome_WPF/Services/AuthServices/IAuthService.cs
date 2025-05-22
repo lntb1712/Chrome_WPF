@@ -9,9 +9,9 @@ namespace Chrome_WPF.Services.AuthServices
 {
     public interface IAuthService
     {
-        Task <Dictionary<string, object>> DecodeJWT(LoginResponseDTO loginResponse);
-        Task <List<string>> GetPermissionFromToken(LoginResponseDTO loginResponse);
-        Task<string> GetName(LoginResponseDTO loginResponse);
-
+        Task <Dictionary<string, object>> DecodeJWT(string token);
+        Task <List<string>> GetPermissionFromToken(string token);
+        Task<string> GetName(string token);
+            
     }
 }

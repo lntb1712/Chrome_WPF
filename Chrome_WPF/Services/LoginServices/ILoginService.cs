@@ -1,4 +1,5 @@
-﻿using Chrome_WPF.Models.APIResult;
+﻿using Chrome_WPF.Models.AccountManagementDTO;
+using Chrome_WPF.Models.APIResult;
 using Chrome_WPF.Models.LoginDTO;
 using System;
 using System.Collections.Generic;
@@ -11,5 +12,6 @@ namespace Chrome_WPF.Services.LoginServices
     public interface ILoginService
     {
         Task<ApiResult<LoginResponseDTO>> AuthenticateAsync(LoginRequestDTO loginRequest);
+        Task<ApiResult<UserInformationDTO>> GetUserInformation(string userName);
     }
 }

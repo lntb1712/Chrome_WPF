@@ -1,4 +1,5 @@
 ﻿using Chrome_WPF.Constants.API_Constant;
+using Chrome_WPF.Models.AccountManagementDTO;
 using Chrome_WPF.Models.APIResult;
 using Chrome_WPF.Models.LoginDTO;
 using Newtonsoft.Json;
@@ -38,7 +39,7 @@ namespace Chrome_WPF.Services.LoginServices
             // Validate Password
             if (string.IsNullOrWhiteSpace(loginRequest.Password))
             {
-                return new ApiResult<LoginResponseDTO>("Mật khẩu không được để trống hoặc", false);
+                return new ApiResult<LoginResponseDTO>("Mật khẩu không được để trống", false);
             }
 
             // Optional: Trim whitespace to clean input
@@ -115,6 +116,43 @@ namespace Chrome_WPF.Services.LoginServices
         public void Dispose()
         {
             _httpClient?.Dispose();
+        }
+
+        public async Task<ApiResult<UserInformationDTO>> GetUserInformation(string userName)
+        {
+            if (string.IsNullOrEmpty(userName))
+            {
+                return new ApiResult<UserInformationDTO>("Tên người dùng không được để trống", false);
+            }
+            try
+            {
+                var response = await _httpClient.GetAsync($"Login/GetUserInformation?userName={userName}").ConfigureAwait(false);
+                var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = JsonConvert.DeserializeObject<ApiResult<UserInformationDTO>>(jsonResponse);
+                    if (result == null || !result.Success)
+                    {
+                        return new ApiResult<UserInformationDTO>(result?.Message ?? "Không thể phân tích phản hồi thông tin người dùng", false);
+                    }
+                    return result;
+                }
+                var errorResult = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
+                var errorMessage = errorResult?.Message ?? "Lỗi không xác định từ server";
+                return new ApiResult<UserInformationDTO>($"Lỗi khi lấy thông tin người dùng: {errorMessage}", false);
+            }
+            catch (HttpRequestException ex)
+            {
+                return new ApiResult<UserInformationDTO>($"Lỗi mạng: {ex.Message}", false);
+            }
+            catch (JsonException ex)
+            {
+                return new ApiResult<UserInformationDTO>($"Lỗi phân tích phản hồi: {ex.Message}", false);
+            }
+            catch (Exception ex)
+            {
+                return new ApiResult<UserInformationDTO>($"Lỗi không xác định: {ex.Message}", false);
+            }
         }
     }
 }

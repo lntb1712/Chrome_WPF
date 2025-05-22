@@ -32,7 +32,7 @@ namespace Chrome_WPF.Services.NotificationService
         public void QueueMessageForNextSnackbar(string message, string actionContent = null!, Action action = null!, TimeSpan? duration = null, bool isError = true)
         {
             // Lưu thông báo để hiển thị sau
-            _pendingMessage = (message, actionContent, action, duration, !isError);
+            _pendingMessage = (message, actionContent, action, duration, isError);
         }
 
         public void ShowPendingMessage()
@@ -61,7 +61,7 @@ namespace Chrome_WPF.Services.NotificationService
             }
 
 
-            if (isError)
+            if (!isError)
             {
                 _snackbar.Background = new SolidColorBrush(Color.FromRgb(211, 47, 47)); // Đỏ cho lỗi
                 _snackbar.Foreground = Brushes.White;

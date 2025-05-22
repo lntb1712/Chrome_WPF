@@ -9,9 +9,9 @@ namespace Chrome_WPF.Services.NotificationService
 {
     public interface INotificationService
     {
-        void ShowMessage(string message, string actionContent = null!, Action action = null!, TimeSpan? duration = null, bool isError = false);
+        void ShowMessage(string message, string actionContent = null!, Action action = null!, TimeSpan? duration = null, bool isError = true);
         void RegisterSnackbar(Snackbar snackbar);
-        void QueueMessageForNextSnackbar(string message, string actionContent = null!, Action action = null!, TimeSpan? duration = null, bool isError = false);
+        void QueueMessageForNextSnackbar(string message, string actionContent = null!, Action action = null!, TimeSpan? duration = null, bool isError = true);
         void ShowPendingMessage();
     }
 }

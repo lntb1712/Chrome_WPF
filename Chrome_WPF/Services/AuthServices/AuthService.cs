@@ -11,10 +11,10 @@ namespace Chrome_WPF.Services.AuthServices
 {
     public class AuthService : IAuthService
     {
-        public Task<Dictionary<string, object>> DecodeJWT(LoginResponseDTO loginResponse)
+        public Task<Dictionary<string, object>> DecodeJWT(string token)
         {
             var handler = new JwtSecurityTokenHandler();
-            var jsonToken = handler.ReadToken(loginResponse.Token) as JwtSecurityToken;
+            var jsonToken = handler.ReadToken(token) as JwtSecurityToken;
             if (jsonToken == null)
             {
                 throw new Exception("Invalid token");
@@ -28,9 +28,9 @@ namespace Chrome_WPF.Services.AuthServices
             return Task.FromResult(claims);
         }
 
-        public async Task<string> GetName(LoginResponseDTO loginResponse)
+        public async Task<string> GetName(string token)
         {
-            var claims = await DecodeJWT(loginResponse); // Await the DecodeJWT method to get the result
+            var claims = await DecodeJWT(token); // Await the DecodeJWT method to get the result
             if (claims != null && claims.ContainsKey("name"))
             {
                 return claims["name"].ToString()!;
@@ -38,9 +38,9 @@ namespace Chrome_WPF.Services.AuthServices
             return string.Empty;
         }
 
-        public async Task<List<string>> GetPermissionFromToken(LoginResponseDTO loginResponse)
+        public async Task<List<string>> GetPermissionFromToken(string token)
         {
-            var claims = await DecodeJWT(loginResponse); // Await the DecodeJWT method to get the result
+            var claims = await DecodeJWT(token); // Await the DecodeJWT method to get the result
             if (claims != null && claims.ContainsKey("Permission"))
             {
                 return JsonSerializer.Deserialize<List<string>>(claims["Permission"].ToString()!)!;

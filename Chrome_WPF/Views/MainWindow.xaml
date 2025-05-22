@@ -4,9 +4,419 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Chrome_WPF.Views"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        Width="1400"
+        Height="800"
+        AllowsTransparency="False"
+        Background="White"
+        WindowStartupLocation="CenterScreen"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
-        
+        Title="Chrome">
+    <Window.Resources>
+        <!-- Style for Menu Items -->
+        <Style x:Key="MenuItemStyle" TargetType="ListBoxItem">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#333333"/>
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Margin" Value="0,2"/>
+            <Setter Property="Width" Value="250" />
+            <Setter Property="Height" Value="40" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontWeight" Value="Medium" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderThickness="0"
+                                CornerRadius="10">
+                            <ContentPresenter Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#E0E0E0"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="#E6F0FA"/>
+                                <Setter Property="Foreground" Value="#0052CC"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="LightGray"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- Style cho nút trên thanh scrollbar -->
+        <Style x:Key="ScrollBarLineButton" TargetType="RepeatButton">
+            <Setter Property="OverridesDefaultStyle" Value="True" />
+            <Setter Property="IsTabStop" Value="False" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Width" Value="10" />
+            <Setter Property="Height" Value="10" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RepeatButton">
+                        <Grid Background="Transparent" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="MaterialDesignScrollBar" TargetType="ScrollBar">
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Setter Property="OverridesDefaultStyle" Value="True" />
+            <Setter Property="Height" Value="500" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Grid Background="Transparent" Width="10">
+                            <Track Name="PART_Track" IsDirectionReversed="true" 
+                           Focusable="False" >
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="ScrollBar.LineUpCommand" Style="{StaticResource ScrollBarLineButton}" />
+                                </Track.DecreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb Background="LightGray" >
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Border Background="{TemplateBinding Background}" CornerRadius="5" />
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="ScrollBar.LineDownCommand" Style="{StaticResource ScrollBarLineButton}" />
+                                </Track.IncreaseRepeatButton>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- DataTemplate for Menu Items -->
+        <DataTemplate x:Key="MenuItemTemplate">
+            <StackPanel Orientation="Horizontal" Margin="10,0" >
+                <!-- Icon Placeholder (Replace with actual icons) -->
+                <Rectangle Width="20" Height="20" Fill="#333333" Margin="0,0,10,0"/>
+                <TextBlock Text="{Binding}" Foreground="#333333" VerticalAlignment="Center"/>
+            </StackPanel>
+        </DataTemplate>
+        <!-- Style for Separator ListBoxItem -->
+        <Style x:Key="SeparatorItemStyle" TargetType="ListBoxItem" BasedOn="{StaticResource MenuItemStyle}">
+            <Setter Property="IsEnabled" Value="False" />
+            <Setter Property="Height" Value="10" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border Background="#CCCCCC" Height="2" Margin="10,4,10,4" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- Style for Title ListBoxItem-->
+        <Style x:Key="TitleItemStyle" TargetType="ListBoxItem" BasedOn="{StaticResource MenuItemStyle}">
+            <Setter Property="IsEnabled" Value="False"/>
+            <Setter Property="Height" Value="25" />
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="Gray"/>
+        </Style>
+    </Window.Resources>
+    <Grid x:Name="MainGrid">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition x:Name="SidebarColumn" Width="270"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <!-- Sidebar -->
+        <Border Grid.Column="0" BorderBrush="#E0E0E0" BorderThickness="0,0,1,0">
+            <Grid Background="#FFFFFF">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <!-- Logo Section -->
+                <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,0,0,20">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                    </Grid>
+                    <Image Source="pack://application:,,,/Resources/img/logo1.png" 
+                           Width="50" 
+                           Height="50" 
+                           HorizontalAlignment="Center" 
+                           VerticalAlignment="Top" Margin="0,20,0,0"/>
+                    <TextBlock x:Name="LogoText" Grid.Row="1" Text="CHROME" FontSize="24" FontWeight="Bold" Foreground="#333333"/>
+                </StackPanel>
+                <!-- Menu Items -->
+                <ListBox Grid.Row="1" 
+                         x:Name="MainMenuListBox"
+                         ItemContainerStyle="{StaticResource MenuItemStyle}"
+                         ItemTemplate="{StaticResource MenuItemTemplate}"
+                         Background="Transparent"
+                         BorderThickness="0">
+                    <ListBox.Resources>
+                        <Style TargetType="ScrollBar" BasedOn="{StaticResource MaterialDesignScrollBar}" />
+                    </ListBox.Resources>
+                    <ListBoxItem x:Name="OverviewTitle" Style="{StaticResource TitleItemStyle}">Tổng quan</ListBoxItem>
+                    <ListBoxItem x:Name="ucDashboard">
+                        <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                            <materialDesign:PackIcon
+                                                    Width="24"
+                                                    Height="24"
+                                                    Margin="10,0,10,0"
+                                                    Kind="ViewDashboard" />
+                            <TextBlock Text="Bảng điều khiển" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem Style="{StaticResource SeparatorItemStyle}" />
+                    <ListBoxItem x:Name="AccountTitle" Style="{StaticResource TitleItemStyle}">Tài khoản</ListBoxItem>
+                    <ListBoxItem x:Name="ucAccountManagment" IsEnabled="{Binding CanAccountManagement}">
+                        <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                            <materialDesign:PackIcon
+                                 Width="24"
+                                 Height="24"
+                                 Margin="10,0,10,0"
+                                 Kind="AccountCircle" />
+                            <TextBlock Text="Quản lí người dùng" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem x:Name="ucGroupManagement" IsEnabled="{Binding CanGroupManagement}">
+                        <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                            <materialDesign:PackIcon
+                                 Width="24"
+                                 Height="24"
+                                 Margin="10,0,10,0"
+                                 Kind="PersonGroup" />
+                            <TextBlock Text="Quản lí nhóm người dùng" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem Style="{StaticResource SeparatorItemStyle}" />
+                    <ListBoxItem Style="{StaticResource TitleItemStyle}">Dữ liệu nền tảng</ListBoxItem>
+                    <ListBoxItem x:Name="ucProductMaster" IsEnabled="{Binding CanProductMaster}">
+                        <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                            <materialDesign:PackIcon
+                                 Width="24"
+                                 Height="24"
+                                 Margin="10,0,10,0"
+                                 Kind="Package" />
+                            <TextBlock Text="Quản lí sản phẩm" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem x:Name="ucSupplierMaster" IsEnabled="{Binding CanSupplierMaster}">
+                        <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                            <materialDesign:PackIcon
+                                 Width="24"
+                                 Height="24"
+                                 Margin="10,0,10,0"
+                                 Kind="SourceBranch" />
+                            <TextBlock Text="Quản lí nhà cung cấp" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem x:Name="ucCustomerMaster" IsEnabled="{Binding CanCustomerMaster}">
+                        <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                            <materialDesign:PackIcon
+                                 Width="24"
+                                 Height="24"
+                                 Margin="10,0,10,0"
+                                 Kind="Partnership" />
+                            <TextBlock Text="Quản lí khách hàng" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem x:Name="ucWarehouseMaster" IsEnabled="{Binding CanWarehoseMaster}">
+                        <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                            <materialDesign:PackIcon
+                                 Width="24"
+                                 Height="24"
+                                 Margin="10,0,10,0"
+                                 Kind="Warehouse" />
+                            <TextBlock Text="Quản lí kho" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem x:Name="ucBOMList" IsEnabled="{Binding CanBOMList}">
+                        <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                            <materialDesign:PackIcon
+                                  Width="24"
+                                  Height="24"
+                                  Margin="10,0,10,0"
+                                  Kind="FileTree" />
+                            <TextBlock Text="Quản lí BOM" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem Style="{StaticResource SeparatorItemStyle}" />
+                    <ListBoxItem x:Name="CommandTitle" Style="{StaticResource TitleItemStyle}">Quản lí lệnh</ListBoxItem>
+                    <ListBoxItem x:Name="ucStockIn" IsEnabled="{Binding CanStockIn}">
+                        <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                            <materialDesign:PackIcon
+                                 Width="24"
+                                 Height="24"
+                                 Margin="10,0,10,0"
+                                 Kind="TruckDelivery" />
+                            <TextBlock Text="Nhập hàng" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem x:Name="ucStockOut" IsEnabled="{Binding CanStockOut}">
+                        <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                            <materialDesign:PackIcon
+                                 Width="24"
+                                 Height="24"
+                                 Margin="10,0,10,0"
+                                 Kind="PackageDelivered" />
+                            <TextBlock Text="Xuất hàng" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem x:Name="ucTransfer" IsEnabled="{Binding CanTransfer}">
+                        <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                            <materialDesign:PackIcon
+                                 Width="24"
+                                 Height="24"
+                                 Margin="10,0,10,0"
+                                 Kind="SwapHorizontal" />
+                            <TextBlock Text="Chuyển kho" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem x:Name="ucMovement" IsEnabled="{Binding CanMovement}">
+                        <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                            <materialDesign:PackIcon
+                                 Width="24"
+                                 Height="24"
+                                 Margin="10,0,10,0"
+                                 Kind="Transfer" />
+                            <TextBlock Text="Chuyển kệ" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem x:Name="ucPickList" IsEnabled="{Binding CanPickList}">
+                        <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                            <materialDesign:PackIcon
+                                  Width="24"
+                                  Height="24"
+                                  Margin="10,0,10,0"
+                                  Kind="PackageUp" />
+                            <TextBlock Text="Lấy hàng" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem x:Name="ucPutAway" IsEnabled="{Binding CanPutAway}">
+                        <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                            <materialDesign:PackIcon
+                              Width="24"
+                              Height="24"
+                              Margin="10,0,10,0"
+                              Kind="PackageDown" />
+                            <TextBlock Text="Cất hàng" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem x:Name="ucStockTake" IsEnabled="{Binding CanStockTake}">
+                        <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                            <materialDesign:PackIcon
+                                  Width="24"
+                                  Height="24"
+                                  Margin="10,0,10,0"
+                                  Kind="ClipboardCheck" />
+                            <TextBlock Text="Kiểm kê" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem Style="{StaticResource SeparatorItemStyle}" />
+                    <ListBoxItem x:Name="ProductionTitle" Style="{StaticResource TitleItemStyle}">Sản xuất</ListBoxItem>
+                    <ListBoxItem x:Name="ucProductionOrder" IsEnabled="{Binding ProductionOrder}">
+                        <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                            <materialDesign:PackIcon
+                                  Width="24"
+                                  Height="24"
+                                  Margin="10,0,10,0"
+                                  Kind="Factory" />
+                            <TextBlock Text="Quản lí lệnh sản xuất" />
+                        </StackPanel>
+                    </ListBoxItem>
+                </ListBox>
+                <!-- Settings -->
+                <ListBox x:Name="SettingsListBox" Grid.Row="2" Margin="0,0,0,10"
+                         ItemContainerStyle="{StaticResource MenuItemStyle}"
+                         ItemTemplate="{StaticResource MenuItemTemplate}"
+                         Background="Transparent"
+                         BorderThickness="0">
+                    <ListBoxItem Foreground="Red">
+                        <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                            <materialDesign:PackIcon
+                           Width="24"
+                           Height="24"
+                           Margin="10,0,10,0"
+                           Kind="Logout" />
+                            <TextBlock Text="Đăng xuất" />
+                        </StackPanel>
+                    </ListBoxItem>
+                </ListBox>
+            </Grid>
+        </Border>
+        <!-- Main Content Area -->
+        <Border Grid.Column="1" BorderBrush="#E0E0E0" BorderThickness="0,0,0,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Border Grid.Row="0" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Padding="10">
+                    <StackPanel  Background="Transparent">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Button Grid.Column="0" Style="{StaticResource MaterialDesignFloatingActionMiniButton}" 
+                                    x:Name="ToggleSideBar"
+                                    Background="White" Width="35" Height="35"  BorderBrush="Transparent" Click="ToggleSideBar_Click">
+                                <materialDesign:PackIcon Kind="MenuOpen" Width="20" Height="20" Foreground="Gray"/>
+                            </Button>
+                            <Border
+                             Grid.Column="2"
+                             Width="Auto"
+                             Padding="5,5,30,5"
+                             Background="#ECF0F1"
+                             BorderBrush="Transparent"
+                             BorderThickness="1"
+                             CornerRadius="15">
+                                <StackPanel VerticalAlignment="Center" Orientation="Horizontal" >
+                                    <Border
+                                        Width="30"
+                                        Height="30"
+                                        VerticalAlignment="Center"
+                                        Background="#1A73E8"
+                                        CornerRadius="15">
+                                        <TextBlock
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        FontSize="12"
+                                        FontWeight="Bold"
+                                        Foreground="White"
+                                        Text="{Binding UserInformationDTO.ImageInitial}" />
+                                    </Border>
+                                    <StackPanel Margin="5,0,0,0">
+                                        <TextBlock Text="{Binding UserInformationDTO.FullName}" Foreground="Black"/>
+                                        <TextBlock Text="{Binding UserInformationDTO.GroupName}" Foreground="Gray" FontSize="10"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                
+                            </Border>
+                             
+                        </Grid>
+                    </StackPanel>
+                </Border>
+                <ContentControl
+                     x:Name="MainContent"
+                     Grid.Row="1">
+                    <materialDesign:Snackbar
+                         x:Name="MainSnackbar"
+                         Width="Auto"
+                         Margin="16"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Bottom"
+                         MessageQueue="{materialDesign:MessageQueue}" />
+                </ContentControl>
+            </Grid>
+        </Border>
     </Grid>
 </Window>

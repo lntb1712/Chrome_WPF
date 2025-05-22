@@ -52,10 +52,10 @@ namespace Chrome_WPF.ViewModels
                 {
                     Properties.Settings.Default.AccessToken = response.Data!.Token;
                     Properties.Settings.Default.UserName = response.Data!.Username;
-                    Properties.Settings.Default.FullName = await _authService.GetName(response.Data!);
+                    Properties.Settings.Default.FullName = await _authService.GetName(response.Data!.Token!);
                     Properties.Settings.Default.Save();
 
-                    _notificationService.QueueMessageForNextSnackbar("Đăng nhập thành công!", "OK", isError: false);
+                    _notificationService.QueueMessageForNextSnackbar("Đăng nhập thành công!", "OK", isError: true);
                     // Lấy MainWindow từ DI container
                     var existingMainWindow = Application.Current.Windows.OfType<MainWindow>().FirstOrDefault();
                     if (existingMainWindow != null)
@@ -75,13 +75,13 @@ namespace Chrome_WPF.ViewModels
                 else
                 {
                     // Thất bại: Màu đỏ (isError = true)
-                    _notificationService.ShowMessage(response.Message!, "OK", isError: true);
+                    _notificationService.ShowMessage(response.Message!, "OK", isError: false);
                 }
             }
             catch (Exception ex)
             {
                 // Lỗi: Màu đỏ (isError = true)
-                _notificationService.ShowMessage($"Đăng nhập thất bại! {ex.Message}", "OK", null!, TimeSpan.FromSeconds(5), isError: true);
+                _notificationService.ShowMessage($"Đăng nhập thất bại! {ex.Message}", "OK", null!, TimeSpan.FromSeconds(5), isError: false);
             }
         }
        
