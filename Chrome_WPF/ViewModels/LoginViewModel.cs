@@ -65,7 +65,7 @@ namespace Chrome_WPF.ViewModels
                     }
 
                     var app = (App)Application.Current;
-                    var mainWindow = App._serviceProvider!.GetRequiredService<MainWindow>();
+                    var mainWindow = App.ServiceProvider!.GetRequiredService<MainWindow>();
                     mainWindow.Show();
 
                     Application.Current.Windows

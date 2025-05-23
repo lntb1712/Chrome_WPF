@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Threading;
 
 namespace Chrome_WPF.ViewModels
 {
@@ -32,6 +33,8 @@ namespace Chrome_WPF.ViewModels
         private bool _canPutAway;
         private bool _canStockTake;
         private bool _canProductionOrder;
+        private string _currentDateTime;
+        private readonly DispatcherTimer _timer;
 
         public string Token
         {
@@ -207,11 +210,29 @@ namespace Chrome_WPF.ViewModels
                 OnPropertyChanged(nameof(CanProductionOrder));
             }
         }
+        public string CurrentDateTime
+        {
+            get => _currentDateTime;
+            set
+            {
+                _currentDateTime = value;
+                OnPropertyChanged();
+            }
+        }
+
         public AuthViewModel(ILoginService loginService, IAuthService authService)
         {
             _loginService = loginService;
             _authService = authService;
             LoadTokenFromSettings();
+            _currentDateTime = DateTime.Now.ToString("dd MMMM, yyyy HH:mm");
+            // Initialize timer
+            _timer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMinutes(1) // Update every second
+            };
+            _timer.Tick += (s, e) => CurrentDateTime = DateTime.Now.ToString("dd MMMM, yyyy HH:mm");
+            _timer.Start();
         }
 
         private async void LoadUserInformation()

@@ -14,6 +14,9 @@ namespace Chrome_WPF.Services.AccountManagementService
         Task<ApiResult<PagedResponse<AccountManagementResponseDTO>>> GetAllAccount(int page, int pageSize);
         Task<ApiResult<PagedResponse<AccountManagementResponseDTO>>> GetAllAccountWithRole(string groupID, int page, int pageSize);
         Task<ApiResult<PagedResponse<AccountManagementResponseDTO>>> SearchAccountInList(string textToSearch, int page, int pageSize);
+        Task<ApiResult<bool>> AddAccountManagement(AccountManagementRequestDTO accountManagementRequestDTO);
+        Task<ApiResult<bool>> UpdateAccountManagement(AccountManagementRequestDTO accountManagementRequestDTO);  
+        Task<ApiResult<bool>> DeleteAccountManagement(string userName);  
 
     }
 }

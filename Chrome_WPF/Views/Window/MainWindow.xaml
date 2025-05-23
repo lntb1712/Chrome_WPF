@@ -158,7 +158,8 @@
                          ItemContainerStyle="{StaticResource MenuItemStyle}"
                          ItemTemplate="{StaticResource MenuItemTemplate}"
                          Background="Transparent"
-                         BorderThickness="0">
+                         BorderThickness="0"
+                         SelectionChanged="MainMenuListBox_SelectionChanged">
                     <ListBox.Resources>
                         <Style TargetType="ScrollBar" BasedOn="{StaticResource MaterialDesignScrollBar}" />
                     </ListBox.Resources>
@@ -175,7 +176,7 @@
                     </ListBoxItem>
                     <ListBoxItem Style="{StaticResource SeparatorItemStyle}" />
                     <ListBoxItem x:Name="AccountTitle" Style="{StaticResource TitleItemStyle}">Tài khoản</ListBoxItem>
-                    <ListBoxItem x:Name="ucAccountManagment" IsEnabled="{Binding CanAccountManagement}">
+                    <ListBoxItem x:Name="ucAccountManagement" IsEnabled="{Binding CanAccountManagement}">
                         <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" VerticalAlignment="Center">
                             <materialDesign:PackIcon
                                  Width="24"
@@ -365,14 +366,22 @@
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <Button Grid.Column="0" Style="{StaticResource MaterialDesignFloatingActionMiniButton}" 
                                     x:Name="ToggleSideBar"
                                     Background="White" Width="35" Height="35"  BorderBrush="Transparent" Click="ToggleSideBar_Click">
                                 <materialDesign:PackIcon Kind="MenuOpen" Width="20" Height="20" Foreground="Gray"/>
                             </Button>
+                            <TextBlock Grid.Column="2" 
+                               Text="{Binding CurrentDateTime}" 
+                               FontFamily="Calibri"
+                               FontSize="14"
+                               Foreground="#718096"
+                               VerticalAlignment="Center"
+                                       Margin="0,0,20,0"/>
                             <Border
-                             Grid.Column="2"
+                             Grid.Column="3"
                              Width="Auto"
                              Padding="5,5,30,5"
                              Background="#ECF0F1"
