@@ -1,18 +1,14 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Chrome_WPF.Models;
+using Chrome_WPF.Models.AccountManagementDTO;
+using Chrome_WPF.Services.NotificationService;
+using Chrome_WPF.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
+using System.ComponentModel.DataAnnotations;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+
 
 namespace Chrome_WPF.Views.UserControls.AccountManagement
 {
@@ -21,9 +17,15 @@ namespace Chrome_WPF.Views.UserControls.AccountManagement
     /// </summary>
     public partial class ucAccountEditor : UserControl
     {
-        public ucAccountEditor()
+        private readonly AccountEditorViewModel _viewModel;
+        private readonly INotificationService _notificationService;
+        public ucAccountEditor(AccountEditorViewModel viewModel,INotificationService notificationService)
         {
             InitializeComponent();
+            _viewModel = viewModel;
+            _notificationService = notificationService;
+            DataContext = _viewModel;
+            _notificationService.RegisterSnackbar(AccountEditorSnackbar);
         }
 
         private void BackButton_Click(object sender, RoutedEventArgs e)
@@ -37,5 +39,19 @@ namespace Chrome_WPF.Views.UserControls.AccountManagement
                 mainContent.Content = accountManagement;
             }
         }
+
+        private void PasswordField_PasswordChanged(object sender, RoutedEventArgs e)
+        {
+            if (sender is PasswordBox passwordBox && DataContext is AccountEditorViewModel viewModel)
+            {
+                viewModel.AccountManagementRequestDTO.Password = passwordBox.Password;
+            }
+        }
+
+        private void UserControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            cboGroup.SelectedItem = null;
+        }
+
     }
 }

@@ -323,18 +323,23 @@ namespace Chrome_WPF.Services.GroupManagementService
             }
         }
 
-        public async Task<ApiResult<Dictionary<string, int>>> GetTotalUserInGroup()
+        public async Task<ApiResult<GroupManagementResponseDTO>> GetGroupManagementWithGroupID(string groupId)
         {
+            if (string.IsNullOrEmpty(groupId))
+            {
+                return new ApiResult<GroupManagementResponseDTO>("ID nhóm không hợp lệ", false);
+            }
+            groupId = groupId.Trim();
             try
             {
-                var response = await _httpClient.GetAsync("GroupManagement/GetTotalUserInGroup").ConfigureAwait(false);
+                var response = await _httpClient.GetAsync($"GroupManagement/GetGroupManagemetWithGroupId?groupId={groupId}").ConfigureAwait(false);
                 var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 if (response.IsSuccessStatusCode)
                 {
-                    var result = JsonConvert.DeserializeObject<ApiResult<Dictionary<string, int>>>(jsonResponse);
+                    var result = JsonConvert.DeserializeObject<ApiResult<GroupManagementResponseDTO>>(jsonResponse);
                     if (result == null || !result.Success)
                     {
-                        return new ApiResult<Dictionary<string, int>>(result?.Message ?? "Không thể phân tích phản hồi", false);
+                        return new ApiResult<GroupManagementResponseDTO>(result?.Message ?? "Không thể phân tích phản hồi", false);
                     }
                     return result;
                 }
@@ -342,39 +347,94 @@ namespace Chrome_WPF.Services.GroupManagementService
                 var errorMessage = errorResult?.Message ?? "Lỗi không xác định từ server";
                 if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                 {
-                    return new ApiResult<Dictionary<string, int>>((string)errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không tồn tại"
+                    return new ApiResult<GroupManagementResponseDTO>((string)errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không tồn tại"
                 }
                 else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
                 {
-                    return new ApiResult<Dictionary<string, int>>((string)errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không có quyền truy cập"
+                    return new ApiResult<GroupManagementResponseDTO>((string)errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không có quyền truy cập"
                 }
                 else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
-                    return new ApiResult<Dictionary<string, int>>((string)errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không tồn tại"
+                    return new ApiResult<GroupManagementResponseDTO>((string)errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không tồn tại"
                 }
                 else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
                 {
-                    return new ApiResult<Dictionary<string, int>>((string)errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Lỗi máy chủ nội bộ"
+                    return new ApiResult<GroupManagementResponseDTO>((string)errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Lỗi máy chủ nội bộ"
                 }
                 else
                 {
-                    return new ApiResult<Dictionary<string, int>>((string)errorMessage, false); // Trả về thông điệp lỗi chung        
+                    return new ApiResult<GroupManagementResponseDTO>((string)errorMessage, false); // Trả về thông điệp lỗi chung    
                 }
             }
             catch (HttpRequestException ex)
             {
                 // Lỗi mạng
-                return new ApiResult<Dictionary<string, int>>($"Lỗi mạng: {ex.Message}", false);
+                return new ApiResult<GroupManagementResponseDTO>($"Lỗi mạng: {ex.Message}", false);
             }
             catch (JsonException ex)
             {
                 // Lỗi phân tích JSON
-                return new ApiResult<Dictionary<string, int>>($"Lỗi phân tích phản hồi: {ex.Message}", false);
+                return new ApiResult<GroupManagementResponseDTO>($"Lỗi phân tích phản hồi: {ex.Message}", false);
             }
             catch (Exception ex)
             {
                 // Lỗi không xác định
-                return new ApiResult<Dictionary<string, int>>($"Lỗi không xác định: {ex.Message}", false);
+                return new ApiResult<GroupManagementResponseDTO>($"Lỗi không xác định: {ex.Message}", false);
+            }
+        }
+
+        public async Task<ApiResult<List<GroupManagementTotalDTO>>> GetTotalUserInGroup()
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync("GroupManagement/GetTotalUserInGroup").ConfigureAwait(false);
+                var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = JsonConvert.DeserializeObject<ApiResult<List<GroupManagementTotalDTO>>>(jsonResponse);
+                    if (result == null || !result.Success)
+                    {
+                        return new ApiResult<List<GroupManagementTotalDTO>>(result?.Message ?? "Không thể phân tích phản hồi", false);
+                    }
+                    return result;
+                }
+                var errorResult = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
+                var errorMessage = errorResult?.Message ?? "Lỗi không xác định từ server";
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    return new ApiResult<List<GroupManagementTotalDTO>>((string)errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không tồn tại"
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    return new ApiResult<List<GroupManagementTotalDTO>>((string)errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không có quyền truy cập"
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return new ApiResult<List<GroupManagementTotalDTO>>((string)errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không tồn tại"
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+                {
+                    return new ApiResult<List<GroupManagementTotalDTO>>((string)errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Lỗi máy chủ nội bộ"
+                }
+                else
+                {
+                    return new ApiResult<List<GroupManagementTotalDTO>>((string)errorMessage, false); // Trả về thông điệp lỗi chung        
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                // Lỗi mạng
+                return new ApiResult<List<GroupManagementTotalDTO>>($"Lỗi mạng: {ex.Message}", false);
+            }
+            catch (JsonException ex)
+            {
+                // Lỗi phân tích JSON
+                return new ApiResult<List<GroupManagementTotalDTO>>($"Lỗi phân tích phản hồi: {ex.Message}", false);
+            }
+            catch (Exception ex)
+            {
+                // Lỗi không xác định
+                return new ApiResult<List<GroupManagementTotalDTO>>($"Lỗi không xác định: {ex.Message}", false);
             }
         }
 

@@ -31,12 +31,22 @@ namespace Chrome_WPF.Services.AuthServices
         public async Task<string> GetName(string token)
         {
             var claims = await DecodeJWT(token); // Await the DecodeJWT method to get the result
-            if (claims != null && claims.ContainsKey("name"))
+            if (claims != null && claims.ContainsKey("unique_name"))
             {
-                return claims["name"].ToString()!;
+                return claims["unique_name"].ToString()!;
             }
             return string.Empty;
         }
+        public async Task<string> GetRole(string token)
+        {
+            var claims = await DecodeJWT(token); // Await the DecodeJWT method to get the result
+            if (claims != null && claims.ContainsKey("role"))
+            {
+                return claims["role"].ToString()!;
+            }
+            return string.Empty;
+        }
+
 
         public async Task<List<string>> GetPermissionFromToken(string token)
         {

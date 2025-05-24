@@ -20,7 +20,7 @@
             <Setter Property="Padding" Value="5"/>
             <Setter Property="Margin" Value="0,2"/>
             <Setter Property="Width" Value="250" />
-            <Setter Property="Height" Value="40" />
+            <Setter Property="Height" Value="45" />
             <Setter Property="FontSize" Value="16" />
             <Setter Property="FontWeight" Value="Medium" />
             <Setter Property="HorizontalAlignment" Value="Left" />
@@ -97,7 +97,7 @@
         </Style>
         <!-- DataTemplate for Menu Items -->
         <DataTemplate x:Key="MenuItemTemplate">
-            <StackPanel Orientation="Horizontal" Margin="10,0" >
+            <StackPanel Orientation="Horizontal" Margin="10,0">
                 <!-- Icon Placeholder (Replace with actual icons) -->
                 <Rectangle Width="20" Height="20" Fill="#333333" Margin="0,0,10,0"/>
                 <TextBlock Text="{Binding}" Foreground="#333333" VerticalAlignment="Center"/>

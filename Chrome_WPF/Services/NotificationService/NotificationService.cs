@@ -1,7 +1,9 @@
 ﻿
 using MaterialDesignThemes.Wpf;
+using MaterialDesignThemes.Wpf.Converters;
 using System;
 using System.Collections.Generic;
+using System.Drawing.Printing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -61,9 +63,10 @@ namespace Chrome_WPF.Services.NotificationService
             }
 
 
-            if (!isError)
+            if (isError)
             {
                 _snackbar.Background = new SolidColorBrush(Color.FromRgb(211, 47, 47)); // Đỏ cho lỗi
+                _snackbar.Margin = new Thickness(10);
                 _snackbar.Foreground = Brushes.White;
                 _snackbar.ActionButtonStyle = new Style(typeof(System.Windows.Controls.Button))
                 {
@@ -72,7 +75,8 @@ namespace Chrome_WPF.Services.NotificationService
                         new Setter(System.Windows.Controls.Control.ForegroundProperty, Brushes.White),
                         new Setter(System.Windows.Controls.Control.BackgroundProperty, Brushes.Transparent), // hoặc màu xanh, hoặc trong suốt
                         new Setter(System.Windows.Controls.Control.BorderBrushProperty, Brushes.Transparent),
-                        new Setter(System.Windows.Controls.Control.FontWeightProperty, FontWeights.Bold)
+                        new Setter(System.Windows.Controls.Control.FontWeightProperty, FontWeights.Bold),
+
                     }
                 };
 
@@ -82,6 +86,7 @@ namespace Chrome_WPF.Services.NotificationService
             {
                 _snackbar.Background = new SolidColorBrush(Color.FromRgb(56, 142, 60)); // Xanh lá cho thành công
                 _snackbar.Foreground = Brushes.White;
+                _snackbar.Margin = new Thickness(10);
                 _snackbar.ActionButtonStyle = new Style(typeof(System.Windows.Controls.Button))
                 {
                     Setters =
@@ -89,7 +94,8 @@ namespace Chrome_WPF.Services.NotificationService
                         new Setter(System.Windows.Controls.Control.ForegroundProperty, Brushes.White),
                         new Setter(System.Windows.Controls.Control.BackgroundProperty, Brushes.Transparent), // hoặc màu xanh, hoặc trong suốt
                         new Setter(System.Windows.Controls.Control.BorderBrushProperty, Brushes.Transparent),
-                        new Setter(System.Windows.Controls.Control.FontWeightProperty, FontWeights.Bold)
+                        new Setter(System.Windows.Controls.Control.FontWeightProperty, FontWeights.Bold),
+
                     }
                 };
             }

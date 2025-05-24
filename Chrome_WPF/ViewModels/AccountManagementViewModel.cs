@@ -1,6 +1,7 @@
 ﻿using Chrome_WPF.Helpers;
 using Chrome_WPF.Models.AccountManagementDTO;
 using Chrome_WPF.Models.APIResult;
+using Chrome_WPF.Models.GroupManagementDTO;
 using Chrome_WPF.Models.PagedResponse;
 using Chrome_WPF.Services.AccountManagementService;
 using Chrome_WPF.Services.GroupManagementService;
@@ -8,11 +9,13 @@ using Chrome_WPF.Services.NavigationService;
 using Chrome_WPF.Services.NotificationService;
 using Chrome_WPF.Views;
 using Chrome_WPF.Views.UserControls.AccountManagement;
+using ClosedXML.Excel;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -28,13 +31,14 @@ namespace Chrome_WPF.ViewModels
         private readonly INotificationService _notificationService;
         private readonly INavigationService _navigationService;
         private ObservableCollection<AccountManagementResponseDTO> _accountList;
-        private Dictionary<string, int> _lstGroupManagement;
+        private ObservableCollection<GroupManagementTotalDTO> _lstGroupManagement;
         private string _searchText;
         private int _currentPage;
         private int _pageSize = 10;
         private int _totalPages;
         private string _selectedGroupId;
         private AccountManagementResponseDTO _selectedAccount;
+        private AccountManagementRequestDTO? _accountManagementRequestDTO;
         private bool _isEditorOpen;
         private ObservableCollection<object> _displayPages;
 
@@ -45,11 +49,10 @@ namespace Chrome_WPF.ViewModels
             {
                 _accountList = value;
                 OnPropertyChanged();
-                SelectFirstAccount();
             }
         }
 
-        public Dictionary<string, int> LstGroupManagement
+        public ObservableCollection<GroupManagementTotalDTO> LstGroupManagement
         {
             get => _lstGroupManagement;
             set
@@ -66,7 +69,6 @@ namespace Chrome_WPF.ViewModels
             {
                 _searchText = value;
                 OnPropertyChanged();
-                Task.Delay(300).ContinueWith(_ => SearchAccountsAsync());
             }
         }
 
@@ -80,7 +82,7 @@ namespace Chrome_WPF.ViewModels
                     _currentPage = value;
                     OnPropertyChanged();
                     UpdateDisplayPages();
-                    LoadAccountsAsync().GetAwaiter().GetResult();
+                    _ = LoadAccountsAsync();
                 }
             }
         }
@@ -93,7 +95,7 @@ namespace Chrome_WPF.ViewModels
                 _pageSize = value;
                 OnPropertyChanged();
                 CurrentPage = 1;
-                LoadAccountsAsync().GetAwaiter().GetResult();
+                _ = LoadAccountsAsync();
             }
         }
 
@@ -118,12 +120,21 @@ namespace Chrome_WPF.ViewModels
                 CurrentPage = 1;
                 if (!string.IsNullOrEmpty(value))
                 {
-                    LoadAccountsByRole(value).GetAwaiter().GetResult();
+                    _ = LoadAccountsByRole(value);
                 }
                 else
                 {
-                    LoadAccountsAsync().GetAwaiter().GetResult();
+                    _ = LoadAccountsAsync();
                 }
+            }
+        }
+        public AccountManagementRequestDTO AccountManagementRequestDTO
+        {
+            get => _accountManagementRequestDTO!;
+            set
+            {
+                _accountManagementRequestDTO = value;
+                OnPropertyChanged();
             }
         }
 
@@ -134,6 +145,20 @@ namespace Chrome_WPF.ViewModels
             {
                 _selectedAccount = value;
                 OnPropertyChanged();
+                if (SelectedAccount != null)
+                {
+                    AccountManagementRequestDTO = new AccountManagementRequestDTO
+                    {
+                        UserName = SelectedAccount.UserName,
+                        FullName = SelectedAccount.FullName,
+                        GroupID = SelectedAccount.GroupID,
+                        Password = SelectedAccount.Password
+                    };
+                }
+                else
+                {
+                    AccountManagementRequestDTO = new AccountManagementRequestDTO();
+                }
             }
         }
 
@@ -162,10 +187,12 @@ namespace Chrome_WPF.ViewModels
         public ICommand AddCommand { get; }
         public ICommand DeleteCommand { get; }
         public ICommand UpdateCommand { get; }
+        public ICommand RefreshCommand { get; }
         public ICommand NextPageCommand { get; }
         public ICommand PreviousPageCommand { get; }
         public ICommand SelectPageCommand { get; }
         public ICommand FilterByTypeCommand { get; }
+        public ICommand ExportAndPreviewCommand { get; }
 
         public AccountManagementViewModel(
             IAccountManagementService accountManagementService,
@@ -178,7 +205,8 @@ namespace Chrome_WPF.ViewModels
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
             _accountList = new ObservableCollection<AccountManagementResponseDTO>();
-            _lstGroupManagement = new Dictionary<string, int>();
+            _lstGroupManagement = new ObservableCollection<GroupManagementTotalDTO>();
+            AccountManagementRequestDTO = new AccountManagementRequestDTO(); // Initialize the field here
             _currentPage = 1;
             _searchText = string.Empty;
             _selectedGroupId = string.Empty;
@@ -186,16 +214,18 @@ namespace Chrome_WPF.ViewModels
             _displayPages = new ObservableCollection<object>();
 
             SearchCommand = new RelayCommand(async _ => await SearchAccountsAsync());
+            RefreshCommand = new RelayCommand(async _ => await LoadAccountsAsync());
             AddCommand = new RelayCommand(_ => OpenEditor(null!));
-            DeleteCommand = new RelayCommand(async account => await DeleteAccountAsync((AccountManagementResponseDTO)account));
+            DeleteCommand = new RelayCommand(async account => await DeleteAccountAsync((AccountManagementResponseDTO)account), account => account != null);
             UpdateCommand = new RelayCommand(account => OpenEditor((AccountManagementResponseDTO)account));
             PreviousPageCommand = new RelayCommand(_ => PreviousPage(), _ => CurrentPage > 1);
             NextPageCommand = new RelayCommand(_ => NextPage(), _ => CurrentPage < TotalPages);
             SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
             FilterByTypeCommand = new RelayCommand(groupId => SelectedGroupId = (string)groupId);
+            ExportAndPreviewCommand = new RelayCommand(async p=> await ExportAndPreview(p));
 
-            _=LoadAccountsAsync();
-            _=LoadGroupsAsync();
+            _ = LoadAccountsAsync();
+            _ = LoadGroupsAsync();
         }
 
         private async Task LoadAccountsAsync()
@@ -211,7 +241,7 @@ namespace Chrome_WPF.ViewModels
                         AccountList.Add(account);
                     }
                     TotalPages = result.Data.TotalPages;
-                    SelectFirstAccount();
+                    _notificationService.ShowMessage(result.Message, "Ok", isError: false);
                 }
                 else
                 {
@@ -238,12 +268,11 @@ namespace Chrome_WPF.ViewModels
                 if (result.Success && result.Data != null)
                 {
                     AccountList.Clear();
-                    foreach (var account in result.Data.Data ?? Enumerable.Empty<AccountManagementResponseDTO>())
+                    foreach (var account in result.Data.Data)
                     {
                         AccountList.Add(account);
                     }
                     TotalPages = result.Data.TotalPages;
-                    SelectFirstAccount();
                 }
                 else
                 {
@@ -275,7 +304,8 @@ namespace Chrome_WPF.ViewModels
                         AccountList.Add(account);
                     }
                     TotalPages = result.Data.TotalPages;
-                    SelectFirstAccount();
+                    // Đảm bảo DataGrid cập nhật ngay lập tức
+                    OnPropertyChanged(nameof(AccountList));
                 }
                 else
                 {
@@ -298,7 +328,7 @@ namespace Chrome_WPF.ViewModels
                     LstGroupManagement.Clear();
                     foreach (var kvp in result.Data)
                     {
-                        LstGroupManagement[kvp.Key] = kvp.Value;
+                        LstGroupManagement.Add(kvp);
                     }
                     OnPropertyChanged(nameof(LstGroupManagement));
                 }
@@ -312,12 +342,29 @@ namespace Chrome_WPF.ViewModels
                 _notificationService.ShowMessage($"Lỗi: {ex.Message}", "OK", isError: true);
             }
         }
-
         private void OpenEditor(AccountManagementResponseDTO account)
         {
-            _navigationService.NavigateTo<ucAccountEditor>();
-        }
+            var accountEditor = App.ServiceProvider!.GetRequiredService<ucAccountEditor>();
+            // Truyền isAddingNew dựa trên account có null hay không
+            accountEditor.DataContext = new AccountEditorViewModel(
+                _accountManagementService,
+                _groupManagementService,
+                _notificationService,
+                _navigationService,
+                isAddingNew: account == null) // Nếu account null thì isAddingNew = true
+            {
+                AccountManagementRequestDTO = account == null ? new AccountManagementRequestDTO() : new AccountManagementRequestDTO
+                {
+                    UserName = account.UserName,
+                    Password = account.Password,
+                    FullName = account.FullName,
+                    GroupID = account.GroupID,
+                    UpdateBy = account.UpdateBy
+                }
+            };
+            _navigationService.NavigateTo(accountEditor);
 
+        }
         private async Task DeleteAccountAsync(AccountManagementResponseDTO account)
         {
             if (account == null) return;
@@ -330,9 +377,8 @@ namespace Chrome_WPF.ViewModels
                     var deleteResult = await _accountManagementService.DeleteAccountManagement(account.UserName);
                     if (deleteResult.Success)
                     {
-                        AccountList.Remove(account);
+                        _=LoadAccountsAsync();
                         _notificationService.ShowMessage("Xóa tài khoản thành công!", "OK");
-                        SelectFirstAccount();
                     }
                     else
                     {
@@ -370,53 +416,79 @@ namespace Chrome_WPF.ViewModels
             }
         }
 
-        private void SelectFirstAccount()
-        {
-            foreach (var account in AccountList)
-            {
-                account.IsSelected = false;
-            }
-
-            var firstAccount = AccountList.FirstOrDefault();
-            if (firstAccount != null)
-            {
-                firstAccount.IsSelected = true;
-                SelectedAccount = firstAccount;
-            }
-            else
-            {
-                SelectedAccount = null!;
-            }
-        }
-
         private void UpdateDisplayPages()
         {
             DisplayPages = new ObservableCollection<object>();
-
             if (TotalPages <= 0) return;
 
-            const int maxPagesToShow = 5; // Số trang tối đa hiển thị (không tính "...")
-            if (TotalPages <= maxPagesToShow)
+            int startPage = Math.Max(1, CurrentPage - 2);
+            int endPage = Math.Min(TotalPages, CurrentPage + 2);
+
+            if (startPage > 1)
+                DisplayPages.Add(1);
+            if (startPage > 2)
+                DisplayPages.Add("...");
+
+            for (int i = startPage; i <= endPage; i++)
+                DisplayPages.Add(i);
+
+            if (endPage < TotalPages - 1)
+                DisplayPages.Add("...");
+            if (endPage < TotalPages)
+                DisplayPages.Add(TotalPages);
+        }
+        private async Task ExportAndPreview(object parameter)
+        {
+            try
             {
-                for (int i = 1; i <= TotalPages; i++)
+                // Path to the template Excel file
+                string templatePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "BaoCaoNhanSu.xlsx");
+
+                // Path to save the exported file on the Desktop
+                string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                string exportPath = Path.Combine(desktopPath, $"BaoCaoNhanSu_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
+                var response = await _groupManagementService.GetGroupManagementWithGroupID(Properties.Settings.Default.Role);
+                // Load the Excel template
+                using (var workbook = new XLWorkbook(templatePath))
                 {
-                    DisplayPages.Add(i);
+                    var worksheet = workbook.Worksheet(1); // Assuming data is in the first worksheet
+
+                    // Define the starting row for data (based on the template, data starts at row 8)
+                    int startRow = 10;
+
+                    // Populate the header fields (if needed)
+                    worksheet.Cell(3, 7).Value = $"Ngày {DateTime.Now.Day} Tháng {DateTime.Now.Month} Năm {DateTime.Now.Year}";
+                    worksheet.Cell(4, 5).Value = Properties.Settings.Default.FullName; // Replace with actual data
+                    worksheet.Cell(5, 5).Value = response.Data!.GroupName; // Replace with actual data
+                    worksheet.Cell(6, 5).Value = $"Báo cáo nhân sự tháng {DateTime.Now.Month}/{DateTime.Now.Year}"; // Replace with actual data
+
+                    // Populate the data from AccountList
+                    int row = startRow;
+                    int stt = 1;
+
+                    foreach (var account in AccountList)
+                    {
+                        worksheet.Cell(row, 2).Value = stt; // STT
+                        worksheet.Cell(row, 3).Value = account.UserName.ToString(); // Mã nhân viên
+                        worksheet.Cell(row, 4).Value = account.FullName.ToString(); // Họ và tên
+                        worksheet.Cell(row, 5).Value = LstGroupManagement.FirstOrDefault(g => g.GroupID == account.GroupID)?.GroupName ?? ""; // Nhóm người dùng
+                        worksheet.Cell(row, 6).Value = account.UpdateTime.ToString() ?? ""; // Ngày cập nhật
+                        worksheet.Cell(row, 7).Value = account.UpdateBy.ToString() ?? ""; // Người cập nhật
+                        worksheet.Cell(row, 8).Value = ""; // Ghi chú (empty as per template)
+                        row++;
+                        stt++;
+                    }
+
+                    // Save the workbook to the Desktop
+                    workbook.SaveAs(exportPath);
+
+                    // Notify user of success
+                    _notificationService.ShowMessage($"Xuất báo cáo thành công! File được lưu tại: {exportPath}", "OK", isError: false);
                 }
             }
-            else
+            catch (Exception ex)
             {
-                DisplayPages.Add(1);
-                if (TotalPages > 1) DisplayPages.Add(2);
-
-                if (TotalPages > maxPagesToShow)
-                {
-                    DisplayPages.Add("...");
-                }
-
-                if (TotalPages > 1)
-                {
-                    DisplayPages.Add(TotalPages);
-                }
+                _notificationService.ShowMessage($"Lỗi khi xuất báo cáo: {ex.Message}", "OK", isError: true);
             }
         }
     }

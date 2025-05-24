@@ -55,6 +55,7 @@ namespace Chrome_WPF
             services.AddTransient<LoginViewModel>();
             services.AddTransient<AuthViewModel>();
             services.AddTransient<AccountManagementViewModel>();
+            services.AddTransient<AccountEditorViewModel>();
 
             // Register Views
             services.AddTransient<LoginWindow>(provider =>
@@ -73,7 +74,11 @@ namespace Chrome_WPF
                     provider.GetRequiredService<AccountManagementViewModel>(),
                     provider.GetRequiredService<INotificationService>()));
 
-            services.AddTransient<ucAccountEditor>();
+            services.AddTransient<ucAccountEditor>(provider=>
+                new ucAccountEditor(
+                    provider.GetRequiredService<AccountEditorViewModel>(),
+                    provider.GetRequiredService<INotificationService>()));
+
         }
 
         protected override void OnStartup(StartupEventArgs e)

@@ -4,14 +4,164 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Chrome_WPF.Views.UserControls.AccountManagement"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:converters="clr-namespace:Chrome_WPF.Converters"
+             xmlns:helpers="clr-namespace:Chrome_WPF.Helpers"
              mc:Ignorable="d" 
+             Loaded="UserControl_Loaded"
              d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    </UserControl.Resources>
     <Grid Background="#F5F7FA">
-        <StackPanel>
-            <Button x:Name="BackButton" Content="Back" Click="BackButton_Click" Width="100" Height="30" HorizontalAlignment="Left" Margin="10"/>
-            <!-- Các thành phần giao diện khác của ucAccountEditor -->
-            <TextBlock Text="{Binding AccountName}" />
-            <!-- Ví dụ hiển thị thông tin tài khoản -->
-        </StackPanel>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Button x:Name="BackButton" 
+                Click="BackButton_Click" 
+                Width="150" 
+                Height="36" 
+                Margin="16,16,0,8"
+                HorizontalAlignment="Left"
+                Style="{StaticResource MaterialDesignFlatButton}"
+                materialDesign:ButtonAssist.CornerRadius="8"
+                Background="#E2E8F0"
+                Foreground="#2D3748">
+            <StackPanel Orientation="Horizontal">
+                <materialDesign:PackIcon
+                             Width="24"
+                             Height="24"
+                             Margin="0,0,10,0"
+                             Kind="Backburger" />
+                <TextBlock Text="Quay lại" VerticalAlignment="Center" />
+            </StackPanel>
+        </Button>
+
+        <materialDesign:Card Grid.Row="1"
+                            Margin="16,8,16,16"
+                            Height="600"
+                            Width="600"
+                            Padding="24"
+                            Background="White"
+                            materialDesign:ElevationAssist.Elevation="Dp6"
+                            UniformCornerRadius="16">
+            <StackPanel>
+                <TextBlock Text="Thông tin người dùng"
+                          FontSize="24"
+                          FontWeight="SemiBold"
+                          Foreground="#1A202C"
+                          Margin="0,0,0,24"
+                          HorizontalAlignment="Center"/>
+
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBox x:Name="UserNameTextBox" 
+                             Grid.Row="0" 
+                             Margin="0,8,8,24"
+                             Padding="12,8"
+                             FontSize="14"
+                             materialDesign:HintAssist.Hint="Tên đăng nhập"
+                             materialDesign:HintAssist.IsFloating="True"
+                             materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                             materialDesign:TextFieldAssist.LeadingIcon="Account"
+                             IsEnabled="{Binding IsAddingNew}">
+                        <TextBox.Text>
+
+                            <Binding Path="AccountManagementRequestDTO.UserName" 
+                                     UpdateSourceTrigger="LostFocus" 
+                                     ValidatesOnDataErrors="True" 
+                                     ValidatesOnNotifyDataErrors="True"/>
+                        </TextBox.Text>
+                    </TextBox>
+                    <PasswordBox x:Name="PasswordField"
+                                     helpers:BindablePasswordBoxBehavior.BoundPassword="{Binding AccountManagementRequestDTO.Password, UpdateSourceTrigger=LostFocus, ValidatesOnDataErrors=True}"
+                                     PasswordChanged="PasswordField_PasswordChanged"
+                                     Padding="12,8"
+                                     FontSize="14"
+                                     Grid.Row="1"
+                                     Margin="0,8,8,24"    
+                                     materialDesign:HintAssist.Hint="Mật khẩu"
+                                     materialDesign:HintAssist.IsFloating="True"
+                                     materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                                     materialDesign:TextFieldAssist.LeadingIcon="Lock"/>
+
+
+                    <TextBox x:Name="FullNameTextBox" 
+                             Grid.Row="2"
+                             Margin="0,8,8,24"
+                             Padding="12,8"
+                             FontSize="14"
+                             materialDesign:HintAssist.Hint="Tên đầy đủ"
+                             materialDesign:HintAssist.IsFloating="True"
+                             materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                             materialDesign:TextFieldAssist.LeadingIcon="AccountCircle"
+                             >
+                        <TextBox.Text>
+                            <Binding Path="AccountManagementRequestDTO.FullName" 
+                                     UpdateSourceTrigger="LostFocus" 
+                                     ValidatesOnDataErrors="True" 
+                                     ValidatesOnNotifyDataErrors="True"/>
+                        </TextBox.Text>
+                    </TextBox>
+                    <ComboBox x:Name="cboGroup"
+                              Grid.Row="3"
+                              Margin="0,8,8,24"
+                              Padding="12,8"
+                              FontSize="14"
+                              materialDesign:HintAssist.Hint="Nhóm người dùng"
+                              materialDesign:HintAssist.IsFloating="True"
+                              materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                              materialDesign:TextFieldAssist.LeadingIcon="Group"
+                              ItemsSource="{Binding LstGroups}"
+                              SelectedValuePath="GroupId"
+                              SelectedItem="{Binding SelectedGroup, UpdateSourceTrigger=LostFocus, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True}">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock>
+                                    <Run Text="{Binding GroupId}" />
+                                    <Run Text=" - " />
+                                    <Run Text="{Binding GroupName}" />
+                                </TextBlock>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+
+
+                    <Button Grid.Row="4" Grid.ColumnSpan="2"
+                            Content="Lưu"
+                            Width="120"
+                            Height="40"
+                            Margin="0,16,0,0"
+                            HorizontalAlignment="Center"
+                            Style="{StaticResource MaterialDesignRaisedButton}"
+                            materialDesign:ButtonAssist.CornerRadius="10"
+                            Background="#3182CE"
+                            Foreground="White"
+                            FontWeight="Medium"
+                            Command="{Binding SaveCommand}"
+                           />
+
+                    <materialDesign:Snackbar x:Name="AccountEditorSnackbar"
+                                            Grid.Row="5"
+                                            Width="Auto"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Bottom"
+                                            Margin="16"
+                                            MessageQueue="{materialDesign:MessageQueue}"/>
+                </Grid>
+            </StackPanel>
+        </materialDesign:Card>
     </Grid>
 </UserControl>

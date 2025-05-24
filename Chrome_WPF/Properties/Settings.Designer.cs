@@ -64,5 +64,19 @@ namespace Chrome_WPF.Properties {
                 this["FullName"] = value;
             }
         }
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string Role
+        {
+            get
+            {
+                return ((string)(this["Role"]));
+            }
+            set
+            {
+                this["Role"] = value;
+            }
+        }
     }
 }

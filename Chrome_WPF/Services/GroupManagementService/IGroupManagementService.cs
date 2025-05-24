@@ -16,7 +16,8 @@ namespace Chrome_WPF.Services.GroupManagementService
         Task<ApiResult<PagedResponse<GroupManagementResponseDTO>>> SearchGroupInList(string textToSearch, int page, int pageSize);
         Task<ApiResult<List<GroupFunctionResponseDTO>>> GetGroupFunctionWithGroupID(string groupId);
         Task<ApiResult<List<GroupFunctionResponseDTO>>> GetAllGroupFunction();
-        Task<ApiResult<Dictionary<string,int>>>GetTotalUserInGroup();
+        Task<ApiResult<GroupManagementResponseDTO>> GetGroupManagementWithGroupID(string groupId);
+        Task<ApiResult<List<GroupManagementTotalDTO>>>GetTotalUserInGroup();
         Task<ApiResult<bool>> AddGroupManagement(GroupManagementRequestDTO groupManagementRequestDTO);
         Task<ApiResult<bool>> UpdateGroupManagement(GroupManagementRequestDTO groupManagementRequestDTO);
         Task<ApiResult<bool>> DeleteGroupManagement(string groupId);

@@ -229,7 +229,7 @@ namespace Chrome_WPF.Services.AccountManagementService
             groupID = groupID.Trim();
             try
             {
-                var response = await _httpClient.GetAsync($"AccountManagement/GetAllAccountWithRole?groupID={groupID}&page={page}&pageSize={pageSize}").ConfigureAwait(false);
+                var response = await _httpClient.GetAsync($"AccountManagement/GetAllAccountWithRole?GroupID={groupID}&page={page}&pageSize={pageSize}").ConfigureAwait(false);
                 var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 if (response.IsSuccessStatusCode)
                 {

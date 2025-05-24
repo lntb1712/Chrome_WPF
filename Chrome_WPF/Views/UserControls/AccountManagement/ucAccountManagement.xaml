@@ -33,7 +33,6 @@
                             <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignIconButton}">
                                 <Setter Property="Background" Value="Transparent"/>
                                 <Setter Property="Foreground" Value="{DynamicResource MaterialDesignBody}"/>
-                                <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="20"/>
                                 <Style.Triggers>
                                     <DataTrigger Value="True">
                                         <DataTrigger.Binding>
@@ -112,18 +111,19 @@
         </Style>
 
         <Style x:Key="FilterButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="#E2E8F0" />
-            <Setter Property="BorderBrush" Value="Transparent" />
-            <Setter Property="Padding" Value="8,4" />
-            <Setter Property="Margin" Value="0,0,10,0" />
+            <Setter Property="Background" Value="#E6F0FA"/>
+            <!-- Softer light blue -->
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="Margin" Value="0,0,10,0"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border Background="{TemplateBinding Background}" 
-                                BorderBrush="{TemplateBinding BorderBrush}" 
-                                BorderThickness="1" 
-                                Padding="10"
-                                CornerRadius="4">
+                        BorderBrush="{TemplateBinding BorderBrush}" 
+                        BorderThickness="1" 
+                        Padding="{TemplateBinding Padding}"
+                        CornerRadius="4">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                     </ControlTemplate>
@@ -131,7 +131,16 @@
             </Setter>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#D5DDEA" />
+                    <Setter Property="Background" Value="#B3D4FC"/>
+                    <!-- Brighter blue on hover -->
+                    <Setter Property="BorderBrush" Value="#A3BFFA"/>
+                    <!-- Subtle border on hover -->
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#CBD5E0"/>
+                    <!-- Disabled state -->
+                    <Setter Property="Foreground" Value="#A0AEC0"/>
+                    <!-- Disabled text/icon color -->
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -164,7 +173,7 @@
                 <DataTemplate>
                     <Button Margin="8,0,8,0" Padding="0"
                             Command="{Binding DataContext.FilterByTypeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                            CommandParameter="{Binding Key}"
+                            CommandParameter="{Binding GroupID}"
                             Background="Transparent"
                             BorderThickness="0">
                         <Border Background="White" 
@@ -187,14 +196,14 @@
                                                          HorizontalAlignment="Center"
                                                          VerticalAlignment="Center"/>
                                 <StackPanel Grid.Column="1" Orientation="Vertical">
-                                    <TextBlock Text="{Binding Key}" 
+                                    <TextBlock Text="{Binding GroupName}" 
                                                FontSize="12" 
                                                Foreground="#718096" 
                                                TextWrapping="Wrap" 
                                                Margin="5,0,0,0"
                                                VerticalAlignment="Center"
                                                HorizontalAlignment="Center"/>
-                                    <TextBlock Text="{Binding Value}" 
+                                    <TextBlock Text="{Binding TotalUser}" 
                                                FontSize="20" 
                                                FontWeight="Bold" 
                                                Foreground="#2D3748" 
@@ -242,36 +251,48 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <TextBox Grid.Column="0" 
-                             Margin="0,0,10,0" 
-                             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
-                             Foreground="#A0AEC0" 
-                             Padding="8" 
-                             materialDesign:HintAssist.Hint="Tìm kiếm người dùng..."
-                             Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>
+                 Margin="0,0,10,0" 
+                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
+                 Foreground="#A0AEC0" 
+                 Padding="8" 
+                 materialDesign:HintAssist.Hint="Tìm kiếm người dùng..."
+                 Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>
                     <Button Grid.Column="1" 
-                            Style="{StaticResource FilterButtonStyle}" 
-                            Command="{Binding SearchCommand}">
+                Style="{StaticResource FilterButtonStyle}" 
+                Command="{Binding SearchCommand}">
                         <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="Search" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Tìm kiếm" VerticalAlignment="Center"/>
+                            <materialDesign:PackIcon Kind="Search" Margin="0,0,5,0" VerticalAlignment="Center" Foreground="#4B5EAA"/>
+                            <TextBlock Text="Tìm kiếm" VerticalAlignment="Center" Foreground="#2D3748"/>
                         </StackPanel>
                     </Button>
                     <Button Grid.Column="3" 
-                            Style="{StaticResource FilterButtonStyle}">
+        Style="{StaticResource FilterButtonStyle}" 
+        Command="{Binding ExportAndPreviewCommand}">
                         <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="FileDownload" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Xuất Excel" VerticalAlignment="Center"/>
+                            <materialDesign:PackIcon Kind="FileDownload" Margin="0,0,5,0" VerticalAlignment="Center" Foreground="#4B5EAA"/>
+                            <TextBlock Text="Xuất Excel" VerticalAlignment="Center" Foreground="#2D3748"/>
                         </StackPanel>
                     </Button>
                     <Button Grid.Column="4" 
-                            HorizontalAlignment="Right"
-                            Style="{StaticResource FilterButtonStyle}" 
-                            Command="{Binding AddCommand}">
+                HorizontalAlignment="Right"
+                Style="{StaticResource FilterButtonStyle}" 
+                Command="{Binding AddCommand}">
                         <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="PersonAdd" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Thêm người dùng" VerticalAlignment="Center"/>
+                            <materialDesign:PackIcon Kind="PersonAdd" Margin="0,0,5,0" VerticalAlignment="Center" Foreground="#4B5EAA"/>
+                            <TextBlock Text="Thêm người dùng" VerticalAlignment="Center" Foreground="#2D3748"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Grid.Column="5" 
+                HorizontalAlignment="Right"
+                Background="Transparent"
+                Style="{StaticResource FilterButtonStyle}" 
+                Command="{Binding RefreshCommand}"
+                ToolTip="Làm mới">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="Refresh"  VerticalAlignment="Center" Foreground="#4B5EAA"/>
                         </StackPanel>
                     </Button>
                 </Grid>
@@ -281,7 +302,10 @@
             <DataGrid Grid.Row="1" 
                       Style="{StaticResource ModernDataGridStyle}"
                       ItemsSource="{Binding AccountList}" 
-                      SelectedItem="{Binding SelectedAccount, Mode=TwoWay}">
+                      SelectedItem="{Binding SelectedAccount, UpdateSourceTrigger=PropertyChanged}"
+                      EnableRowVirtualization="False"
+                      EnableColumnVirtualization="False"
+                      VirtualizingPanel.IsVirtualizing="True">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Tên đăng nhập" Binding="{Binding UserName}" Width="*"/>
                     <DataGridTextColumn Header="Tên đầy đủ" Binding="{Binding FullName}" Width="*"/>
@@ -292,41 +316,20 @@
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
-                                    <Button x:Name="MoreActionButton"
-                                            Height="20"
-                                            VerticalAlignment="Top"
-                                            VerticalContentAlignment="Center"
-                                            ToolTip="Thêm hành động"
-                                            Click="MoreActionButton_Click">
-                                        <materialDesign:PackIcon Kind="DotsHorizontal" 
-                                                                 Width="16" 
-                                                                 Height="16" 
-                                                                 VerticalAlignment="Center" 
-                                                                 Foreground="{DynamicResource MaterialDesignBody}"/>
-                                        <Button.ContextMenu>
-                                            <ContextMenu Style="{StaticResource MaterialDesignContextMenu}">
-                                                <MenuItem Header="Xóa" 
-                                                          Command="{Binding DeleteCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" 
-                                                          CommandParameter="{Binding}">
-                                                    <MenuItem.Icon>
-                                                        <materialDesign:PackIcon Kind="Delete" 
-                                                                                 Width="16" 
-                                                                                 Height="16" 
-                                                                                 Foreground="{DynamicResource MaterialDesignBody}"/>
-                                                    </MenuItem.Icon>
-                                                </MenuItem>
-                                                <MenuItem Header="Sửa" 
-                                                          Command="{Binding UpdateCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" 
-                                                          CommandParameter="{Binding}">
-                                                    <MenuItem.Icon>
-                                                        <materialDesign:PackIcon Kind="Edit" 
-                                                                                 Width="16" 
-                                                                                 Height="16" 
-                                                                                 Foreground="{DynamicResource MaterialDesignBody}"/>
-                                                    </MenuItem.Icon>
-                                                </MenuItem>
-                                            </ContextMenu>
-                                        </Button.ContextMenu>
+                                    <Button Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                            CommandParameter="{Binding}" 
+                                            Padding="0,0,0,12"
+                                            Background="Transparent"
+                                            BorderBrush="Transparent">
+                                        <materialDesign:PackIcon Kind="Delete" />
+                                    </Button>
+                                    <Button Command="{Binding DataContext.UpdateCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                            CommandParameter="{Binding}" 
+                                            Padding="0,0,0,12"
+                                            Background="Transparent"
+                                            BorderBrush="Transparent"
+                                            Margin="25,0,0,0">
+                                        <materialDesign:PackIcon Kind="Pencil" />
                                     </Button>
                                 </StackPanel>
                             </DataTemplate>
@@ -369,23 +372,10 @@
             </StackPanel>
         </Grid>
 
-        <!-- Overlay Popup --><!--
-        <Grid Grid.Row="0" 
-              Grid.RowSpan="3" 
-              Background="#80000000" 
-              Visibility="{Binding IsEditorOpen, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-
-        <Popup Name="AccountEditorPopup" 
-               IsOpen="{Binding IsEditorOpen}" 
-               StaysOpen="False" 
-               Placement="Center" 
-               PlacementTarget="{Binding RelativeSource={RelativeSource AncestorType=UserControl}}">
-            <localAccountEditor:ucAccountEditor Width="400" Height="300"/>
-        </Popup>-->
-
         <!-- Snackbar -->
         <materialDesign:Snackbar x:Name="AccountManagementSnackbar"
-                                 Grid.Row="0" Grid.RowSpan="3"
+                                 Grid.Row="3" 
+                                 Width="Auto"
                                  HorizontalAlignment="Center"
                                  VerticalAlignment="Bottom"
                                  Margin="16"
