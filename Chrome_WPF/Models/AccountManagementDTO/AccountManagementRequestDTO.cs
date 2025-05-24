@@ -9,7 +9,7 @@ namespace Chrome_WPF.Models.AccountManagementDTO
         private string _userName = string.Empty;
         private string _password = string.Empty;
         private string _fullName = string.Empty;
-        private string? _groupID = null;
+        private string _groupID = string.Empty;
         private string _updateBy = string.Empty;
         private bool _isValidationRequested;
 
@@ -55,7 +55,8 @@ namespace Chrome_WPF.Models.AccountManagementDTO
         }
 
         [Required(ErrorMessage = "Vui lòng chọn nhóm người dùng")]
-        public string? GroupID
+        
+        public string GroupID
         {
             get => _groupID;
             set
@@ -83,24 +84,27 @@ namespace Chrome_WPF.Models.AccountManagementDTO
             get
             {
                 if (!_isValidationRequested)
-                {
                     return string.Empty;
-                }
 
-                // Bỏ qua validation cho UpdateBy
+                // Bỏ qua validation cho một số property
                 if (columnName == nameof(UpdateBy))
-                {
                     return string.Empty;
-                }
 
-                var validationResults = new System.Collections.Generic.List<ValidationResult>();
-                var validationContext = new ValidationContext(this) { MemberName = columnName };
-                var propertyValue = GetType().GetProperty(columnName)?.GetValue(this);
+                // Lấy giá trị property hiện tại
+                var property = GetType().GetProperty(columnName);
+                if (property == null)
+                    return string.Empty;
 
-                bool isValid = Validator.TryValidateProperty(propertyValue, validationContext, validationResults);
-                return isValid ? string.Empty : validationResults.FirstOrDefault()?.ErrorMessage ?? string.Empty;
+                var value = property.GetValue(this);
+                var context = new ValidationContext(this) { MemberName = columnName };
+                var results = new List<ValidationResult>();
+
+                bool isValid = Validator.TryValidateProperty(value, context, results);
+
+                return isValid ? string.Empty : results.FirstOrDefault()?.ErrorMessage ?? string.Empty;
             }
         }
+
 
         public void RequestValidation()
         {

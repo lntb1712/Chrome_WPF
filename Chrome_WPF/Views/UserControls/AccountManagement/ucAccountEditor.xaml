@@ -126,8 +126,8 @@
                               materialDesign:TextFieldAssist.LeadingIcon="Group"
                               ItemsSource="{Binding LstGroups}"
                               SelectedValuePath="GroupId"
-                              SelectedItem="{Binding SelectedGroup, UpdateSourceTrigger=LostFocus, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True}">
-                                            <ComboBox.ItemTemplate>
+                             SelectedValue="{Binding AccountManagementRequestDTO.GroupID, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True}">
+                        <ComboBox.ItemTemplate>
                                                 <DataTemplate>
                                                     <TextBlock>
                                     <Run Text="{Binding GroupId}" />

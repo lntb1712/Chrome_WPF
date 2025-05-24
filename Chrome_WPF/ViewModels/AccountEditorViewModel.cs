@@ -45,11 +45,13 @@ namespace Chrome_WPF.ViewModels
             set
             {
                 _selectedGroup = value;
-                OnPropertyChanged();
-                if (_selectedGroup != null && AccountManagementRequestDTO != null)
+                // Cập nhật GroupID khi SelectedGroup thay đổi
+                if (_accountManagementRequestDTO != null)
                 {
-                    AccountManagementRequestDTO.GroupID = _selectedGroup.GroupId;
+                    _accountManagementRequestDTO.GroupID = value?.GroupId!;
                 }
+                OnPropertyChanged(nameof(SelectedGroup));
+                OnPropertyChanged(nameof(AccountManagementRequestDTO)); // Kích hoạt validate
             }
         }
 
@@ -61,14 +63,25 @@ namespace Chrome_WPF.ViewModels
             {
                 if (_accountManagementRequestDTO != null)
                 {
+
                     _accountManagementRequestDTO.PropertyChanged -= OnPropertyChangedHandler!;
                 }
                 _accountManagementRequestDTO = value;
                 _accountManagementRequestDTO.PropertyChanged += OnPropertyChangedHandler!;
+                // Cập nhật SelectedGroup dựa trên GroupID
+                UpdateSelectedGroup();
                 OnPropertyChanged(nameof(AccountManagementRequestDTO));
             }
         }
-
+        // Đồng bộ SelectedGroup với GroupID
+        private void UpdateSelectedGroup()
+        {
+            if (_accountManagementRequestDTO != null && LstGroups != null)
+            {
+                _selectedGroup = LstGroups.FirstOrDefault(g => g.GroupId == _accountManagementRequestDTO.GroupID)!;
+                OnPropertyChanged(nameof(SelectedGroup));
+            }
+        }
         public ObservableCollection<GroupManagementResponseDTO> LstGroups
         {
             get => _lstGroups;
@@ -125,12 +138,8 @@ namespace Chrome_WPF.ViewModels
                     foreach (var group in result.Data.Data)
                     {
                         LstGroups.Add(group);
-                    }
-                    // After loading groups, set the selected group if GroupID is already set
-                    if (!string.IsNullOrEmpty(AccountManagementRequestDTO.GroupID))
-                    {
-                        SelectedGroup = LstGroups.FirstOrDefault(g => g.GroupId == AccountManagementRequestDTO.GroupID)!;
-                    }
+                    } 
+                   
                 }
                 else
                 {
@@ -196,7 +205,7 @@ namespace Chrome_WPF.ViewModels
 
             foreach (var prop in propertiesToValidate)
             {
-                if (!string.IsNullOrWhiteSpace(dto[prop]))
+                if (!string.IsNullOrEmpty(dto[prop]) )
                 {
                     
                     return false;

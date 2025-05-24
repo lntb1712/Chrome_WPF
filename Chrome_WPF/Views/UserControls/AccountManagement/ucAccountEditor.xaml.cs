@@ -50,7 +50,6 @@ namespace Chrome_WPF.Views.UserControls.AccountManagement
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
-            cboGroup.SelectedItem = null;
         }
 
     }
