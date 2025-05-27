@@ -40,5 +40,31 @@ namespace Chrome_WPF.Views.UserControls
                 button.ContextMenu.IsOpen = true;
             }
         }
+
+        private void ScrollLeftButton_Click(object sender, RoutedEventArgs e)
+        {
+            double newOffset = GroupFilterScrollViewer.HorizontalOffset - 100;
+            if (newOffset >= 0) // Prevent scrolling beyond the start
+            {
+                GroupFilterScrollViewer.ScrollToHorizontalOffset(newOffset);
+            }
+            else
+            {
+                GroupFilterScrollViewer.ScrollToHorizontalOffset(0);
+            }
+        }
+
+        private void ScrollRightButton_Click(object sender, RoutedEventArgs e)
+        {
+            double newOffset = GroupFilterScrollViewer.HorizontalOffset + 100;
+            if (newOffset <= GroupFilterScrollViewer.ScrollableWidth) // Prevent scrolling beyond the end
+            {
+                GroupFilterScrollViewer.ScrollToHorizontalOffset(newOffset);
+            }
+            else
+            {
+                GroupFilterScrollViewer.ScrollToHorizontalOffset(GroupFilterScrollViewer.ScrollableWidth);
+            }
+        }
     }
 }

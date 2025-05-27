@@ -3,6 +3,7 @@ using Chrome_WPF.Services.NavigationService;
 using Chrome_WPF.Services.NotificationService;
 using Chrome_WPF.ViewModels;
 using Chrome_WPF.Views.UserControls;
+using Chrome_WPF.Views.UserControls.GroupManagement;
 using MaterialDesignThemes.Wpf;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -50,7 +51,7 @@ namespace Chrome_WPF.Views
             SidebarColumn.BeginAnimation(GridLengthAnimationHelper.AnimatedWidthProperty, animation);
 
             ToggleTextVisibility(MainMenuListBox);
-            ToggleTextVisibility(SettingsListBox);
+            ToggleTextVisibility(LogOut);
             LogoText.Visibility = isSidebarCollapsed ? Visibility.Visible : Visibility.Collapsed;
 
             isSidebarCollapsed = !isSidebarCollapsed;
@@ -91,6 +92,31 @@ namespace Chrome_WPF.Views
                 {
                     case "ucAccountManagement":
                         _navigationService.NavigateTo<ucAccountManagement>();
+                        break;
+                    case "ucGroupManagement":
+                        _navigationService.NavigateTo<ucGroupManagement>();
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        private void LogOut_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if( LogOut.SelectedItem is ListBoxItem selectedItem )
+            {
+                switch (selectedItem.Name)
+                {
+                    case "LogOutItem":
+                        Properties.Settings.Default.AccessToken = string.Empty;
+                        Properties.Settings.Default.UserName = string.Empty;
+                        Properties.Settings.Default.FullName = string.Empty;
+                        Properties.Settings.Default.Role = string.Empty;
+                        Properties.Settings.Default.Save();
+                        var loginWindow = App.ServiceProvider!.GetRequiredService<LoginWindow>();
+                        loginWindow.Show();
+                        Close();
                         break;
                     default:
                         break;

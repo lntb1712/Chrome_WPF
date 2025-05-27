@@ -47,10 +47,5 @@ namespace Chrome_WPF.Views.UserControls.AccountManagement
                 viewModel.AccountManagementRequestDTO.Password = passwordBox.Password;
             }
         }
-
-        private void UserControl_Loaded(object sender, RoutedEventArgs e)
-        {
-        }
-
     }
 }

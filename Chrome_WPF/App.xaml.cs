@@ -6,9 +6,11 @@ using Chrome_WPF.Services.LoginServices;
 using Chrome_WPF.Services.NavigationService;
 using Chrome_WPF.Services.NotificationService;
 using Chrome_WPF.ViewModels;
+using Chrome_WPF.ViewModels.GroupManagementViewModel;
 using Chrome_WPF.Views;
 using Chrome_WPF.Views.UserControls;
 using Chrome_WPF.Views.UserControls.AccountManagement;
+using Chrome_WPF.Views.UserControls.GroupManagement;
 using Microsoft.Extensions.DependencyInjection;
 using System.Globalization;
 using System.Windows;
@@ -56,6 +58,8 @@ namespace Chrome_WPF
             services.AddTransient<AuthViewModel>();
             services.AddTransient<AccountManagementViewModel>();
             services.AddTransient<AccountEditorViewModel>();
+            services.AddTransient<GroupManagementViewModel>();
+            services.AddTransient<GroupEditorViewModel>();
 
             // Register Views
             services.AddTransient<LoginWindow>(provider =>
@@ -74,10 +78,20 @@ namespace Chrome_WPF
                     provider.GetRequiredService<AccountManagementViewModel>(),
                     provider.GetRequiredService<INotificationService>()));
 
-            services.AddTransient<ucAccountEditor>(provider=>
+            services.AddTransient<ucAccountEditor>(provider =>
                 new ucAccountEditor(
                     provider.GetRequiredService<AccountEditorViewModel>(),
                     provider.GetRequiredService<INotificationService>()));
+
+            services.AddTransient<ucGroupManagement>(provider =>
+                new ucGroupManagement(
+                    provider.GetRequiredService<INotificationService>(),
+                    provider.GetRequiredService<GroupManagementViewModel>()));
+            services.AddTransient<ucGroupEditor>(provider =>
+                new ucGroupEditor(
+                    provider.GetRequiredService<GroupEditorViewModel>(),
+                    provider.GetRequiredService<INotificationService>()));
+
 
         }
 

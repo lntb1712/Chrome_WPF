@@ -415,6 +415,62 @@ namespace Chrome_WPF.Services.AccountManagementService
                 return new ApiResult<bool>($"Lỗi không xác định: {ex.Message}", false);
             }
         }
+
+
+        public async Task<ApiResult<int>> GetTotalAccount()
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync("AccountManagement/GetTotalAccount").ConfigureAwait(false);
+                var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = JsonConvert.DeserializeObject<ApiResult<int>>(jsonResponse);
+                    if (result == null || !result.Success)
+                    {
+                        return new ApiResult<int>(result?.Message ?? "Không thể phân tích phản hồi tổng số tài khoản", false);
+                    }
+                    return result;
+                }
+                var errorResult = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
+                var errorMessage = errorResult?.Message ?? "Lỗi không xác định từ server";
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    return new ApiResult<int>((string)errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không tồn tại"
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    return new ApiResult<int>((string)errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không có quyền truy cập"
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return new ApiResult<int>((string)errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không tồn tại"
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+                {
+                    return new ApiResult<int>((string)errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Lỗi máy chủ nội bộ"
+                }
+                else
+                {
+                    return new ApiResult<int>((string)errorMessage, false); // Trả về thông điệp lỗi chung
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                // Lỗi mạng
+                return new ApiResult<int>($"Lỗi mạng: {ex.Message}", false);
+            }
+            catch (JsonException ex)
+            {
+                // Lỗi phân tích JSON
+                return new ApiResult<int>($"Lỗi phân tích phản hồi: {ex.Message}", false);
+            }
+            catch (Exception ex)
+            {
+                // Lỗi không xác định
+                return new ApiResult<int>($"Lỗi không xác định: {ex.Message}", false);
+            }
+        }
         public void Dispose()
         {
             // Giải phóng tài nguyên HttpClient khi không còn cần thiết

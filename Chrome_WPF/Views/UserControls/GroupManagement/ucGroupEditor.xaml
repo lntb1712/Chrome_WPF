@@ -1,0 +1,280 @@
+﻿<UserControl
+    x:Class="Chrome_WPF.Views.UserControls.GroupManagement.ucGroupEditor"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="clr-namespace:Chrome_WPF.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:helpers="clr-namespace:Chrome_WPF.Helpers"
+    xmlns:local="clr-namespace:Chrome_WPF.Views.UserControls.GroupManagement"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DesignHeight="600"
+    d:DesignWidth="700"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <SolidColorBrush x:Key="BorderNormalColor" Color="#E0E0E0" />
+        <Style x:Key="ModernDataGridStyle" TargetType="{x:Type DataGrid}">
+            <Setter Property="RowBackground" Value="White" />
+            <Setter Property="AlternatingRowBackground" Value="#F5F5F5" />
+            <Setter Property="GridLinesVisibility" Value="None" />
+            <Setter Property="HeadersVisibility" Value="Column" />
+            <Setter Property="CanUserAddRows" Value="False" />
+            <Setter Property="AutoGenerateColumns" Value="False" />
+            <Setter Property="SelectionMode" Value="Single" />
+            <Setter Property="RowHeight" Value="35" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="Background" Value="White" />
+            <Setter Property="EnableRowVirtualization" Value="True" />
+            <Setter Property="EnableColumnVirtualization" Value="True" />
+            <Setter Property="VirtualizingPanel.IsVirtualizing" Value="True" />
+            <Setter Property="VirtualizingPanel.VirtualizationMode" Value="Recycling" />
+            <Setter Property="IsReadOnly" Value="True" />
+            <!--  Cho phép chỉnh sửa checkbox  -->
+            <Setter Property="CellStyle">
+                <Setter.Value>
+                    <Style TargetType="{x:Type DataGridCell}">
+                        <Setter Property="Padding" Value="8" />
+                        <Setter Property="BorderBrush" Value="{StaticResource BorderNormalColor}" />
+                    </Style>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="ColumnHeaderStyle">
+                <Setter.Value>
+                    <Style TargetType="{x:Type DataGridColumnHeader}">
+                        <Setter Property="Background" Value="#F5F7FA" />
+                        <Setter Property="Foreground" Value="#2D3748" />
+                        <Setter Property="FontWeight" Value="SemiBold" />
+                        <Setter Property="Padding" Value="8" />
+                        <Setter Property="BorderThickness" Value="0,0,0,0" />
+                        <Setter Property="BorderBrush" Value="#E0E7FF" />
+                        <Setter Property="HorizontalContentAlignment" Value="Center" />
+                        <Setter Property="VerticalContentAlignment" Value="Center" />
+                    </Style>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ScrollBarLineButton" TargetType="RepeatButton">
+            <Setter Property="OverridesDefaultStyle" Value="True" />
+            <Setter Property="IsTabStop" Value="False" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Width" Value="10" />
+            <Setter Property="Height" Value="10" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RepeatButton">
+                        <Grid Background="Transparent" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="MaterialDesignScrollBar" TargetType="ScrollBar">
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Setter Property="OverridesDefaultStyle" Value="True" />
+            <Setter Property="Height" Value="200" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Grid Width="10" Background="Transparent">
+                            <Track
+                                Name="PART_Track"
+                                Focusable="False"
+                                IsDirectionReversed="true">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="ScrollBar.LineUpCommand" Style="{StaticResource ScrollBarLineButton}" />
+                                </Track.DecreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb Background="LightGray">
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Border Background="{TemplateBinding Background}" CornerRadius="5" />
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="ScrollBar.LineDownCommand" Style="{StaticResource ScrollBarLineButton}" />
+                                </Track.IncreaseRepeatButton>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+    <Grid Background="#F5F7FA">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Button
+            x:Name="BackButton"
+            Width="150"
+            Height="36"
+            Margin="16,16,0,8"
+            HorizontalAlignment="Left"
+            materialDesign:ButtonAssist.CornerRadius="8"
+            Background="#E2E8F0"
+            Click="BackButton_Click"
+            Foreground="#2D3748"
+            Style="{StaticResource MaterialDesignFlatButton}">
+            <StackPanel Orientation="Horizontal">
+                <materialDesign:PackIcon
+                    Width="24"
+                    Height="24"
+                    Margin="0,0,10,0"
+                    Kind="Backburger" />
+                <TextBlock VerticalAlignment="Center" Text="Quay lại" />
+            </StackPanel>
+        </Button>
+        <!--  Card Editor  -->
+        <materialDesign:Card
+            Grid.Row="1"
+            Width="700"
+            Margin="16,8,16,16"
+            Padding="24"
+            materialDesign:ElevationAssist.Elevation="Dp6"
+            Background="White"
+            UniformCornerRadius="16">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <TextBlock
+                    Grid.Row="0"
+                    Margin="0,0,0,24"
+                    HorizontalAlignment="Center"
+                    FontSize="24"
+                    FontWeight="SemiBold"
+                    Foreground="#1A202C"
+                    Text="Thông tin nhóm" />
+                <TextBox
+                    x:Name="GroupIDTextBox"
+                    Grid.Row="1"
+                    Margin="0,8,8,24"
+                    Padding="12,8"
+                    materialDesign:HintAssist.Hint="Mã nhóm người dùng"
+                    materialDesign:HintAssist.IsFloating="True"
+                    materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                    materialDesign:TextFieldAssist.LeadingIcon="IdCard"
+                    FontSize="14"
+                    IsEnabled="{Binding IsAddingNew}">
+                    <TextBox.Text>
+                        <Binding
+                            Path="GroupManagementRequestDTO.GroupId"
+                            UpdateSourceTrigger="LostFocus"
+                            ValidatesOnDataErrors="True"
+                            ValidatesOnNotifyDataErrors="True" />
+                    </TextBox.Text>
+                </TextBox>
+                <TextBox
+                    x:Name="GroupNameTextBox"
+                    Grid.Row="2"
+                    Margin="0,8,8,24"
+                    Padding="12,8"
+                    materialDesign:HintAssist.Hint="Tên nhóm người dùng"
+                    materialDesign:HintAssist.IsFloating="True"
+                    materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                    materialDesign:TextFieldAssist.LeadingIcon="AccountGroup"
+                    FontSize="14"
+                    IsEnabled="True">
+                    <TextBox.Text>
+                        <Binding
+                            Path="GroupManagementRequestDTO.GroupName"
+                            UpdateSourceTrigger="LostFocus"
+                            ValidatesOnDataErrors="True"
+                            ValidatesOnNotifyDataErrors="True" />
+                    </TextBox.Text>
+                </TextBox>
+                <TextBox
+                    x:Name="GroupDescriptionTextBox"
+                    Grid.Row="3"
+                    Margin="0,8,8,24"
+                    Padding="12,8"
+                    materialDesign:HintAssist.Hint="Mô tả người dùng"
+                    materialDesign:HintAssist.IsFloating="True"
+                    materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                    materialDesign:TextFieldAssist.LeadingIcon="EditBox"
+                    AcceptsReturn="True"
+                    FontSize="14"
+                    IsEnabled="True"
+                    TextWrapping="Wrap"
+                    VerticalScrollBarVisibility="Auto">
+                    <TextBox.Text>
+                        <Binding
+                            Path="GroupManagementRequestDTO.GroupDescription"
+                            UpdateSourceTrigger="LostFocus"
+                            ValidatesOnDataErrors="True"
+                            ValidatesOnNotifyDataErrors="True" />
+                    </TextBox.Text>
+                </TextBox>
+
+                <DataGrid
+                    Grid.Row="4"
+                    MaxWidth="700"
+                    MaxHeight="300"
+                    Margin="0,16,0,0"
+                    EnableColumnVirtualization="True"
+                    EnableRowVirtualization="True"
+                    ItemsSource="{Binding LstGroupFunctions, UpdateSourceTrigger=PropertyChanged}"
+                    ScrollViewer.CanContentScroll="True"
+                    ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                    ScrollViewer.VerticalScrollBarVisibility="Auto"
+                    SelectedItem="{Binding SelectedGroupFunction, UpdateSourceTrigger=PropertyChanged}"
+                    Style="{StaticResource ModernDataGridStyle}"
+                    VirtualizingPanel.IsVirtualizing="True"
+                    VirtualizingPanel.VirtualizationMode="Recycling">
+                    <DataGrid.Resources>
+                        <Style BasedOn="{StaticResource MaterialDesignScrollBar}" TargetType="ScrollBar" />
+                    </DataGrid.Resources>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn
+                            Width="*"
+                            Binding="{Binding FunctionName, UpdateSourceTrigger=PropertyChanged}"
+                            Header="Tên chức năng" />
+                        <DataGridCheckBoxColumn
+                            Width="80"
+                            Binding="{Binding IsEnable, UpdateSourceTrigger=PropertyChanged}"
+                            Header="Bật/Tắt">
+                            <DataGridCheckBoxColumn.ElementStyle>
+                                <Style TargetType="{x:Type CheckBox}">
+                                    <Setter Property="HorizontalAlignment" Value="Center" />
+                                    <Setter Property="VerticalAlignment" Value="Center" />
+                                </Style>
+                            </DataGridCheckBoxColumn.ElementStyle>
+                        </DataGridCheckBoxColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+                <Button
+                    Grid.Row="5"
+                    Grid.ColumnSpan="2"
+                    Width="120"
+                    Height="40"
+                    Margin="0,16,0,0"
+                    HorizontalAlignment="Center"
+                    materialDesign:ButtonAssist.CornerRadius="10"
+                    Background="#3182CE"
+                    Command="{Binding SaveCommand}"
+                    Content="Lưu"
+                    FontWeight="Medium"
+                    Foreground="White"
+                    Style="{StaticResource MaterialDesignRaisedButton}" />
+                <materialDesign:Snackbar
+                    x:Name="GroupEditorSnackbar"
+                    Grid.Row="6"
+                    Width="Auto"
+                    Margin="16"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom"
+                    MessageQueue="{materialDesign:MessageQueue}" />
+            </Grid>
+        </materialDesign:Card>
+    </Grid>
+</UserControl>

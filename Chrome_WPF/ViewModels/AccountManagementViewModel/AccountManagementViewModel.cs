@@ -32,6 +32,7 @@ namespace Chrome_WPF.ViewModels
         private readonly INavigationService _navigationService;
         private ObservableCollection<AccountManagementResponseDTO> _accountList;
         private ObservableCollection<GroupManagementTotalDTO> _lstGroupManagement;
+        private ObservableCollection<object> _displayPages;
         private string _searchText;
         private int _currentPage;
         private int _pageSize = 10;
@@ -40,7 +41,8 @@ namespace Chrome_WPF.ViewModels
         private AccountManagementResponseDTO _selectedAccount;
         private AccountManagementRequestDTO? _accountManagementRequestDTO;
         private bool _isEditorOpen;
-        private ObservableCollection<object> _displayPages;
+        private int _totalAccountCount;
+
 
         public ObservableCollection<AccountManagementResponseDTO> AccountList
         {
@@ -61,6 +63,49 @@ namespace Chrome_WPF.ViewModels
                 OnPropertyChanged();
             }
         }
+        public AccountManagementRequestDTO AccountManagementRequestDTO
+        {
+            get => _accountManagementRequestDTO!;
+            set
+            {
+                _accountManagementRequestDTO = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public AccountManagementResponseDTO SelectedAccount
+        {
+            get => _selectedAccount;
+            set
+            {
+                _selectedAccount = value;
+                OnPropertyChanged();
+                if (SelectedAccount != null)
+                {
+                    AccountManagementRequestDTO = new AccountManagementRequestDTO
+                    {
+                        UserName = SelectedAccount.UserName,
+                        FullName = SelectedAccount.FullName,
+                        GroupID = SelectedAccount.GroupID,
+                        Password = SelectedAccount.Password
+                    };
+                }
+                else
+                {
+                    AccountManagementRequestDTO = new AccountManagementRequestDTO();
+                }
+            }
+        }
+        public ObservableCollection<object> DisplayPages
+        {
+            get => _displayPages;
+            set
+            {
+                _displayPages = value;
+                OnPropertyChanged();
+            }
+        }
+
 
         public string SearchText
         {
@@ -128,39 +173,6 @@ namespace Chrome_WPF.ViewModels
                 }
             }
         }
-        public AccountManagementRequestDTO AccountManagementRequestDTO
-        {
-            get => _accountManagementRequestDTO!;
-            set
-            {
-                _accountManagementRequestDTO = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public AccountManagementResponseDTO SelectedAccount
-        {
-            get => _selectedAccount;
-            set
-            {
-                _selectedAccount = value;
-                OnPropertyChanged();
-                if (SelectedAccount != null)
-                {
-                    AccountManagementRequestDTO = new AccountManagementRequestDTO
-                    {
-                        UserName = SelectedAccount.UserName,
-                        FullName = SelectedAccount.FullName,
-                        GroupID = SelectedAccount.GroupID,
-                        Password = SelectedAccount.Password
-                    };
-                }
-                else
-                {
-                    AccountManagementRequestDTO = new AccountManagementRequestDTO();
-                }
-            }
-        }
 
         public bool IsEditorOpen
         {
@@ -172,15 +184,16 @@ namespace Chrome_WPF.ViewModels
             }
         }
 
-        public ObservableCollection<object> DisplayPages
+        public int TotalAccountCount
         {
-            get => _displayPages;
+            get => _totalAccountCount;
             set
             {
-                _displayPages = value;
+                _totalAccountCount = value;
                 OnPropertyChanged();
             }
         }
+
 
         // Commands
         public ICommand SearchCommand { get; }
@@ -193,6 +206,7 @@ namespace Chrome_WPF.ViewModels
         public ICommand SelectPageCommand { get; }
         public ICommand FilterByTypeCommand { get; }
         public ICommand ExportAndPreviewCommand { get; }
+        public ICommand FilterAllCommand { get; }
 
         public AccountManagementViewModel(
             IAccountManagementService accountManagementService,
@@ -218,16 +232,36 @@ namespace Chrome_WPF.ViewModels
             AddCommand = new RelayCommand(_ => OpenEditor(null!));
             DeleteCommand = new RelayCommand(async account => await DeleteAccountAsync((AccountManagementResponseDTO)account), account => account != null);
             UpdateCommand = new RelayCommand(account => OpenEditor((AccountManagementResponseDTO)account));
-            PreviousPageCommand = new RelayCommand(_ => PreviousPage(), _ => CurrentPage > 1);
-            NextPageCommand = new RelayCommand(_ => NextPage(), _ => CurrentPage < TotalPages);
+            PreviousPageCommand = new RelayCommand(_ => PreviousPage());
+            NextPageCommand = new RelayCommand(_ => NextPage());
             SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
             FilterByTypeCommand = new RelayCommand(groupId => SelectedGroupId = (string)groupId);
             ExportAndPreviewCommand = new RelayCommand(async p=> await ExportAndPreview(p));
-
+            FilterAllCommand = new RelayCommand(async _ => await LoadAccountsAsync());
             _ = LoadAccountsAsync();
             _ = LoadGroupsAsync();
+            _ = GetTotalAccount();
         }
 
+        private async Task GetTotalAccount()
+        {
+            try
+            {
+                var result = await _accountManagementService.GetTotalAccount();
+                if (result.Success)
+                {
+                    TotalAccountCount = result.Data;
+                }
+                else
+                {
+                    _notificationService.ShowMessage(result.Message ?? "Lỗi khi lấy tổng số tài khoản.", "OK", isError: true);
+                }
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi: {ex.Message}", "OK", isError: true);
+            }
+        }
         private async Task LoadAccountsAsync()
         {
             try
@@ -241,7 +275,7 @@ namespace Chrome_WPF.ViewModels
                         AccountList.Add(account);
                     }
                     TotalPages = result.Data.TotalPages;
-                    _notificationService.ShowMessage(result.Message, "Ok", isError: false);
+                    _ = GetTotalAccount();
                 }
                 else
                 {
