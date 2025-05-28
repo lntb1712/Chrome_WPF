@@ -103,7 +103,6 @@
     <Grid Background="#F5F7FA">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
@@ -114,81 +113,20 @@
                 FontSize="24"
                 FontWeight="Bold"
                 Foreground="#2D3748"
-                Style="{StaticResource MaterialDesignHeadline6TextBlock}"
-                Text="Quản lý nhóm người dùng" />
+                Style="{StaticResource MaterialDesignHeadline6TextBlock}">
+                <Run Text="Quản lý nhóm người dùng" />
+                <Run Foreground="Gray" Text=" (" />
+                <Run
+                    Foreground="Gray"
+                    Text="{Binding TotalGroupsCount}"
+                    ToolTip="Tổng nhóm người dùng" />
+                <Run Foreground="Gray" Text=")" />
+            </TextBlock>
+
         </Grid>
 
-        <StackPanel
-            Grid.Row="1"
-            Margin="10,0,10,8"
-            Orientation="Horizontal">
-            <Button
-                Margin="8,0,8,0"
-                Padding="0"
-                Background="Transparent"
-                BorderThickness="0"
-                Command="{Binding DataContext.FilterAllCommand, RelativeSource={RelativeSource AncestorType=UserControl}}">
-                <Border
-                    Width="170"
-                    Height="70"
-                    Padding="10"
-                    Background="White"
-                    BorderBrush="#E0E7FF"
-                    BorderThickness="1"
-                    CornerRadius="8">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <materialDesign:PackIcon
-                            Grid.Column="0"
-                            Width="35"
-                            Height="35"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            Foreground="#4B5EAA"
-                            Kind="AccountGroup" />
-                        <StackPanel Grid.Column="1" Orientation="Vertical">
-                            <TextBlock
-                                Margin="5,0,0,0"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                FontSize="12"
-                                Foreground="#718096"
-                                Text="Tổng"
-                                TextWrapping="Wrap" />
-                            <TextBlock
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                FontSize="20"
-                                FontWeight="Bold"
-                                Foreground="#2D3748"
-                                Text="{Binding TotalGroupsCount}" />
-                        </StackPanel>
-                    </Grid>
-                </Border>
-                <Button.Style>
-                    <Style TargetType="Button">
-                        <Setter Property="Template">
-                            <Setter.Value>
-                                <ControlTemplate TargetType="Button">
-                                    <ContentPresenter />
-                                </ControlTemplate>
-                            </Setter.Value>
-                        </Setter>
-                        <Style.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Opacity" Value="0.9" />
-                                <Setter Property="Cursor" Value="Hand" />
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </Button.Style>
-            </Button>
-        </StackPanel>
         <!--  Table and Filters Section  -->
-        <Grid Grid.Row="2" Margin="10">
+        <Grid Grid.Row="1" Margin="10">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
@@ -273,7 +211,7 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Border
-                                Width="300"
+                                Width="390"
                                 Margin="10"
                                 Padding="15"
                                 Background="White"
@@ -281,12 +219,20 @@
                                 BorderThickness="1"
                                 CornerRadius="10"
                                 SnapsToDevicePixels="True">
+                                <Border.InputBindings>
+                                    <MouseBinding
+                                        Command="{Binding DataContext.UpdateCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}"
+                                        Gesture="LeftClick" />
+                                </Border.InputBindings>
+
                                 <StackPanel VerticalAlignment="Top">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
+
                                         <TextBlock
                                             Grid.Column="0"
                                             VerticalAlignment="Center"
@@ -299,46 +245,28 @@
                                                 </MultiBinding>
                                             </TextBlock.Text>
                                         </TextBlock>
-                                        <materialDesign:PopupBox
+
+                                        <!--  Nút XÓA nằm bên ngoài  -->
+                                        <Button
                                             Grid.Column="1"
                                             Padding="5"
-                                            VerticalAlignment="Center"
                                             Background="Transparent"
                                             BorderBrush="Transparent"
-                                            PlacementMode="RightAndAlignMiddles">
-                                            <StackPanel VerticalAlignment="Center">
-                                                <Button
-                                                    Padding="5"
-                                                    VerticalContentAlignment="Center"
-                                                    Background="Transparent"
-                                                    BorderBrush="Transparent"
-                                                    Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                    CommandParameter="{Binding}"
-                                                    Foreground="Red">
-                                                    <StackPanel Orientation="Horizontal">
-                                                        <materialDesign:PackIcon Margin="0,0,5,0" Kind="Delete" />
-                                                        <TextBlock Text="Xóa" />
-                                                    </StackPanel>
-                                                </Button>
-                                                <Button
-                                                    Padding="5"
-                                                    VerticalContentAlignment="Center"
-                                                    Background="Transparent"
-                                                    BorderBrush="Transparent"
-                                                    Command="{Binding DataContext.UpdateCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                    CommandParameter="{Binding}">
-                                                    <StackPanel Orientation="Horizontal">
-                                                        <materialDesign:PackIcon Margin="0,0,5,0" Kind="Pencil" />
-                                                        <TextBlock Text="Sửa" />
-                                                    </StackPanel>
-                                                </Button>
+                                            Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            Foreground="Red"
+                                            ToolTip="Xóa">
+                                            <StackPanel Orientation="Horizontal">
+                                                <materialDesign:PackIcon Margin="0,0,5,0" Kind="Delete" />
                                             </StackPanel>
-                                        </materialDesign:PopupBox>
+                                        </Button>
                                     </Grid>
+
                                     <TextBlock
                                         FontSize="14"
                                         Foreground="Gray"
                                         Text="{Binding GroupDescription}" />
+
                                     <StackPanel Margin="0,5,0,0" Orientation="Vertical">
                                         <StackPanel Orientation="Horizontal">
                                             <TextBlock FontWeight="Bold" Text="Ngày cập nhật: " />
@@ -355,6 +283,7 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </ScrollViewer>
+
 
             <!--  Pagination  -->
             <StackPanel
@@ -402,7 +331,7 @@
         <!--  Snackbar  -->
         <materialDesign:Snackbar
             x:Name="GroupManagementSnackbar"
-            Grid.Row="3"
+            Grid.Row="2"
             Width="Auto"
             Margin="16"
             HorizontalAlignment="Center"

@@ -106,7 +106,6 @@ namespace Chrome_WPF.ViewModels
             }
         }
 
-
         public string SearchText
         {
             get => _searchText;
@@ -262,6 +261,7 @@ namespace Chrome_WPF.ViewModels
                 _notificationService.ShowMessage($"Lỗi: {ex.Message}", "OK", isError: true);
             }
         }
+
         private async Task LoadAccountsAsync()
         {
             try

@@ -493,7 +493,7 @@ namespace Chrome_WPF.Services.GroupManagementService
             }
         }
 
-        public async  Task<ApiResult<PagedResponse<GroupManagementResponseDTO>>> SearchGroupInList(string textToSearch, int page, int pageSize)
+        public async    Task<ApiResult<PagedResponse<GroupManagementResponseDTO>>> SearchGroupInList(string textToSearch, int page, int pageSize)
         {
             if (string.IsNullOrEmpty(textToSearch))
             {
