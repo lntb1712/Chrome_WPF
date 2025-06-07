@@ -8,6 +8,7 @@ using Chrome_WPF.Services.LoginServices;
 using Chrome_WPF.Services.MessengerService;
 using Chrome_WPF.Services.NavigationService;
 using Chrome_WPF.Services.NotificationService;
+using Chrome_WPF.Services.ProductCustomerService;
 using Chrome_WPF.Services.ProductMasterService;
 using Chrome_WPF.Services.ProductSupplierService;
 using Chrome_WPF.Services.SupplierMasterService;
@@ -59,6 +60,7 @@ namespace Chrome_WPF
             services.AddSingleton<IProductSupplierService, ProductSupplierService>();
             services.AddSingleton<ISupplierMasterService, SupplierMasterService>();
             services.AddSingleton<ICustomerMasterService, CustomerMasterService>();
+            services.AddSingleton<IProductCustomerService, ProductCustomerService>();
 
 
             // Register IServiceProvider

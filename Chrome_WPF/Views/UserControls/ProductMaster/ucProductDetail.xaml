@@ -18,11 +18,12 @@
         <converters:PageEqualityConverter x:Key="PageEqualityConverter" />
         <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <converters:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+        <converters:LowercaseConverter x:Key="LowercaseConverter" />
 
+        <!--  Supplier Templates  -->
         <DataTemplate x:Key="SupplierDisplayTemplate">
             <TextBlock Text="{Binding SelectedSupplier.SupplierName}" />
         </DataTemplate>
-
         <DataTemplate x:Key="SupplierEditTemplate">
             <ComboBox
                 DisplayMemberPath="SupplierName"
@@ -30,15 +31,29 @@
                 SelectedItem="{Binding SelectedSupplier, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                 SelectedValuePath="SupplierCode" />
         </DataTemplate>
-
         <viewselectors:SupplierCellTemplateSelector
             x:Key="SupplierTemplateSelector"
             DisplayTemplate="{StaticResource SupplierDisplayTemplate}"
             EditTemplate="{StaticResource SupplierEditTemplate}" />
 
-        <!--  Các kiểu khác  -->
-        <SolidColorBrush x:Key="BorderNormalColor" Color="#E0E0E0" />
+        <!--  Customer Templates  -->
+        <DataTemplate x:Key="CustomerDisplayTemplate">
+            <TextBlock Text="{Binding SelectedCustomer.CustomerName}" />
+        </DataTemplate>
+        <DataTemplate x:Key="CustomerEditTemplate">
+            <ComboBox
+                DisplayMemberPath="CustomerName"
+                ItemsSource="{Binding DataContext.LstCustomer, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                SelectedItem="{Binding SelectedCustomer, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                SelectedValuePath="CustomerCode" />
+        </DataTemplate>
+        <viewselectors:CustomerCellTemplateSelector
+            x:Key="CustomerTemplateSelector"
+            DisplayTemplate="{StaticResource CustomerDisplayTemplate}"
+            EditTemplate="{StaticResource CustomerEditTemplate}" />
 
+        <!--  Other Styles  -->
+        <SolidColorBrush x:Key="BorderNormalColor" Color="#E0E0E0" />
         <Style x:Key="ModernDataGridStyle" TargetType="{x:Type DataGrid}">
             <Setter Property="RowBackground" Value="White" />
             <Setter Property="AlternatingRowBackground" Value="#F5F5F5" />
@@ -75,8 +90,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
-        <!--  Style cho TabControl để thêm đường kẻ ngang  -->
         <Style TargetType="{x:Type TabControl}">
             <Setter Property="Template">
                 <Setter.Value>
@@ -108,8 +121,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
-        <!--  New TabItem Style for Selected Tab  -->
         <Style x:Key="CustomTabItemStyle" TargetType="{x:Type TabItem}">
             <Setter Property="Padding" Value="12,8" />
             <Setter Property="FontWeight" Value="Bold" />
@@ -155,8 +166,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
-        <!--  PageItemTemplateSelector cho phân trang  -->
         <helper:PageItemTemplateSelector x:Key="PageItemTemplateSelector">
             <helper:PageItemTemplateSelector.PageNumberTemplate>
                 <DataTemplate>
@@ -177,7 +186,7 @@
                                         <DataTrigger.Binding>
                                             <MultiBinding Converter="{StaticResource PageEqualityConverter}">
                                                 <Binding Path="." />
-                                                <Binding Path="DataContext.CurrentPage" RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                                                <Binding Path="DataContext.CurrentPage" />
                                             </MultiBinding>
                                         </DataTrigger.Binding>
                                         <Setter Property="Background" Value="White" />
@@ -248,12 +257,17 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <TextBlock
-                        Grid.Column="0"
-                        FontSize="24"
-                        FontWeight="SemiBold"
-                        Foreground="#1A202C"
-                        Text="Thông tin sản phẩm" />
+                    <StackPanel Margin="0,5,0,0" Orientation="Horizontal">
+                        <TextBlock
+                            FontSize="24"
+                            FontWeight="Bold"
+                            Text="Thông tin " />
+                        <TextBlock
+                            FontSize="24"
+                            FontWeight="Bold"
+                            Text="{Binding SelectedCategory.CategoryName, Converter={StaticResource LowercaseConverter}, FallbackValue=sản phẩm}" />
+
+                    </StackPanel>
                     <Button
                         x:Name="SaveButton"
                         Grid.Column="2"
@@ -301,7 +315,7 @@
                                     materialDesign:TextFieldAssist.HasLeadingIcon="True"
                                     materialDesign:TextFieldAssist.LeadingIcon="PackageVariantPlus"
                                     FontSize="14"
-                                    IsEnabled="{Binding IsAddingNew, FallbackValue=False}">
+                                    IsEnabled="{Binding IsAddingNew, FallbackValue=True}">
                                     <TextBox.Text>
                                         <Binding
                                             FallbackValue=""
@@ -323,7 +337,7 @@
                                 <TextBox
                                     x:Name="ProductNameTextBox"
                                     Width="400"
-                                    Margin="8,0,0,0"
+                                    Margin="3,0,0,0"
                                     Padding="12,8"
                                     materialDesign:HintAssist.Hint="Nhập tên sản phẩm"
                                     materialDesign:HintAssist.IsFloating="True"
@@ -437,6 +451,7 @@
                                         Margin="8,0,0,0"
                                         materialDesign:HintAssist.Hint="Chọn danh mục"
                                         materialDesign:HintAssist.IsFloating="True"
+                                        IsEnabled="{Binding IsAddingNew}"
                                         ItemsSource="{Binding Categories}"
                                         SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"
                                         SelectedValuePath="CategoryId"
@@ -467,6 +482,23 @@
                                         IsEnabled="False"
                                         Text="{Binding TotalOnHand, StringFormat={}{0:F2}, FallbackValue=0.00}"
                                         ToolTip="Tổng số lượng tồn kho hiện tại" />
+
+                                </StackPanel>
+                                <StackPanel
+                                    Grid.Row="2"
+                                    Grid.Column="0"
+                                    Margin="0,10,0,16"
+                                    Orientation="Horizontal">
+                                    <TextBlock
+                                        Width="120"
+                                        VerticalAlignment="Center"
+                                        Text="Định giá sản phẩm" />
+                                    <TextBox
+                                        Width="200"
+                                        Margin="8,0,0,0"
+                                        Text="{Binding ProductMasterRequestDTO.Valuation, StringFormat={}{0:F2}, FallbackValue=0.00}"
+                                        ToolTip="Định giá sản phẩm" />
+
                                 </StackPanel>
                                 <StackPanel
                                     Grid.Row="0"
@@ -537,7 +569,17 @@
                                 </StackPanel>
                             </Grid>
                         </TabItem>
-                        <TabItem Header="Nguồn hàng">
+                        <TabItem Name="SupplierTab" Header="Nguồn hàng">
+                            <TabItem.Style>
+                                <Style BasedOn="{StaticResource CustomTabItemStyle}" TargetType="TabItem">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding SelectedCategory.CategoryId}" Value="NVL">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TabItem.Style>
                             <Grid Margin="0,10,0,0">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto" />
@@ -566,8 +608,8 @@
                                             Header="Nhà cung cấp" />
                                         <DataGridTextColumn
                                             Width="90"
-                                            Binding="{Binding Quantity, UpdateSourceTrigger=PropertyChanged}"
-                                            Header="Số lượng">
+                                            Binding="{Binding PricePerUnit, UpdateSourceTrigger=PropertyChanged}"
+                                            Header="Đơn giá">
                                             <DataGridTextColumn.ElementStyle>
                                                 <Style TargetType="TextBlock">
                                                     <Setter Property="HorizontalAlignment" Value="Right" />
@@ -586,7 +628,6 @@
                                                 </Style>
                                             </DataGridTextColumn.ElementStyle>
                                         </DataGridTextColumn>
-
                                         <DataGridTemplateColumn Width="80" IsReadOnly="True">
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
@@ -605,7 +646,6 @@
                                                 </DataTemplate>
                                             </DataGridTemplateColumn.CellTemplate>
                                         </DataGridTemplateColumn>
-
                                     </DataGrid.Columns>
                                 </DataGrid>
                                 <Button
@@ -617,7 +657,6 @@
                                     Content="Thêm dòng"
                                     Style="{StaticResource MaterialDesignFlatButton}"
                                     ToolTip="Thêm thông tin cung cấp mới" />
-                                <!--  Pagination  -->
                                 <StackPanel
                                     Grid.Row="3"
                                     Margin="0,10,0,0"
@@ -659,7 +698,138 @@
                                 </StackPanel>
                             </Grid>
                         </TabItem>
-
+                        <TabItem Name="CustomerTab" Header="Khách hàng">
+                            <TabItem.Style>
+                                <Style BasedOn="{StaticResource CustomTabItemStyle}" TargetType="TabItem">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding SelectedCategory.CategoryId}" Value="BTP">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding SelectedCategory.CategoryId}" Value="TP">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TabItem.Style>
+                            <Grid Margin="0,10,0,0">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+                                <TextBlock
+                                    Grid.Row="0"
+                                    FontSize="16"
+                                    FontWeight="Medium"
+                                    Text="Khách hàng" />
+                                <DataGrid
+                                    x:Name="CustomerDataGrid"
+                                    Grid.Row="1"
+                                    Margin="0,8,0,16"
+                                    AutoGenerateColumns="False"
+                                    CanUserAddRows="False"
+                                    CanUserDeleteRows="True"
+                                    ItemsSource="{Binding LstProductCustomer, UpdateSourceTrigger=PropertyChanged}"
+                                    Style="{StaticResource ModernDataGridStyle}">
+                                    <DataGrid.Columns>
+                                        <DataGridTemplateColumn
+                                            Width="*"
+                                            CellTemplateSelector="{StaticResource CustomerTemplateSelector}"
+                                            Header="Khách hàng" />
+                                        <DataGridTextColumn
+                                            Width="100"
+                                            Binding="{Binding PricePerUnit, StringFormat={}{0:F2}, UpdateSourceTrigger=PropertyChanged}"
+                                            Header="Đơn giá">
+                                            <DataGridTextColumn.ElementStyle>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="HorizontalAlignment" Value="Right" />
+                                                    <Setter Property="TextAlignment" Value="Center" />
+                                                </Style>
+                                            </DataGridTextColumn.ElementStyle>
+                                        </DataGridTextColumn>
+                                        <DataGridTextColumn
+                                            Width="180"
+                                            Binding="{Binding ExpectedDeliverTime, UpdateSourceTrigger=PropertyChanged}"
+                                            Header="Thời gian giao hàng (ngày)">
+                                            <DataGridTextColumn.ElementStyle>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="HorizontalAlignment" Value="Right" />
+                                                    <Setter Property="TextAlignment" Value="Center" />
+                                                </Style>
+                                            </DataGridTextColumn.ElementStyle>
+                                        </DataGridTextColumn>
+                                        <DataGridTemplateColumn Width="80" IsReadOnly="True">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <Button
+                                                        HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center"
+                                                        Command="{Binding DataContext.DeleteCustomerLineCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                        CommandParameter="{Binding}"
+                                                        Style="{StaticResource MaterialDesignFlatButton}"
+                                                        ToolTip="Xóa dòng">
+                                                        <materialDesign:PackIcon
+                                                            Width="20"
+                                                            Height="20"
+                                                            Kind="Delete" />
+                                                    </Button>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                                <Button
+                                    Grid.Row="2"
+                                    Margin="0,0,0,8"
+                                    Padding="8,4"
+                                    HorizontalAlignment="Left"
+                                    Command="{Binding AddCustomerLineCommand}"
+                                    Content="Thêm dòng"
+                                    Style="{StaticResource MaterialDesignFlatButton}"
+                                    ToolTip="Thêm thông tin khách hàng mới" />
+                                <StackPanel
+                                    Grid.Row="3"
+                                    Margin="0,10,0,0"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Bottom"
+                                    Orientation="Horizontal">
+                                    <Button
+                                        Width="40"
+                                        Height="40"
+                                        Command="{Binding PreviousPageCommand}"
+                                        Style="{StaticResource MaterialDesignIconButton}"
+                                        ToolTip="Trang trước">
+                                        <materialDesign:PackIcon
+                                            Width="20"
+                                            Height="20"
+                                            Kind="ArrowLeft" />
+                                    </Button>
+                                    <ItemsControl ItemsSource="{Binding DisplayPages}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <StackPanel Orientation="Horizontal" />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplateSelector>
+                                            <StaticResource ResourceKey="PageItemTemplateSelector" />
+                                        </ItemsControl.ItemTemplateSelector>
+                                    </ItemsControl>
+                                    <Button
+                                        Width="40"
+                                        Height="40"
+                                        Command="{Binding NextPageCommand}"
+                                        Style="{StaticResource MaterialDesignIconButton}"
+                                        ToolTip="Trang sau">
+                                        <materialDesign:PackIcon
+                                            Width="20"
+                                            Height="20"
+                                            Kind="ArrowRight" />
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+                        </TabItem>
                     </TabControl>
                 </Grid>
                 <materialDesign:Snackbar

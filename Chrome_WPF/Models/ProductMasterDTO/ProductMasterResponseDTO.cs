@@ -11,7 +11,7 @@ namespace Chrome_WPF.Models.ProductMasterDTO
         public string ProductCode { get; set; } = null!;
         public string? ProductName { get; set; }
         public string? ProductDescription { get; set; }
-        public string? ProductImg { get; set; }
+        public string? ProductImage { get; set; }
         public string? CategoryId { get; set; }
         public string? CategoryName { get; set; }
         public double? BaseQuantity { get; set; }

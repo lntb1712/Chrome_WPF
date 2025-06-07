@@ -2,9 +2,11 @@
 using Chrome_WPF.Models.CategoryDTO;
 using Chrome_WPF.Models.ProductMasterDTO;
 using Chrome_WPF.Services.CategoryService;
+using Chrome_WPF.Services.CustomerMasterService;
 using Chrome_WPF.Services.MessengerService;
 using Chrome_WPF.Services.NavigationService;
 using Chrome_WPF.Services.NotificationService;
+using Chrome_WPF.Services.ProductCustomerService;
 using Chrome_WPF.Services.ProductMasterService;
 using Chrome_WPF.Services.ProductSupplierService;
 using Chrome_WPF.Services.SupplierMasterService;
@@ -91,7 +93,7 @@ namespace Chrome_WPF.ViewModels.ProductMasterViewModel
                         BaseQuantity = (double)SelectedProduct.BaseQuantity!,
                         BaseUOM = SelectedProduct.BaseUom!,
                         CategoryId = SelectedProduct.CategoryId!,
-                        ProductImg = SelectedProduct.ProductImg!,
+                        ProductImage = SelectedProduct.ProductImage!,
                         UOM = SelectedProduct.Uom!,
                     };
                 }
@@ -168,6 +170,16 @@ namespace Chrome_WPF.ViewModels.ProductMasterViewModel
             {
                 _selectedCategoryId = value;
                 OnPropertyChanged();
+                CurrentPage = 1;
+                if (!string.IsNullOrEmpty(value))
+                {
+                    _ = LoadProductByCategoryAsync(value);
+                }
+                else
+                {
+                    _ = LoadProductAsync();
+                }
+
             }
         }
 
@@ -368,19 +380,22 @@ namespace Chrome_WPF.ViewModels.ProductMasterViewModel
                 _messengerService,
                 App.ServiceProvider!.GetRequiredService<IProductSupplierService>(),
                 App.ServiceProvider!.GetRequiredService<ISupplierMasterService>(),
+                App.ServiceProvider!.GetRequiredService<IProductCustomerService>(),
+                App.ServiceProvider!.GetRequiredService<ICustomerMasterService>(),
                 isAddingNew: product == null,
-                TotalOnHand: product !=null? (double)product!.TotalOnHand! : 0.00)
+                totalOnHand: product !=null? (double)product!.TotalOnHand! : 0.00)
             {
                 ProductMasterRequestDTO = product == null ? new ProductMasterRequestDTO() : new ProductMasterRequestDTO
                 {
                     ProductCode = product.ProductCode,
                     ProductName = product.ProductName!,
                     ProductDescription = product.ProductDescription!,
-                    ProductImg = product.ProductImg!,
+                    ProductImage = product.ProductImage!,   
                     CategoryId = product.CategoryId!,
                     BaseQuantity = (double)product.BaseQuantity!,
                     BaseUOM = product.BaseUom!,
                     UOM = product.Uom!,
+                    Valuation = (double)product.Valuation!
                 }
             };
             _navigationService.NavigateTo(productDetail);
@@ -434,6 +449,7 @@ namespace Chrome_WPF.ViewModels.ProductMasterViewModel
                 }
                 else
                 {
+                    ProductMasterList.Clear();
                     _notificationService.ShowMessage(result.Message ?? "Lỗi khi tải danh sách sản phẩm", "OK", isError: true);
                 }
             }
@@ -443,6 +459,32 @@ namespace Chrome_WPF.ViewModels.ProductMasterViewModel
             }
         }
 
+        private async Task LoadProductByCategoryAsync(string category)
+        {
+            try
+            {
+                var result = await _productMasterService.GetAllProductWithCategoryId(category, CurrentPage, PageSize);
+                if (result.Success && result.Data != null)
+                {
+                    ProductMasterList.Clear();
+                    foreach (var item in result.Data.Data ?? Enumerable.Empty<ProductMasterResponseDTO>())
+                    {
+                        ProductMasterList.Add(item);
+                    }
+                    TotalPages = result.Data.TotalPages;
+                    _ = GetTotalsProduct();
+                }
+                else
+                {
+                    ProductMasterList.Clear();
+                    _notificationService.ShowMessage(result.Message ?? "Lỗi khi tải danh sách sản phẩm", "OK", isError: true);
+                }
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi: {ex.Message}", "OK", isError: true);
+            }
+        }
         private async Task GetTotalsProduct()
         {
             try

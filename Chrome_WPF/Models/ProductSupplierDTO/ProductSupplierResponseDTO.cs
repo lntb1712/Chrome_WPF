@@ -13,9 +13,8 @@ namespace Chrome_WPF.Models.ProductSupplierDTO
         private string _productCode = string.Empty;
         private string _supplierCode =string.Empty;
         private string _supplierName = string.Empty;
-        private double _quantity =0.00;
+        private double _pricePerUnit =0.00;
         private int _leadTime;
-        private string _updateTime = string.Empty;
         private bool _isNewRow;
         private SupplierMasterResponseDTO? _selectedSupplier;
 
@@ -51,13 +50,13 @@ namespace Chrome_WPF.Models.ProductSupplierDTO
             }
         }
 
-        public double Quantity
+        public double PricePerUnit
         {
-            get => _quantity;
+            get => _pricePerUnit;
             set
             {
-                _quantity = value;
-                OnPropertyChanged(nameof(Quantity));
+                _pricePerUnit = value;
+                OnPropertyChanged(nameof(PricePerUnit));
             }
         }
 
@@ -71,15 +70,6 @@ namespace Chrome_WPF.Models.ProductSupplierDTO
             }
         }
 
-        public string UpdateTime
-        {
-            get => _updateTime;
-            set
-            {
-                _updateTime = value;
-                OnPropertyChanged(nameof(UpdateTime));
-            }
-        }
         public bool IsNewRow
         {
             get => _isNewRow;

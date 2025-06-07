@@ -1,40 +1,37 @@
-﻿using MaterialDesignThemes.Wpf;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Chrome_WPF.Models.ProductSupplierDTO
+namespace Chrome_WPF.Models.ProductCustomerDTO
 {
-    public class ProductSupplierRequestDTO :INotifyPropertyChanged,IDataErrorInfo
+    public class ProductCustomerRequestDTO : INotifyPropertyChanged, IDataErrorInfo
     {
-        private string _supplierCode = string.Empty;
+        private string _customerCode = string.Empty;
         private string _productCode = string.Empty;
-        private int _leadTime = 0;
-        private double? _pricePerUnit = 0;
-
+        private int? _expectedDeliverTime;
+        private double? _pricePerUnit;
         private bool _isValidationRequested;
 
         public event PropertyChangedEventHandler? PropertyChanged;
+
         protected void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        [Required(ErrorMessage ="Mã nhf cung cấp không được để trống")]
-        public string SupplierCode
+        [Required(ErrorMessage = "Mã khách hàng không được để trống")]
+        public string CustomerCode
         {
-            get=> _supplierCode;
+            get => _customerCode;
             set
             {
-                _supplierCode = value;
-                OnPropertyChanged(nameof(SupplierCode));
+                _customerCode = value;
+                OnPropertyChanged(nameof(CustomerCode));
             }
         }
-        [Required(ErrorMessage ="Mã sản phẩm không được để trống")]
+
+        [Required(ErrorMessage = "Mã sản phẩm không được để trống")]
         public string ProductCode
         {
             get => _productCode;
@@ -45,13 +42,13 @@ namespace Chrome_WPF.Models.ProductSupplierDTO
             }
         }
 
-        public int LeadTime
+        public int? ExpectedDeliverTime
         {
-            get => _leadTime;
+            get => _expectedDeliverTime;
             set
             {
-                _leadTime = value;
-                OnPropertyChanged(nameof(LeadTime));
+                _expectedDeliverTime = value;
+                OnPropertyChanged(nameof(ExpectedDeliverTime));
             }
         }
 
@@ -71,38 +68,39 @@ namespace Chrome_WPF.Models.ProductSupplierDTO
         {
             get
             {
-                if(!_isValidationRequested) 
+                if (!_isValidationRequested)
                     return string.Empty;
-                if(columnName == nameof(LeadTime)
-                   || columnName == nameof(PricePerUnit))
+
+                if (columnName == nameof(ExpectedDeliverTime) || columnName == nameof(PricePerUnit))
                 {
                     return string.Empty;
                 }
+
                 var property = GetType().GetProperty(columnName);
-                if (property==null) return string.Empty;
+                if (property == null)
+                    return string.Empty;
 
                 var value = property.GetValue(this);
-                var context = new ValidationContext(this) { MemberName=columnName };
-                var results= new List<ValidationResult>();  
+                var context = new ValidationContext(this) { MemberName = columnName };
+                var results = new List<ValidationResult>();
 
-                bool isValid = Validator.TryValidateProperty(value, context,results);
+                bool isValid = Validator.TryValidateProperty(value, context, results);
 
                 return isValid ? string.Empty : results.FirstOrDefault()?.ErrorMessage ?? string.Empty;
-
             }
         }
 
         public void RequestValidation()
         {
             _isValidationRequested = true;
-            OnPropertyChanged(nameof(SupplierCode));
+            OnPropertyChanged(nameof(CustomerCode));
             OnPropertyChanged(nameof(ProductCode));
         }
 
         public void ClearValidation()
         {
-            _isValidationRequested= false;
-            OnPropertyChanged(nameof(SupplierCode));
+            _isValidationRequested = false;
+            OnPropertyChanged(nameof(CustomerCode));
             OnPropertyChanged(nameof(ProductCode));
         }
     }

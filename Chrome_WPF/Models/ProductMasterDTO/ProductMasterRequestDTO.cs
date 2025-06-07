@@ -14,7 +14,7 @@ namespace Chrome_WPF.Models.ProductMasterDTO
         private string _productCode = string.Empty;
         private string _productName = string.Empty;
         private string _productDescription = string.Empty;
-        private string _productImg = string.Empty;
+        private string _productImage = string.Empty;
         private string _categoryId = string.Empty;
         private double _baseQuantity = 0.00;
         private string _uom = string.Empty;
@@ -63,13 +63,13 @@ namespace Chrome_WPF.Models.ProductMasterDTO
             }
         }
 
-        public string ProductImg
+        public string ProductImage
         {
-            get => _productImg;
+            get => _productImage;
             set
             {
-                _productImg = value;
-                OnPropertyChanged(nameof(ProductImg));
+                _productImage = value;
+                OnPropertyChanged(nameof(ProductImage));
             }
         }
 
@@ -132,7 +132,7 @@ namespace Chrome_WPF.Models.ProductMasterDTO
                     return string.Empty;
                 if (columnName == nameof(ProductDescription) 
                     || columnName == nameof(CategoryId)
-                    || columnName == nameof(ProductImg)
+                    || columnName == nameof(ProductImage)
                     || columnName == nameof(BaseQuantity)
                     || columnName == nameof(UOM)
                     || columnName == nameof(BaseUOM)

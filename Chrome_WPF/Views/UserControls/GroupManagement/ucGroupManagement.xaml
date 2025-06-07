@@ -12,11 +12,52 @@
     d:DesignWidth="800"
     mc:Ignorable="d">
     <UserControl.Resources>
+        <!--  SolidColorBrush  -->
+        <SolidColorBrush x:Key="BorderNormalColor" Color="#E0E0E0" />
+
+        <!--  ModernDataGridStyle  -->
+        <Style x:Key="ModernDataGridStyle" TargetType="{x:Type DataGrid}">
+            <Setter Property="RowBackground" Value="White" />
+            <Setter Property="AlternatingRowBackground" Value="#F5F5F5" />
+            <Setter Property="GridLinesVisibility" Value="None" />
+            <Setter Property="HeadersVisibility" Value="Column" />
+            <Setter Property="CanUserAddRows" Value="False" />
+            <Setter Property="AutoGenerateColumns" Value="False" />
+            <Setter Property="SelectionMode" Value="Single" />
+            <Setter Property="RowHeight" Value="35" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="Background" Value="White" />
+            <Setter Property="EnableRowVirtualization" Value="False" />
+            <Setter Property="EnableColumnVirtualization" Value="False" />
+            <Setter Property="VirtualizingPanel.IsVirtualizing" Value="True" />
+            <Setter Property="CellStyle">
+                <Setter.Value>
+                    <Style TargetType="{x:Type DataGridCell}">
+                        <Setter Property="Padding" Value="8" />
+                        <Setter Property="BorderBrush" Value="{StaticResource BorderNormalColor}" />
+                    </Style>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="ColumnHeaderStyle">
+                <Setter.Value>
+                    <Style TargetType="{x:Type DataGridColumnHeader}">
+                        <Setter Property="Background" Value="#F5F7FA" />
+                        <Setter Property="Foreground" Value="#2D3748" />
+                        <Setter Property="FontWeight" Value="SemiBold" />
+                        <Setter Property="Padding" Value="8" />
+                        <Setter Property="BorderThickness" Value="0,0,0,0" />
+                        <Setter Property="BorderBrush" Value="#E0E7FF" />
+                    </Style>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <!--  Các Converter  -->
         <converters:RangeConverter x:Key="RangeConverter" />
         <converters:PageEqualityConverter x:Key="PageEqualityConverter" />
         <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
         <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+
         <!--  PageItemTemplateSelector cho phân trang  -->
         <helper:PageItemTemplateSelector x:Key="PageItemTemplateSelector">
             <helper:PageItemTemplateSelector.PageNumberTemplate>
@@ -66,7 +107,6 @@
 
         <Style x:Key="FilterButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="#E6F0FA" />
-            <!--  Softer light blue  -->
             <Setter Property="BorderBrush" Value="Transparent" />
             <Setter Property="Padding" Value="8,4" />
             <Setter Property="Margin" Value="0,0,10,0" />
@@ -87,15 +127,11 @@
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
                     <Setter Property="Background" Value="#B3D4FC" />
-                    <!--  Brighter blue on hover  -->
                     <Setter Property="BorderBrush" Value="#A3BFFA" />
-                    <!--  Subtle border on hover  -->
                 </Trigger>
                 <Trigger Property="IsEnabled" Value="False">
                     <Setter Property="Background" Value="#CBD5E0" />
-                    <!--  Disabled state  -->
                     <Setter Property="Foreground" Value="#A0AEC0" />
-                    <!--  Disabled text/icon color  -->
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -122,7 +158,6 @@
                     ToolTip="Tổng nhóm người dùng" />
                 <Run Foreground="Gray" Text=")" />
             </TextBlock>
-
         </Grid>
 
         <!--  Table and Filters Section  -->
@@ -201,89 +236,42 @@
                 </Grid>
             </StackPanel>
 
+            <!--  DataGrid  -->
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                <ItemsControl ItemsSource="{Binding GroupList}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <WrapPanel Orientation="Horizontal" />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Border
-                                Width="390"
-                                Margin="10"
-                                Padding="15"
-                                Background="White"
-                                BorderBrush="#DDD"
-                                BorderThickness="1"
-                                CornerRadius="10"
-                                SnapsToDevicePixels="True">
-                                <Border.InputBindings>
-                                    <MouseBinding
-                                        Command="{Binding DataContext.UpdateCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                <DataGrid ItemsSource="{Binding GroupList}" Style="{StaticResource ModernDataGridStyle}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn
+                            Width="*"
+                            Binding="{Binding GroupId}"
+                            Header="Mã nhóm" />
+                        <DataGridTextColumn
+                            Width="*"
+                            Binding="{Binding GroupName}"
+                            Header="Tên nhóm" />
+                        <DataGridTextColumn
+                            Width="*"
+                            Binding="{Binding GroupDescription}"
+                            Header="Mô tả" />
+
+                        <!--  Cột Hành Động (Nút Xóa)  -->
+                        <DataGridTemplateColumn Width="Auto" Header="Hành Động">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button
+                                        Background="Transparent"
+                                        BorderBrush="Transparent"
+                                        Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                         CommandParameter="{Binding}"
-                                        Gesture="LeftClick" />
-                                </Border.InputBindings>
-
-                                <StackPanel VerticalAlignment="Top">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-
-                                        <TextBlock
-                                            Grid.Column="0"
-                                            VerticalAlignment="Center"
-                                            FontSize="16"
-                                            FontWeight="Bold">
-                                            <TextBlock.Text>
-                                                <MultiBinding StringFormat="{}{0} ({1})">
-                                                    <Binding Path="GroupId" />
-                                                    <Binding Path="GroupName" />
-                                                </MultiBinding>
-                                            </TextBlock.Text>
-                                        </TextBlock>
-
-                                        <!--  Nút XÓA nằm bên ngoài  -->
-                                        <Button
-                                            Grid.Column="1"
-                                            Padding="5"
-                                            Background="Transparent"
-                                            BorderBrush="Transparent"
-                                            Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                            CommandParameter="{Binding}"
-                                            Foreground="Red"
-                                            ToolTip="Xóa">
-                                            <StackPanel Orientation="Horizontal">
-                                                <materialDesign:PackIcon Margin="0,0,5,0" Kind="Delete" />
-                                            </StackPanel>
-                                        </Button>
-                                    </Grid>
-
-                                    <TextBlock
-                                        FontSize="14"
-                                        Foreground="Gray"
-                                        Text="{Binding GroupDescription}" />
-
-                                    <StackPanel Margin="0,5,0,0" Orientation="Vertical">
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock FontWeight="Bold" Text="Ngày cập nhật: " />
-                                            <TextBlock Text="{Binding UpdateTime}" />
-                                        </StackPanel>
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock FontWeight="Bold" Text="Người cập nhật: " />
-                                            <TextBlock Text="{Binding UpdateBy}" />
-                                        </StackPanel>
-                                    </StackPanel>
-                                </StackPanel>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                                        Foreground="Red"
+                                        ToolTip="Xóa">
+                                        <materialDesign:PackIcon Kind="Delete" />
+                                    </Button>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
             </ScrollViewer>
-
 
             <!--  Pagination  -->
             <StackPanel
