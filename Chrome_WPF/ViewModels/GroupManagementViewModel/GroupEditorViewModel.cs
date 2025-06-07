@@ -1,10 +1,12 @@
 ﻿using Chrome_WPF.Helpers;
 using Chrome_WPF.Models.AccountManagementDTO;
 using Chrome_WPF.Models.APIResult;
+using Chrome_WPF.Models.FunctionDTO;
 using Chrome_WPF.Models.GroupFunctionDTO;
 using Chrome_WPF.Models.GroupManagementDTO;
 using Chrome_WPF.Properties;
 using Chrome_WPF.Services.GroupManagementService;
+using Chrome_WPF.Services.MessengerService;
 using Chrome_WPF.Services.NavigationService;
 using Chrome_WPF.Services.NotificationService;
 using Chrome_WPF.Views.UserControls.GroupManagement;
@@ -22,8 +24,11 @@ namespace Chrome_WPF.ViewModels
         private readonly IGroupManagementService _groupManagementService;
         private readonly INotificationService _notificationService;
         private readonly INavigationService _navigationService;
+        private readonly IMessengerService _messengerService;
+
         private ObservableCollection<GroupFunctionResponseDTO> _lstGroupFunctions;
         private GroupManagementRequestDTO? _groupManagementRequestDTO;
+        private ObservableCollection<ApplicableLocationResponseDTO> _lstApplicableLocations;
         private bool _isAddingNew;
         private readonly RelayCommand _saveCommand;
 
@@ -34,6 +39,15 @@ namespace Chrome_WPF.ViewModels
             {
                 _lstGroupFunctions = value;
                 OnPropertyChanged(nameof(LstGroupFunctions));
+            }
+        }
+        public ObservableCollection<ApplicableLocationResponseDTO> LstApplicableLocations
+        {
+            get => _lstApplicableLocations;
+            set
+            {
+                _lstApplicableLocations = value;
+                OnPropertyChanged(nameof(LstApplicableLocations));
             }
         }
 
@@ -51,6 +65,7 @@ namespace Chrome_WPF.ViewModels
                 OnPropertyChanged(nameof(GroupManagementRequestDTO));
                 // Tải danh sách chức năng khi GroupManagementRequestDTO được gán
                 _ = LoadGroupFunctionsAsync();
+
             }
         }
 
@@ -70,17 +85,22 @@ namespace Chrome_WPF.ViewModels
             IGroupManagementService groupManagementService,
             INotificationService notificationService,
             INavigationService navigationService,
+            IMessengerService messengerService,
             bool isAddingNew = true,
             GroupManagementRequestDTO? initialDto = null)
         {
             _groupManagementService = groupManagementService ?? throw new ArgumentNullException(nameof(groupManagementService));
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
+            _messengerService = messengerService ?? throw new ArgumentException(nameof(messengerService));
+            
             IsAddingNew = isAddingNew;
             _lstGroupFunctions = new ObservableCollection<GroupFunctionResponseDTO>();
+            _lstApplicableLocations = new ObservableCollection<ApplicableLocationResponseDTO>();
             _saveCommand = new RelayCommand(SaveAsync, CanSave);
             // Khởi tạo DTO và tải dữ liệu
             GroupManagementRequestDTO = initialDto ?? new GroupManagementRequestDTO();
+            _ = LoadApplicableLocationsAsync();
         }
 
         private void OnPropertyChangedHandler(object? sender, PropertyChangedEventArgs e)
@@ -105,39 +125,89 @@ namespace Chrome_WPF.ViewModels
             return true;
         }
 
-        private async Task LoadGroupFunctionsAsync()
+        private async Task LoadApplicableLocationsAsync()
         {
             try
             {
-                ApiResult<List<GroupFunctionResponseDTO>> result;
-
-                // Kiểm tra điều kiện để gọi API phù hợp
-                if (IsAddingNew && string.IsNullOrEmpty(GroupManagementRequestDTO.GroupId))
-                {
-                    result = await _groupManagementService.GetAllGroupFunction();
-                }
-                else
-                {
-                    result = await _groupManagementService.GetGroupFunctionWithGroupID(GroupManagementRequestDTO.GroupId);
-                }
-
-                // Nếu danh sách trống hoặc API không thành công, thử lấy tất cả chức năng
-                if (!result.Success || result.Data == null || result.Data.Count == 0)
-                {
-                    result = await _groupManagementService.GetAllGroupFunction();
-                }
-
+                var result = await _groupManagementService.GetListApplicableSelected();
                 if (result.Success && result.Data != null)
                 {
-                    LstGroupFunctions.Clear(); // Xóa dữ liệu cũ để tránh bộ nhớ đệm
-                    foreach (var function in result.Data)
+                    LstApplicableLocations.Clear();
+                    foreach (var location in result.Data)
                     {
-                        LstGroupFunctions.Add(function);
+                        LstApplicableLocations.Add(location);
                     }
                 }
                 else
                 {
-                    _notificationService.ShowMessage(result.Message ?? "Không thể tải danh sách chức năng.", "OK", isError: true);
+                    _notificationService.ShowMessage(result.Message ?? "Không thể tải danh sách vị trí áp dụng.", "OK", isError: true);
+                }
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi: {ex.Message}", "OK", isError: true);
+            }
+        }
+
+        private async Task LoadGroupFunctionsAsync()
+        {
+            try
+            {
+                List<GroupFunctionResponseDTO> groupFunctions = new List<GroupFunctionResponseDTO>();
+
+                // Lấy danh sách ApplicableLocations từ service
+                var applicableLocationsResult = await _groupManagementService.GetListApplicableSelected();
+                var applicableLocations = applicableLocationsResult.Success && applicableLocationsResult.Data != null
+                    ? applicableLocationsResult.Data
+                    : new List<ApplicableLocationResponseDTO>();
+
+                if (!IsAddingNew && !string.IsNullOrEmpty(GroupManagementRequestDTO.GroupId))
+                {
+                    var result = await _groupManagementService.GetGroupFunctionWithGroupID(GroupManagementRequestDTO.GroupId);
+
+                    if (result.Success && result.Data != null && result.Data.Count > 0)
+                    {
+                        groupFunctions = result.Data;
+                    }
+                }
+
+                // Nếu không có groupFunctions hoặc đang thêm mới
+                if (groupFunctions.Count == 0)
+                {
+                    var resultFunctionNew = await _groupManagementService.GetAllFunctions();
+
+                    if (resultFunctionNew.Success && resultFunctionNew.Data != null)
+                    {
+                        groupFunctions = resultFunctionNew.Data
+                            .Select(f => new GroupFunctionResponseDTO
+                            {
+                                FunctionId = f.FunctionId!,
+                                FunctionName = f.FunctionName!,
+                                IsEnable = f.IsEnable,
+                                LstApplicableLocations = new ObservableCollection<ApplicableLocationResponseDTO>(applicableLocations)
+                            })
+                            .ToList();
+                    }
+                    else
+                    {
+                        _notificationService.ShowMessage(resultFunctionNew.Message ?? "Không thể tải danh sách chức năng.", "OK", isError: true);
+                        return;
+                    }
+                }
+                else
+                {
+                    // Gán LstApplicableLocations cho các groupFunctions hiện có
+                    foreach (var function in groupFunctions)
+                    {
+                        function.LstApplicableLocations = new ObservableCollection<ApplicableLocationResponseDTO>(applicableLocations);
+                    }
+                }
+
+                // Đưa dữ liệu vào danh sách hiển thị
+                LstGroupFunctions.Clear();
+                foreach (var function in groupFunctions)
+                {
+                    LstGroupFunctions.Add(function);
                 }
             }
             catch (Exception ex)
@@ -150,7 +220,6 @@ namespace Chrome_WPF.ViewModels
         {
             try
             {
-                GroupManagementRequestDTO.UpdateBy = Settings.Default.FullName ?? string.Empty;
                 GroupManagementRequestDTO.RequestValidation();
 
                 if (!CanSave(null))
@@ -176,6 +245,8 @@ namespace Chrome_WPF.ViewModels
                         GroupManagementRequestDTO = new GroupManagementRequestDTO();
                         LstGroupFunctions.Clear();
                     }
+
+                    await _messengerService.SendMessageAsync("ReloadGroupListMessage");
 
                     var ucGroupManagement = App.ServiceProvider!.GetRequiredService<ucGroupManagement>();
                     _navigationService.NavigateTo(ucGroupManagement);

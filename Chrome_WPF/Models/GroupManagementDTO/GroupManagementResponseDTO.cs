@@ -14,8 +14,6 @@ namespace Chrome_WPF.Models.GroupManagementDTO
         public string GroupId { get; set; } = null!;
         public string? GroupName { get; set; }
         public string? GroupDescription { get; set; }
-        public string? UpdateBy { get; set; }
-        public string? UpdateTime { get; set; }
         public bool IsSelected
         {
             get => _isSelected;

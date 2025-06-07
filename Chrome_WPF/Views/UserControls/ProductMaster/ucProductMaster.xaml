@@ -17,6 +17,8 @@
         <converters:PageEqualityConverter x:Key="PageEqualityConverter" />
         <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
         <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <converters:CategoryNameToIconKindConverter x:Key="CategoryNameToIconKindConverter" />
+        <converters:Base64ToImageConverter x:Key="Base64ToImageConverter" />
         <!--  PageItemTemplateSelector cho phân trang  -->
         <helper:PageItemTemplateSelector x:Key="PageItemTemplateSelector">
             <helper:PageItemTemplateSelector.PageNumberTemplate>
@@ -127,7 +129,7 @@
                     BorderThickness="0"
                     Command="{Binding DataContext.FilterAllCommand, RelativeSource={RelativeSource AncestorType=UserControl}}">
                     <Border
-                        Width="170"
+                        Width="210"
                         Height="70"
                         Padding="10"
                         Background="White"
@@ -162,7 +164,7 @@
                                     FontSize="20"
                                     FontWeight="Bold"
                                     Foreground="#2D3748"
-                                    Text="{Binding TotalAccountCount}" />
+                                    Text="{Binding TotalProductCount}" />
                             </StackPanel>
                         </Grid>
                     </Border>
@@ -185,7 +187,7 @@
                     </Button.Style>
                 </Button>
 
-                <ItemsControl ItemsSource="{Binding LstCategory}">
+                <ItemsControl ItemsSource="{Binding CategorySummaryList}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <StackPanel Orientation="Horizontal" />
@@ -199,9 +201,9 @@
                                 Background="Transparent"
                                 BorderThickness="0"
                                 Command="{Binding DataContext.FilterByTypeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                CommandParameter="{Binding GroupID}">
+                                CommandParameter="{Binding CategoryId}">
                                 <Border
-                                    Width="170"
+                                    Width="210"
                                     Height="70"
                                     Padding="10"
                                     Background="White"
@@ -220,7 +222,24 @@
                                             HorizontalAlignment="Center"
                                             VerticalAlignment="Center"
                                             Foreground="#4B5EAA"
-                                            Kind="AccountCircle" />
+                                            Kind="{Binding CategoryName, Converter={StaticResource CategoryNameToIconKindConverter}}">
+                                            <materialDesign:PackIcon.Style>
+                                                <Style TargetType="materialDesign:PackIcon">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding CategoryName}" Value="Bán thành phẩm">
+                                                            <Setter Property="Kind" Value="Cog" />
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding CategoryName}" Value="Nguyên vật liệu">
+                                                            <Setter Property="Kind" Value="Archive" />
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding CategoryName}" Value="Thành phẩm">
+                                                            <Setter Property="Kind" Value="PackageCheck" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </materialDesign:PackIcon.Style>
+                                        </materialDesign:PackIcon>
+
                                         <StackPanel Grid.Column="1" Orientation="Vertical">
                                             <TextBlock
                                                 Margin="5,0,0,0"
@@ -236,7 +255,7 @@
                                                 FontSize="20"
                                                 FontWeight="Bold"
                                                 Foreground="#2D3748"
-                                                Text="{Binding TotalQuantity}" />
+                                                Text="{Binding TotalProducts}" />
                                         </StackPanel>
                                     </Grid>
                                 </Border>
@@ -291,7 +310,7 @@
                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
                     <Button
-                        Grid.Column="1" 
+                        Grid.Column="1"
                         Command="{Binding SearchCommand}"
                         Style="{StaticResource FilterButtonStyle}">
                         <StackPanel Orientation="Horizontal">
@@ -371,7 +390,7 @@
                     </Button>
                 </Grid>
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                    <ItemsControl ItemsSource="{Binding GroupList}">
+                    <ItemsControl ItemsSource="{Binding ProductMasterList}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <WrapPanel Orientation="Horizontal" />
@@ -388,6 +407,7 @@
                                     BorderThickness="1"
                                     CornerRadius="10"
                                     SnapsToDevicePixels="True">
+
                                     <Border.InputBindings>
                                         <MouseBinding
                                             Command="{Binding DataContext.UpdateCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
@@ -395,60 +415,67 @@
                                             Gesture="LeftClick" />
                                     </Border.InputBindings>
 
-                                    <StackPanel VerticalAlignment="Top">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="Auto" />
-                                            </Grid.ColumnDefinitions>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="100" />
+                                            <!--  Hình ảnh  -->
+                                            <ColumnDefinition Width="*" />
+                                            <!--  Thông tin  -->
+                                        </Grid.ColumnDefinitions>
+
+                                        <!--  🔹 Hình ảnh Base64  -->
+                                        <Image
+                                            Grid.Column="0"
+                                            Width="80"
+                                            Height="80"
+                                            Margin="0,0,10,0"
+                                            Source="{Binding ProductImg, Converter={StaticResource Base64ToImageConverter}}"
+                                            Stretch="UniformToFill" />
+
+                                        <!--  🔹 Nội dung bên phải  -->
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Top">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+
+                                                <TextBlock
+                                                    Grid.Column="0"
+                                                    VerticalAlignment="Center"
+                                                    FontSize="16"
+                                                    FontWeight="Bold"
+                                                    Text="{Binding ProductName}" />
+
+                                                <Button
+                                                    Grid.Column="1"
+                                                    Padding="5"
+                                                    Background="Transparent"
+                                                    BorderBrush="Transparent"
+                                                    Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Foreground="Red"
+                                                    ToolTip="Xóa">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <materialDesign:PackIcon Margin="0,0,5,0" Kind="Delete" />
+                                                    </StackPanel>
+                                                </Button>
+                                            </Grid>
 
                                             <TextBlock
-                                                Grid.Column="0"
-                                                VerticalAlignment="Center"
-                                                FontSize="16"
-                                                FontWeight="Bold">
-                                                <TextBlock.Text>
-                                                    <MultiBinding StringFormat="{}{0} ({1})">
-                                                        <Binding Path="GroupId" />
-                                                        <Binding Path="GroupName" />
-                                                    </MultiBinding>
-                                                </TextBlock.Text>
-                                            </TextBlock>
+                                                FontSize="14"
+                                                Foreground="Gray"
+                                                Text="{Binding ProductDescription}" />
 
-                                            <!--  Nút XÓA nằm bên ngoài  -->
-                                            <Button
-                                                Grid.Column="1"
-                                                Padding="5"
-                                                Background="Transparent"
-                                                BorderBrush="Transparent"
-                                                Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                CommandParameter="{Binding}"
-                                                Foreground="Red"
-                                                ToolTip="Xóa">
-                                                <StackPanel Orientation="Horizontal">
-                                                    <materialDesign:PackIcon Margin="0,0,5,0" Kind="Delete" />
-                                                </StackPanel>
-                                            </Button>
-                                        </Grid>
-
-                                        <TextBlock
-                                            FontSize="14"
-                                            Foreground="Gray"
-                                            Text="{Binding GroupDescription}" />
-
-                                        <StackPanel Margin="0,5,0,0" Orientation="Vertical">
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock FontWeight="Bold" Text="Ngày cập nhật: " />
-                                                <TextBlock Text="{Binding UpdateTime}" />
-                                            </StackPanel>
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock FontWeight="Bold" Text="Người cập nhật: " />
-                                                <TextBlock Text="{Binding UpdateBy}" />
+                                            <StackPanel Margin="0,5,0,0" Orientation="Horizontal">
+                                                <TextBlock FontWeight="Bold" Text="Số lượng còn: " />
+                                                <TextBlock Text="{Binding TotalOnHand}" />
                                             </StackPanel>
                                         </StackPanel>
-                                    </StackPanel>
+                                    </Grid>
                                 </Border>
                             </DataTemplate>
+
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </ScrollViewer>
@@ -497,7 +524,7 @@
         </Grid>
         <!--  Snackbar  -->
         <materialDesign:Snackbar
-            x:Name="AccountManagementSnackbar"
+            x:Name="ProductMasterSnackbar"
             Grid.Row="3"
             Width="Auto"
             Margin="16"

@@ -10,7 +10,6 @@ namespace Chrome_WPF.Models.AccountManagementDTO
         private string _password = string.Empty;
         private string _fullName = string.Empty;
         private string _groupID = string.Empty;
-        private string _updateBy = string.Empty;
         private bool _isValidationRequested;
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -65,18 +64,6 @@ namespace Chrome_WPF.Models.AccountManagementDTO
                 OnPropertyChanged(nameof(GroupID));
             }
         }
-
-        // Không validate UpdateBy
-        public string UpdateBy
-        {
-            get => _updateBy;
-            set
-            {
-                _updateBy = value;
-                OnPropertyChanged(nameof(UpdateBy));
-            }
-        }
-
         public string Error => string.Empty;
 
         public string this[string columnName]
@@ -84,10 +71,6 @@ namespace Chrome_WPF.Models.AccountManagementDTO
             get
             {
                 if (!_isValidationRequested)
-                    return string.Empty;
-
-                // Bỏ qua validation cho một số property
-                if (columnName == nameof(UpdateBy))
                     return string.Empty;
 
                 // Lấy giá trị property hiện tại

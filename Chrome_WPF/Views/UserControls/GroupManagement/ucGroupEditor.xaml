@@ -112,7 +112,7 @@
             x:Name="BackButton"
             Width="150"
             Height="36"
-            Margin="16,16,0,8"
+            Margin="16,16,0,0"
             HorizontalAlignment="Left"
             materialDesign:ButtonAssist.CornerRadius="8"
             Background="#E2E8F0"
@@ -224,6 +224,7 @@
                     EnableColumnVirtualization="True"
                     EnableRowVirtualization="True"
                     ItemsSource="{Binding LstGroupFunctions, UpdateSourceTrigger=PropertyChanged}"
+                    RowDetailsVisibilityMode="VisibleWhenSelected"
                     ScrollViewer.CanContentScroll="True"
                     ScrollViewer.HorizontalScrollBarVisibility="Auto"
                     ScrollViewer.VerticalScrollBarVisibility="Auto"
@@ -231,9 +232,11 @@
                     Style="{StaticResource ModernDataGridStyle}"
                     VirtualizingPanel.IsVirtualizing="True"
                     VirtualizingPanel.VirtualizationMode="Recycling">
+
                     <DataGrid.Resources>
                         <Style BasedOn="{StaticResource MaterialDesignScrollBar}" TargetType="ScrollBar" />
                     </DataGrid.Resources>
+
                     <DataGrid.Columns>
                         <DataGridTextColumn
                             Width="*"
@@ -251,7 +254,37 @@
                             </DataGridCheckBoxColumn.ElementStyle>
                         </DataGridCheckBoxColumn>
                     </DataGrid.Columns>
+                    <DataGrid.RowDetailsTemplate>
+                        <DataTemplate>
+                            <ItemsControl ItemsSource="{Binding LstApplicableLocations}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel
+                                            Margin="0,5,0,5"
+                                            HorizontalAlignment="Center"
+                                            Orientation="Horizontal">
+                                            <TextBlock
+                                                Margin="0,0,10,0"
+                                                FontSize="12"
+                                                Foreground="#2D3748"
+                                                Text="{Binding ApplicableLocation}" />
+                                            <CheckBox
+                                                HorizontalAlignment="Right"
+                                                VerticalAlignment="Center"
+                                                IsChecked="{Binding IsSelected, Mode=TwoWay}" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Margin="10" Orientation="Vertical" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                            </ItemsControl>
+                        </DataTemplate>
+                    </DataGrid.RowDetailsTemplate>
                 </DataGrid>
+
                 <Button
                     Grid.Row="5"
                     Grid.ColumnSpan="2"

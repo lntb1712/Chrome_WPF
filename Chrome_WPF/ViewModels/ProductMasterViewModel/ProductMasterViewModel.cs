@@ -2,9 +2,16 @@
 using Chrome_WPF.Models.CategoryDTO;
 using Chrome_WPF.Models.ProductMasterDTO;
 using Chrome_WPF.Services.CategoryService;
+using Chrome_WPF.Services.MessengerService;
 using Chrome_WPF.Services.NavigationService;
 using Chrome_WPF.Services.NotificationService;
 using Chrome_WPF.Services.ProductMasterService;
+using Chrome_WPF.Services.ProductSupplierService;
+using Chrome_WPF.Services.SupplierMasterService;
+using Chrome_WPF.Views.UserControls.ProductMaster;
+using CommunityToolkit.Mvvm.Messaging;
+using DocumentFormat.OpenXml.VariantTypes;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -13,6 +20,7 @@ using System.Linq;
 using System.Security.RightsManagement;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 
 namespace Chrome_WPF.ViewModels.ProductMasterViewModel
@@ -23,6 +31,7 @@ namespace Chrome_WPF.ViewModels.ProductMasterViewModel
         private readonly ICategoryService _categoryService;
         private readonly INotificationService _notificationService;
         private readonly INavigationService _navigationService;
+        private readonly IMessengerService _messengerService;
         private ObservableCollection<ProductMasterResponseDTO> _lstProduct;
         private ObservableCollection<CategorySummaryDTO>_lstCategorySummary;
         private ObservableCollection<object> _displayPages;
@@ -32,7 +41,7 @@ namespace Chrome_WPF.ViewModels.ProductMasterViewModel
         private int _totalPages;
         private string _selectedCategoryId;
         private ProductMasterResponseDTO _selectedProductMaster;
-        private ProductMasterRequestDTO _productMasterRequestDTO;
+        private ProductMasterRequestDTO? _productMasterRequestDTO;
         private bool _isEditorOpen;
         private int _totalProductCount;
 
@@ -57,7 +66,7 @@ namespace Chrome_WPF.ViewModels.ProductMasterViewModel
         
         public ProductMasterRequestDTO ProductMasterRequestDTO
         {
-            get => _productMasterRequestDTO;
+            get => _productMasterRequestDTO!;
             set
             {
                 _productMasterRequestDTO = value;
@@ -77,14 +86,13 @@ namespace Chrome_WPF.ViewModels.ProductMasterViewModel
                     ProductMasterRequestDTO = new ProductMasterRequestDTO
                     {
                         ProductCode = SelectedProduct.ProductCode,
-                        ProductName = SelectedProduct.ProductName,
-                        ProductDescription = SelectedProduct.ProductDescription,
-                        BaseQuantity = SelectedProduct.BaseQuantity,
-                        BaseUom = SelectedProduct.BaseUom,
-                        CategoryId = SelectedProduct.CategoryId,
-                        ProductImg = SelectedProduct.ProductImg,
-                        Uom = SelectedProduct.Uom,
-                        UpdateBy = SelectedProduct.UpdateBy,
+                        ProductName = SelectedProduct.ProductName!,
+                        ProductDescription = SelectedProduct.ProductDescription!,
+                        BaseQuantity = (double)SelectedProduct.BaseQuantity!,
+                        BaseUOM = SelectedProduct.BaseUom!,
+                        CategoryId = SelectedProduct.CategoryId!,
+                        ProductImg = SelectedProduct.ProductImg!,
+                        UOM = SelectedProduct.Uom!,
                     };
                 }
                 else
@@ -196,12 +204,18 @@ namespace Chrome_WPF.ViewModels.ProductMasterViewModel
         public ICommand ImportExcelCommand { get; }
         public ICommand FilterAllCommand {  get; }
 
-        public ProductMasterViewModel(IProductMasterService productMasterService,ICategoryService categoryService, INotificationService notificationService, INavigationService navigationService)
+        public ProductMasterViewModel(
+            IProductMasterService productMasterService,
+            ICategoryService categoryService, 
+            INotificationService notificationService,
+            INavigationService navigationService,
+            IMessengerService messengerService)
         {
             _productMasterService = productMasterService ?? throw new ArgumentException(nameof(productMasterService));
             _categoryService = categoryService ?? throw new ArgumentException(nameof(categoryService));
             _notificationService = notificationService ?? throw new ArgumentException(nameof(notificationService));
             _navigationService = navigationService ?? throw new ArgumentException(nameof(navigationService));
+            _messengerService = messengerService ?? throw new ArgumentException(nameof(messengerService));
             _lstProduct = new ObservableCollection<ProductMasterResponseDTO>();
             _lstCategorySummary = new ObservableCollection<CategorySummaryDTO>();
             ProductMasterRequestDTO = new ProductMasterRequestDTO();
@@ -215,23 +229,75 @@ namespace Chrome_WPF.ViewModels.ProductMasterViewModel
             RefreshCommand = new RelayCommand(async _ => await LoadProductAsync());
             AddCommand = new RelayCommand(_ => OpenEditor(null!));
             DeleteCommand = new RelayCommand(async product => await DeleteProductAsync((ProductMasterResponseDTO)product));
-            UpdateCommand = new RelayCommand(product => OpenEditor((ProductMasterResponseDTO)product);
+            UpdateCommand = new RelayCommand(product => OpenEditor((ProductMasterResponseDTO)product));
             PreviousPageCommand = new RelayCommand(_ => PreviousPage());
             NextPageCommand = new RelayCommand(_ => NextPage());
             SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
             FilterByCategoryCommand = new RelayCommand(categoryId => SelectedCategoryId = (string)categoryId);
             ExportExcelCommand = new RelayCommand(async p => await ExportExcelAsync(p));
             FilterAllCommand = new RelayCommand(async _ => await LoadProductAsync());
-            _=LoadProductAsync();
+            ImportExcelCommand = new RelayCommand(async p => await ImportExcelAsync(p));
+
+            _= _messengerService.RegisterMessageAsync("ReloadProductList", async (obj) =>
+            {
+                await LoadCategoryAsync(); // Giả sử là 1 hàm bất đồng bộ
+            });
+            _ =LoadProductAsync();
             _ = LoadCategoryAsync();
             _ = GetTotalsProduct();
 
 
         }
 
-        private object LoadCategoryAsync()
+        private async Task ImportExcelAsync(object p)
         {
             throw new NotImplementedException();
+        }
+
+        private void UpdateDisplayPages()
+        {
+            DisplayPages = new ObservableCollection<object>();
+            if (TotalPages <= 0) return;
+
+            int startPage = Math.Max(1, CurrentPage - 2);
+            int endPage = Math.Min(TotalPages, CurrentPage + 2);
+
+            if (startPage > 1)
+                DisplayPages.Add(1);
+            if (startPage > 2)
+                DisplayPages.Add("...");
+
+            for (int i = startPage; i <= endPage; i++)
+                DisplayPages.Add(i);
+
+            if (endPage < TotalPages - 1)
+                DisplayPages.Add("...");
+            if (endPage < TotalPages)
+                DisplayPages.Add(TotalPages);
+        }
+
+        private async Task LoadCategoryAsync()
+        {
+            try
+            {
+                var result = await _categoryService.GetCategorySummary();
+                if (result.Success && result.Data != null)
+                {
+                    CategorySummaryList.Clear();
+                    foreach (var item in result.Data ?? Enumerable.Empty<CategorySummaryDTO>())
+                    {
+                        CategorySummaryList.Add(item);
+                    }
+                }
+                else
+                {
+                    _notificationService.ShowMessage(result.Message ?? "Lỗi khi tính tổng sản phẩm theo danh mục", "OK", isError: true);
+                }
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi: {ex.Message}","OK",isError: true);
+            }
         }
 
         private async Task ExportExcelAsync(object p)
@@ -239,29 +305,85 @@ namespace Chrome_WPF.ViewModels.ProductMasterViewModel
             throw new NotImplementedException();
         }
 
-        private void SelectPage(int page)
+        private void PreviousPage()
         {
-            throw new NotImplementedException();
+            if (CurrentPage > 1)
+            {
+                CurrentPage--;
+            }
         }
 
         private void NextPage()
         {
-            throw new NotImplementedException();
+            if (CurrentPage < TotalPages)
+            {
+                CurrentPage++;
+            }
         }
 
-        private void PreviousPage()
+        private void SelectPage(int page)
         {
-            throw new NotImplementedException();
+            if (page >= 1 && page <= TotalPages)
+            {
+                CurrentPage = page;
+            }
         }
+
 
         private async Task DeleteProductAsync(ProductMasterResponseDTO product)
         {
-            throw new NotImplementedException();
+            if (product == null) return;
+
+            var result = MessageBox.Show($"Bạn có chắc muốn xóa sản phẩm {product.ProductName}?", "Xác nhận xóa", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (result == MessageBoxResult.Yes)
+            {
+                try
+                {
+                    var deleteResult = await _productMasterService.DeleteProductMaster(product.ProductCode);
+                    if (deleteResult.Success)
+                    {
+                        _ = LoadProductAsync();
+                        _notificationService.ShowMessage(deleteResult.Message, "OK", isError: false);
+                    }
+                    else
+                    {
+                        _notificationService.ShowMessage(deleteResult.Message ?? "Lỗi khi xóa sản phẩm", "OK", isError: true);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _notificationService.ShowMessage($"Lỗi :{ex.Message}", "OK", isError: true);
+                }
+            }
         }
 
-        private void OpenEditor(object value)
+        private void OpenEditor(ProductMasterResponseDTO product)
         {
-            throw new NotImplementedException();
+            var productDetail = App.ServiceProvider!.GetRequiredService<ucProductDetail>();
+            productDetail.DataContext = new ProductDetailViewModel(
+                _productMasterService,
+                _categoryService,
+                _notificationService,
+                _navigationService,
+                _messengerService,
+                App.ServiceProvider!.GetRequiredService<IProductSupplierService>(),
+                App.ServiceProvider!.GetRequiredService<ISupplierMasterService>(),
+                isAddingNew: product == null,
+                TotalOnHand: product !=null? (double)product!.TotalOnHand! : 0.00)
+            {
+                ProductMasterRequestDTO = product == null ? new ProductMasterRequestDTO() : new ProductMasterRequestDTO
+                {
+                    ProductCode = product.ProductCode,
+                    ProductName = product.ProductName!,
+                    ProductDescription = product.ProductDescription!,
+                    ProductImg = product.ProductImg!,
+                    CategoryId = product.CategoryId!,
+                    BaseQuantity = (double)product.BaseQuantity!,
+                    BaseUOM = product.BaseUom!,
+                    UOM = product.Uom!,
+                }
+            };
+            _navigationService.NavigateTo(productDetail);
         }
 
         private async Task SearchProductAsync()

@@ -157,7 +157,7 @@ namespace Chrome_WPF.Services.ProductMasterService
         {
             try
             {
-                var response = await _httpClient.GetAsync($"ProductMaster/GetAllProductMaster?page={page}&pageSize={pageSize}");
+                var response = await _httpClient.GetAsync($"ProductMaster/GetAllProductMaster?page={page}&pageSize={pageSize}").ConfigureAwait(false);
                 var jsonResponse =  await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 if (response.IsSuccessStatusCode)
                 {

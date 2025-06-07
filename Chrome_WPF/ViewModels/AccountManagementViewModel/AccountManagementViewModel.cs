@@ -5,6 +5,7 @@ using Chrome_WPF.Models.GroupManagementDTO;
 using Chrome_WPF.Models.PagedResponse;
 using Chrome_WPF.Services.AccountManagementService;
 using Chrome_WPF.Services.GroupManagementService;
+using Chrome_WPF.Services.MessengerService;
 using Chrome_WPF.Services.NavigationService;
 using Chrome_WPF.Services.NotificationService;
 using Chrome_WPF.Views;
@@ -30,6 +31,8 @@ namespace Chrome_WPF.ViewModels
         private readonly IGroupManagementService _groupManagementService;
         private readonly INotificationService _notificationService;
         private readonly INavigationService _navigationService;
+        private readonly IMessengerService _messengerService;
+
         private ObservableCollection<AccountManagementResponseDTO> _accountList;
         private ObservableCollection<GroupManagementTotalDTO> _lstGroupManagement;
         private ObservableCollection<object> _displayPages;
@@ -38,6 +41,8 @@ namespace Chrome_WPF.ViewModels
         private int _pageSize = 10;
         private int _totalPages;
         private string _selectedGroupId;
+
+
         private AccountManagementResponseDTO _selectedAccount;
         private AccountManagementRequestDTO? _accountManagementRequestDTO;
         private bool _isEditorOpen;
@@ -63,6 +68,7 @@ namespace Chrome_WPF.ViewModels
                 OnPropertyChanged();
             }
         }
+
         public AccountManagementRequestDTO AccountManagementRequestDTO
         {
             get => _accountManagementRequestDTO!;
@@ -211,12 +217,15 @@ namespace Chrome_WPF.ViewModels
             IAccountManagementService accountManagementService,
             IGroupManagementService groupManagementService,
             INotificationService notificationService,
-            INavigationService navigationService)
+            INavigationService navigationService,
+            IMessengerService messengerService)
         {
             _accountManagementService = accountManagementService ?? throw new ArgumentNullException(nameof(accountManagementService));
             _groupManagementService = groupManagementService ?? throw new ArgumentNullException(nameof(groupManagementService));
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
+            _messengerService = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
+
             _accountList = new ObservableCollection<AccountManagementResponseDTO>();
             _lstGroupManagement = new ObservableCollection<GroupManagementTotalDTO>();
             AccountManagementRequestDTO = new AccountManagementRequestDTO(); // Initialize the field here
@@ -237,6 +246,11 @@ namespace Chrome_WPF.ViewModels
             FilterByTypeCommand = new RelayCommand(groupId => SelectedGroupId = (string)groupId);
             ExportAndPreviewCommand = new RelayCommand(async p=> await ExportAndPreview(p));
             FilterAllCommand = new RelayCommand(async _ => await LoadAccountsAsync());
+
+            _ = _messengerService.RegisterMessageAsync("ReloadAccountListMessage", async (obj) =>
+            {
+                await LoadAccountsAsync();
+            });
             _ = LoadAccountsAsync();
             _ = LoadGroupsAsync();
             _ = GetTotalAccount();
@@ -269,13 +283,15 @@ namespace Chrome_WPF.ViewModels
                 var result = await _accountManagementService.GetAllAccount(CurrentPage, PageSize);
                 if (result.Success && result.Data != null)
                 {
+                    _ = GetTotalAccount();
                     AccountList.Clear();
                     foreach (var account in result.Data.Data ?? Enumerable.Empty<AccountManagementResponseDTO>())
                     {
                         AccountList.Add(account);
                     }
                     TotalPages = result.Data.TotalPages;
-                    _ = GetTotalAccount();
+                    _ = LoadGroupsAsync();
+                   
                 }
                 else
                 {
@@ -376,6 +392,7 @@ namespace Chrome_WPF.ViewModels
                 _notificationService.ShowMessage($"Lỗi: {ex.Message}", "OK", isError: true);
             }
         }
+
         private void OpenEditor(AccountManagementResponseDTO account)
         {
             var accountEditor = App.ServiceProvider!.GetRequiredService<ucAccountEditor>();
@@ -385,6 +402,7 @@ namespace Chrome_WPF.ViewModels
                 _groupManagementService,
                 _notificationService,
                 _navigationService,
+                _messengerService,
                 isAddingNew: account == null) // Nếu account null thì isAddingNew = true
             {
                 AccountManagementRequestDTO = account == null ? new AccountManagementRequestDTO() : new AccountManagementRequestDTO
@@ -393,12 +411,12 @@ namespace Chrome_WPF.ViewModels
                     Password = account.Password,
                     FullName = account.FullName,
                     GroupID = account.GroupID,
-                    UpdateBy = account.UpdateBy
                 }
             };
             _navigationService.NavigateTo(accountEditor);
 
         }
+
         private async Task DeleteAccountAsync(AccountManagementResponseDTO account)
         {
             if (account == null) return;
@@ -504,11 +522,9 @@ namespace Chrome_WPF.ViewModels
                     {
                         worksheet.Cell(row, 2).Value = stt; // STT
                         worksheet.Cell(row, 3).Value = account.UserName.ToString(); // Mã nhân viên
-                        worksheet.Cell(row, 4).Value = account.FullName.ToString(); // Họ và tên
-                        worksheet.Cell(row, 5).Value = LstGroupManagement.FirstOrDefault(g => g.GroupID == account.GroupID)?.GroupName ?? ""; // Nhóm người dùng
-                        worksheet.Cell(row, 6).Value = account.UpdateTime.ToString() ?? ""; // Ngày cập nhật
-                        worksheet.Cell(row, 7).Value = account.UpdateBy.ToString() ?? ""; // Người cập nhật
-                        worksheet.Cell(row, 8).Value = ""; // Ghi chú (empty as per template)
+                        worksheet.Cell(row, 5).Value = account.FullName.ToString(); // Họ và tên
+                        worksheet.Cell(row, 6).Value = LstGroupManagement.FirstOrDefault(g => g.GroupID == account.GroupID)?.GroupName ?? ""; // Nhóm người dùng
+                        worksheet.Cell(row, 7).Value = ""; // Ghi chú (empty as per template)
                         row++;
                         stt++;
                     }

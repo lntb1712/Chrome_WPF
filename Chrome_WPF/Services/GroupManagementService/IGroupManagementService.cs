@@ -1,4 +1,6 @@
-﻿using Chrome_WPF.Models.APIResult;
+﻿using Chrome_WPF;
+using Chrome_WPF.Models.APIResult;
+using Chrome_WPF.Models.FunctionDTO;
 using Chrome_WPF.Models.GroupFunctionDTO;
 using Chrome_WPF.Models.GroupManagementDTO;
 using Chrome_WPF.Models.PagedResponse;
@@ -15,7 +17,8 @@ namespace Chrome_WPF.Services.GroupManagementService
         Task<ApiResult<PagedResponse<GroupManagementResponseDTO>>> GetAllGroupManagement(int page, int pageSize);
         Task<ApiResult<PagedResponse<GroupManagementResponseDTO>>> SearchGroupInList(string textToSearch, int page, int pageSize);
         Task<ApiResult<List<GroupFunctionResponseDTO>>> GetGroupFunctionWithGroupID(string groupId);
-        Task<ApiResult<List<GroupFunctionResponseDTO>>> GetAllGroupFunction();
+        Task<ApiResult<List<FunctionResponseDTO>>> GetAllFunctions();
+        Task<ApiResult<List<ApplicableLocationResponseDTO>>> GetListApplicableSelected();
         Task<ApiResult<GroupManagementResponseDTO>> GetGroupManagementWithGroupID(string groupId);
         Task<ApiResult<List<GroupManagementTotalDTO>>>GetTotalUserInGroup();
         Task<ApiResult<int>> GetTotalGroupCount();

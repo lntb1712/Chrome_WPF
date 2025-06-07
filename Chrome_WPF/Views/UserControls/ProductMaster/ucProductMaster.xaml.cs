@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Chrome_WPF.Services.NotificationService;
+using Chrome_WPF.ViewModels.ProductMasterViewModel;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,9 +22,15 @@ namespace Chrome_WPF.Views.UserControls.ProductMaster
     /// </summary>
     public partial class ucProductMaster : UserControl
     {
-        public ucProductMaster()
+        private readonly ProductMasterViewModel _viewModel;
+        private readonly INotificationService _notificationService;
+        public ucProductMaster(ProductMasterViewModel viewModel, INotificationService notificationService)
         {
             InitializeComponent();
+            _viewModel = viewModel;
+            _notificationService = notificationService;
+            DataContext = _viewModel;
+            _notificationService.RegisterSnackbar(ProductMasterSnackbar);
         }
     }
 }

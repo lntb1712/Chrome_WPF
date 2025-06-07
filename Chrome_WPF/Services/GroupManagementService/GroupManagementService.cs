@@ -1,5 +1,6 @@
 ﻿using Chrome_WPF.Constants.API_Constant;
 using Chrome_WPF.Models.APIResult;
+using Chrome_WPF.Models.FunctionDTO;
 using Chrome_WPF.Models.GroupFunctionDTO;
 using Chrome_WPF.Models.GroupManagementDTO;
 using Chrome_WPF.Models.PagedResponse;
@@ -153,18 +154,18 @@ namespace Chrome_WPF.Services.GroupManagementService
             }
         }
 
-        public async Task<ApiResult<List<GroupFunctionResponseDTO>>> GetAllGroupFunction()
+        public async Task<ApiResult<List<FunctionResponseDTO>>> GetAllFunctions()
         {
             try
             {
-                var response = await _httpClient.GetAsync("GroupManagement/GetAllGroupFunctions");
+                var response = await _httpClient.GetAsync("GroupManagement/GetAllFunctions");
                 var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 if (response.IsSuccessStatusCode)
                 {
-                    var result = JsonConvert.DeserializeObject<ApiResult<List<GroupFunctionResponseDTO>>>(jsonResponse);
+                    var result = JsonConvert.DeserializeObject<ApiResult<List<FunctionResponseDTO>>>(jsonResponse);
                     if (result == null || !result.Success)
                     {
-                        return new ApiResult<List<GroupFunctionResponseDTO>>(result?.Message ?? "Không thể phân tích phản hồi", false);
+                        return new ApiResult<List<FunctionResponseDTO>>(result?.Message ?? "Không thể phân tích phản hồi", false);
                     }
                     return result;
                 }
@@ -172,39 +173,39 @@ namespace Chrome_WPF.Services.GroupManagementService
                 var errorMessage = errorResult?.Message ?? "Lỗi không xác định từ server";
                 if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                 {
-                    return new ApiResult<List<GroupFunctionResponseDTO>>((string)errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không tồn tại"
+                    return new ApiResult<List<FunctionResponseDTO>>((string)errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không tồn tại"
                 }
                 else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
                 {
-                    return new ApiResult<List<GroupFunctionResponseDTO>>((string)errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không có quyền truy cập"
+                    return new ApiResult<List<FunctionResponseDTO>>((string)errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không có quyền truy cập"
                 }
                 else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
-                    return new ApiResult<List<GroupFunctionResponseDTO>>((string)errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không tồn tại"
+                    return new ApiResult<List<FunctionResponseDTO>>((string)errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không tồn tại"
                 }
                 else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
                 {
-                    return new ApiResult<List<GroupFunctionResponseDTO>>((string)errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Lỗi máy chủ nội bộ"
+                    return new ApiResult<List<FunctionResponseDTO>>((string)errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Lỗi máy chủ nội bộ"
                 }
                 else
                 {
-                    return new ApiResult<List<GroupFunctionResponseDTO>>((string)errorMessage, false); // Trả về thông điệp lỗi chung
+                    return new ApiResult<List<FunctionResponseDTO>>((string)errorMessage, false); // Trả về thông điệp lỗi chung
                 }
             }
             catch (HttpRequestException ex)
             {
                 // Lỗi mạng
-                return new ApiResult<List<GroupFunctionResponseDTO>>($"Lỗi mạng: {ex.Message}", false);
+                return new ApiResult<List<FunctionResponseDTO>>($"Lỗi mạng: {ex.Message}", false);
             }
             catch (JsonException ex)
             {
                 // Lỗi phân tích JSON
-                return new ApiResult<List<GroupFunctionResponseDTO>>($"Lỗi phân tích phản hồi: {ex.Message}", false);
+                return new ApiResult<List<FunctionResponseDTO>>($"Lỗi phân tích phản hồi: {ex.Message}", false);
             }
             catch (Exception ex)
             {
                 // Lỗi không xác định
-                return new ApiResult<List<GroupFunctionResponseDTO>> ($"Lỗi không xác định: {ex.Message}", false);
+                return new ApiResult<List<FunctionResponseDTO>> ($"Lỗi không xác định: {ex.Message}", false);
             }
         }
 
@@ -380,6 +381,59 @@ namespace Chrome_WPF.Services.GroupManagementService
             {
                 // Lỗi không xác định
                 return new ApiResult<GroupManagementResponseDTO>($"Lỗi không xác định: {ex.Message}", false);
+            }
+        }
+
+        public async Task<ApiResult<List<ApplicableLocationResponseDTO>>> GetListApplicableSelected()
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync("GroupManagement/GetListApplicableSelected").ConfigureAwait(false);
+                var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = JsonConvert.DeserializeObject<ApiResult<List<ApplicableLocationResponseDTO>>>(jsonResponse);
+                    if (result == null || !result.Success)
+                    {
+                        return new ApiResult<List<ApplicableLocationResponseDTO>>(result?.Message ?? "Không thể phân tích phản hồi", false);
+                    }
+                    return result;
+                }
+                var errorResult = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
+                var errorMessage = errorResult?.Message ?? "Lỗi không xác định từ server";
+                if( response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    return new ApiResult<List<ApplicableLocationResponseDTO>>((string)errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không tồn tại"
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    return new ApiResult<List<ApplicableLocationResponseDTO>>((string)errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không có quyền truy cập"
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return new ApiResult<List<ApplicableLocationResponseDTO>>((string)errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không tồn tại"
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+                {
+                    return new ApiResult<List<ApplicableLocationResponseDTO>>((string)errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Lỗi máy chủ nội bộ"
+                }
+                else
+                {
+                    return new ApiResult<List<ApplicableLocationResponseDTO>>((string)errorMessage, false); // Trả về thông điệp lỗi chung        
+                }
+            }  catch(HttpRequestException ex)
+            {                 // Lỗi mạng
+                return new ApiResult<List<ApplicableLocationResponseDTO>>($"Lỗi mạng: {ex.Message}", false);
+            }
+            catch (JsonException ex)
+            {
+                // Lỗi phân tích JSON
+                return new ApiResult<List<ApplicableLocationResponseDTO>>($"Lỗi phân tích phản hồi: {ex.Message}", false);
+            }
+            catch (Exception ex)
+            {
+                // Lỗi không xác định
+                return new ApiResult<List<ApplicableLocationResponseDTO>>($"Lỗi không xác định: {ex.Message}", false);
             }
         }
 

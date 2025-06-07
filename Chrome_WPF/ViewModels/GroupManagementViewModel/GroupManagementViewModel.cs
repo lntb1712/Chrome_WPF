@@ -2,6 +2,7 @@
 using Chrome_WPF.Models.AccountManagementDTO;
 using Chrome_WPF.Models.GroupManagementDTO;
 using Chrome_WPF.Services.GroupManagementService;
+using Chrome_WPF.Services.MessengerService;
 using Chrome_WPF.Services.NavigationService;
 using Chrome_WPF.Services.NotificationService;
 using Chrome_WPF.Views.UserControls.GroupManagement;
@@ -22,12 +23,15 @@ namespace Chrome_WPF.ViewModels.GroupManagementViewModel
         private readonly IGroupManagementService _groupManagementService;
         private readonly INotificationService _notificationService;
         private readonly INavigationService _navigationService;
+        private readonly IMessengerService _messengerService;
+
         private ObservableCollection<GroupManagementResponseDTO> _groupList;
         private ObservableCollection<object> _displayPages;
         private string _searchText;
         private int _currentPage;
         private int _pageSize = 10;
         private int _totalPages;
+
         private GroupManagementResponseDTO _selectedGroupManagement;
         private GroupManagementRequestDTO? _groupManagementRequestDTO;
         private bool _isEditorOpen;
@@ -65,7 +69,6 @@ namespace Chrome_WPF.ViewModels.GroupManagementViewModel
                         GroupId = SelectedGroup.GroupId,
                         GroupName = SelectedGroup.GroupName!,
                         GroupDescription = SelectedGroup.GroupDescription,
-                        UpdateBy = SelectedGroup.UpdateBy!
                     };
                 }
                 else
@@ -154,11 +157,16 @@ namespace Chrome_WPF.ViewModels.GroupManagementViewModel
         public ICommand SelectPageCommand { get; }
         public ICommand FilterAllCommand { get; }
 
-        public GroupManagementViewModel(IGroupManagementService groupManagementService, INotificationService notificationService, INavigationService navigationService)
+        public GroupManagementViewModel(
+            IGroupManagementService groupManagementService,
+            INotificationService notificationService,
+            INavigationService navigationService,
+            IMessengerService messengerService)
         {
             _groupManagementService = groupManagementService ?? throw new ArgumentException(nameof(groupManagementService));
             _notificationService = notificationService ?? throw new ArgumentException(nameof(notificationService));
             _navigationService = navigationService ?? throw new ArgumentException(nameof(navigationService));
+            _messengerService = messengerService ?? throw new ArgumentException(nameof(messengerService));
 
             _groupList = new ObservableCollection<GroupManagementResponseDTO>();
             _displayPages = new ObservableCollection<object>();
@@ -176,6 +184,11 @@ namespace Chrome_WPF.ViewModels.GroupManagementViewModel
             NextPageCommand = new RelayCommand(_ => NextPage());
             SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
             FilterAllCommand = new RelayCommand(async _ => await LoadGroupsAsync());
+
+            _ = messengerService.RegisterMessageAsync("ReloadGroupListMessage", async (obj) =>
+            {
+                await LoadGroupsAsync();
+            });
 
             _ = LoadGroupsAsync();
         }
@@ -295,13 +308,13 @@ namespace Chrome_WPF.ViewModels.GroupManagementViewModel
                     GroupId = group.GroupId ?? string.Empty,
                     GroupName = group.GroupName ?? string.Empty,
                     GroupDescription = group.GroupDescription ?? string.Empty,
-                    UpdateBy = group.UpdateBy ?? string.Empty
                 };
 
             var viewModel = new GroupEditorViewModel(
                 _groupManagementService,
                 _notificationService,
                 _navigationService,
+                _messengerService,
                 isAddingNew: group == null,
                 initialDto: dto);
 

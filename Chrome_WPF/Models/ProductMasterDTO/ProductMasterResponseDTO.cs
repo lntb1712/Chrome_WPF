@@ -17,8 +17,7 @@ namespace Chrome_WPF.Models.ProductMasterDTO
         public double? BaseQuantity { get; set; }
         public string? Uom { get; set; }
         public string? BaseUom { get; set; }
+        public double? Valuation { get; set; }
         public float? TotalOnHand { get; set; }
-        public string? UpdateTime { get; set; }
-        public string? UpdateBy { get; set; }
     }
 }

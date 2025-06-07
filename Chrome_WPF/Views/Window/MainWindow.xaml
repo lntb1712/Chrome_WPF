@@ -21,7 +21,7 @@
             <Setter Property="Padding" Value="5" />
             <Setter Property="Margin" Value="0,2" />
             <Setter Property="Width" Value="250" />
-            <Setter Property="Height" Value="45" />
+            <Setter Property="Height" Value="35" />
             <Setter Property="FontSize" Value="16" />
             <Setter Property="FontWeight" Value="Medium" />
             <Setter Property="HorizontalAlignment" Value="Left" />
@@ -205,11 +205,11 @@
                             VerticalAlignment="Center"
                             Orientation="Horizontal">
                             <materialDesign:PackIcon
-                                Width="24"
-                                Height="24"
+                                Width="20"
+                                Height="20"
                                 Margin="10,0,10,0"
                                 Kind="ViewDashboard" />
-                            <TextBlock Text="Bảng điều khiển" />
+                            <TextBlock FontSize="16" Text="Bảng điều khiển" />
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem Style="{StaticResource SeparatorItemStyle}" />

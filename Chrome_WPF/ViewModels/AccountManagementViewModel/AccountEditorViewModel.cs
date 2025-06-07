@@ -5,6 +5,7 @@ using Chrome_WPF.Models.APIResult;
 using Chrome_WPF.Models.GroupManagementDTO;
 using Chrome_WPF.Services.AccountManagementService;
 using Chrome_WPF.Services.GroupManagementService;
+using Chrome_WPF.Services.MessengerService;
 using Chrome_WPF.Services.NavigationService;
 using Chrome_WPF.Services.NotificationService;
 using Chrome_WPF.Views.UserControls;
@@ -24,6 +25,8 @@ namespace Chrome_WPF.ViewModels
         private readonly IGroupManagementService _groupManagementService;
         private readonly INotificationService _notificationService;
         private readonly INavigationService _navigationService;
+        private readonly IMessengerService _messengerService;
+
         private AccountManagementRequestDTO _accountManagementRequestDTO;
         private ObservableCollection<GroupManagementResponseDTO> _lstGroups;
         private GroupManagementResponseDTO _selectedGroup;
@@ -109,12 +112,15 @@ namespace Chrome_WPF.ViewModels
             IGroupManagementService groupManagementService,
             INotificationService notificationService,
             INavigationService navigationService,
+            IMessengerService messengerService,
             bool isAddingNew = true)
         {
             _accountManagementService = accountManagementService ?? throw new ArgumentNullException(nameof(accountManagementService));
             _groupManagementService = groupManagementService ?? throw new ArgumentNullException(nameof(groupManagementService));
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             _navigationService = navigationService ?? throw new ArgumentException(nameof(navigationService));
+            _messengerService = messengerService ?? throw new ArgumentException(nameof(messengerService));
+
             _accountManagementRequestDTO = new AccountManagementRequestDTO();
             _lstGroups = new ObservableCollection<GroupManagementResponseDTO>();
             _selectedGroup = null!;
@@ -156,7 +162,6 @@ namespace Chrome_WPF.ViewModels
         {
             try
             {
-                AccountManagementRequestDTO.UpdateBy = Properties.Settings.Default.FullName ?? string.Empty;
                 AccountManagementRequestDTO.RequestValidation();
                 if (!CanSave(parameter))
                 {
@@ -183,6 +188,9 @@ namespace Chrome_WPF.ViewModels
                         AccountManagementRequestDTO = new AccountManagementRequestDTO();
                         SelectedGroup = null!;
                     }
+
+                    await _messengerService.SendMessageAsync("ReloadAccountListMessage");
+
                     var ucAccountManagement = App.ServiceProvider!.GetRequiredService<ucAccountManagement>();
                     _navigationService.NavigateTo<ucAccountManagement>();
                     

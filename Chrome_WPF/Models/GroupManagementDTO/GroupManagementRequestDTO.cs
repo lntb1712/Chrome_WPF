@@ -14,7 +14,6 @@ namespace Chrome_WPF.Models.GroupManagementDTO
         private string _groupId =string.Empty;
         private string _groupName = string.Empty;
         private string? _groupDescription;
-        private string _updateBy = string.Empty;
 
         private bool _isValidationRequested;
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -56,15 +55,6 @@ namespace Chrome_WPF.Models.GroupManagementDTO
             }
         }
 
-        public string UpdateBy
-        {
-            get => _updateBy;
-            set
-            {
-                _updateBy = value;
-                OnPropertyChanged(nameof(UpdateBy));
-            }
-        }
         public List<GroupFunctionResponseDTO> GroupFunctions { get; set; } = new List<GroupFunctionResponseDTO>();
         public string Error => string.Empty;
         
@@ -76,7 +66,7 @@ namespace Chrome_WPF.Models.GroupManagementDTO
                     return string.Empty;
 
                 // Bỏ qua validation cho một số property
-                if (columnName == nameof(UpdateBy) || columnName == nameof(GroupDescription))
+                if (columnName == nameof(GroupDescription))
                     return string.Empty;
 
                 // Lấy giá trị property hiện tại

@@ -509,14 +509,6 @@
                         Width="*"
                         Binding="{Binding GroupName}"
                         Header="Vai trò" />
-                    <DataGridTextColumn
-                        Width="*"
-                        Binding="{Binding UpdateTime}"
-                        Header="Ngày cập nhật" />
-                    <DataGridTextColumn
-                        Width="*"
-                        Binding="{Binding UpdateBy}"
-                        Header="Người cập nhật" />
                     <DataGridTemplateColumn Width="*" Header="Hành động">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
