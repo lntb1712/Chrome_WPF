@@ -251,7 +251,6 @@
                     <DataGrid
                         Grid.Column="0"
                         MaxWidth="700"
-                        MaxHeight="300"
                         Margin="0,0,8,0"
                         EnableColumnVirtualization="True"
                         EnableRowVirtualization="True"

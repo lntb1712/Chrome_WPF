@@ -299,7 +299,7 @@
                                     Command="{Binding DataContext.FilterByTypeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                     CommandParameter="{Binding GroupID}">
                                     <Border
-                                        Width="170"
+                                        Width="Auto"
                                         Height="70"
                                         Padding="10"
                                         Background="White"
@@ -322,6 +322,7 @@
                                             <StackPanel Grid.Column="1" Orientation="Vertical">
                                                 <TextBlock
                                                     Margin="5,0,0,0"
+                                                    Padding="10,0,10,0"
                                                     HorizontalAlignment="Center"
                                                     VerticalAlignment="Center"
                                                     FontSize="12"

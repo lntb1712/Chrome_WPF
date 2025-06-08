@@ -17,9 +17,9 @@ namespace Chrome_WPF.Converters
 
             return category switch
             {
-                "Bán thành phẩm" => PackIconKind.Cog,
-                "Nguyên vật liệu" => PackIconKind.Archive,
-                "Thành phẩm" => PackIconKind.PackageCheck,
+                "Semi-Finished Goods" => PackIconKind.Cog,
+                "Material" => PackIconKind.Archive,
+                "Finished Goods" => PackIconKind.PackageCheck,
                 _ => PackIconKind.HelpCircleOutline // default icon
             };
         }

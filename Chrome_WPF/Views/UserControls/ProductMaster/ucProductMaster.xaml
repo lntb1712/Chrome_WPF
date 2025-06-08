@@ -138,7 +138,7 @@
                         CornerRadius="8">
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
                             <materialDesign:PackIcon
@@ -203,7 +203,7 @@
                                 Command="{Binding DataContext.FilterByCategoryCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                 CommandParameter="{Binding CategoryId}">
                                 <Border
-                                    Width="210"
+                                    Width="200"
                                     Height="70"
                                     Padding="10"
                                     Background="White"
@@ -212,7 +212,7 @@
                                     CornerRadius="8">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
                                             <ColumnDefinition Width="*" />
                                         </Grid.ColumnDefinitions>
                                         <materialDesign:PackIcon
@@ -222,23 +222,7 @@
                                             HorizontalAlignment="Center"
                                             VerticalAlignment="Center"
                                             Foreground="#4B5EAA"
-                                            Kind="{Binding CategoryName, Converter={StaticResource CategoryNameToIconKindConverter}}">
-                                            <materialDesign:PackIcon.Style>
-                                                <Style TargetType="materialDesign:PackIcon">
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding CategoryName}" Value="Bán thành phẩm">
-                                                            <Setter Property="Kind" Value="Cog" />
-                                                        </DataTrigger>
-                                                        <DataTrigger Binding="{Binding CategoryName}" Value="Nguyên vật liệu">
-                                                            <Setter Property="Kind" Value="Archive" />
-                                                        </DataTrigger>
-                                                        <DataTrigger Binding="{Binding CategoryName}" Value="Thành phẩm">
-                                                            <Setter Property="Kind" Value="PackageCheck" />
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </materialDesign:PackIcon.Style>
-                                        </materialDesign:PackIcon>
+                                            Kind="{Binding CategoryName, Converter={StaticResource CategoryNameToIconKindConverter}}" />
 
                                         <StackPanel Grid.Column="1" Orientation="Vertical">
                                             <TextBlock

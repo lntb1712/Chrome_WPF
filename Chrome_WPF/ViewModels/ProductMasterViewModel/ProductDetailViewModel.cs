@@ -82,7 +82,7 @@ namespace Chrome_WPF.ViewModels
                 _productMasterRequestDTO = value;
                 _productMasterRequestDTO.PropertyChanged += OnPropertyChangedHandler!;
                 ProductImage = _productMasterRequestDTO.ProductImage;
-                if (_productMasterRequestDTO.CategoryId.Equals("NVL"))
+                if (_productMasterRequestDTO.CategoryId.Equals("MAT"))
                 {
                     ActiveTab = "Supplier";
                 }

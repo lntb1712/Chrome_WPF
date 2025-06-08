@@ -574,7 +574,7 @@
                                 <Style BasedOn="{StaticResource CustomTabItemStyle}" TargetType="TabItem">
                                     <Setter Property="Visibility" Value="Collapsed" />
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding SelectedCategory.CategoryId}" Value="NVL">
+                                        <DataTrigger Binding="{Binding SelectedCategory.CategoryId}" Value="MAT">
                                             <Setter Property="Visibility" Value="Visible" />
                                         </DataTrigger>
                                     </Style.Triggers>
@@ -703,10 +703,10 @@
                                 <Style BasedOn="{StaticResource CustomTabItemStyle}" TargetType="TabItem">
                                     <Setter Property="Visibility" Value="Collapsed" />
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding SelectedCategory.CategoryId}" Value="BTP">
+                                        <DataTrigger Binding="{Binding SelectedCategory.CategoryId}" Value="SFG">
                                             <Setter Property="Visibility" Value="Visible" />
                                         </DataTrigger>
-                                        <DataTrigger Binding="{Binding SelectedCategory.CategoryId}" Value="TP">
+                                        <DataTrigger Binding="{Binding SelectedCategory.CategoryId}" Value="FG">
                                             <Setter Property="Visibility" Value="Visible" />
                                         </DataTrigger>
                                     </Style.Triggers>
