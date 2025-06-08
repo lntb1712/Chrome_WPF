@@ -231,7 +231,8 @@ namespace Chrome_WPF.ViewModels
             {
                 Interval = TimeSpan.FromMinutes(1) // Update every second
             };
-            _timer.Tick += (s, e) => CurrentDateTime = DateTime.Now.ToString("dd MMMM, yyyy HH:mm");
+            _timer.Tick += (s, e) => 
+            CurrentDateTime = DateTime.Now.ToString("dd MMMM, yyyy HH:mm");
             _timer.Start();
         }
 

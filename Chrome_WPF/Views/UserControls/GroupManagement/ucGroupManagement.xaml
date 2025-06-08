@@ -254,18 +254,28 @@
                             Header="Mô tả" />
 
                         <!--  Cột Hành Động (Nút Xóa)  -->
-                        <DataGridTemplateColumn Width="Auto" Header="Hành Động">
+                        <DataGridTemplateColumn Width="*" Header="Hành động">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <Button
-                                        Background="Transparent"
-                                        BorderBrush="Transparent"
-                                        Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                        CommandParameter="{Binding}"
-                                        Foreground="Red"
-                                        ToolTip="Xóa">
-                                        <materialDesign:PackIcon Kind="Delete" />
-                                    </Button>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button
+                                            Padding="0,0,0,12"
+                                            Background="Transparent"
+                                            BorderBrush="Transparent"
+                                            Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}">
+                                            <materialDesign:PackIcon Kind="Delete" />
+                                        </Button>
+                                        <Button
+                                            Margin="25,0,0,0"
+                                            Padding="0,0,0,12"
+                                            Background="Transparent"
+                                            BorderBrush="Transparent"
+                                            Command="{Binding DataContext.UpdateCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}">
+                                            <materialDesign:PackIcon Kind="Pencil" />
+                                        </Button>
+                                    </StackPanel>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>

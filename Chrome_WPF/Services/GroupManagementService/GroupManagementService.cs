@@ -384,59 +384,6 @@ namespace Chrome_WPF.Services.GroupManagementService
             }
         }
 
-        public async Task<ApiResult<List<ApplicableLocationResponseDTO>>> GetListApplicableSelected()
-        {
-            try
-            {
-                var response = await _httpClient.GetAsync("GroupManagement/GetListApplicableSelected").ConfigureAwait(false);
-                var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = JsonConvert.DeserializeObject<ApiResult<List<ApplicableLocationResponseDTO>>>(jsonResponse);
-                    if (result == null || !result.Success)
-                    {
-                        return new ApiResult<List<ApplicableLocationResponseDTO>>(result?.Message ?? "Không thể phân tích phản hồi", false);
-                    }
-                    return result;
-                }
-                var errorResult = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
-                var errorMessage = errorResult?.Message ?? "Lỗi không xác định từ server";
-                if( response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-                {
-                    return new ApiResult<List<ApplicableLocationResponseDTO>>((string)errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không tồn tại"
-                }
-                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
-                {
-                    return new ApiResult<List<ApplicableLocationResponseDTO>>((string)errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không có quyền truy cập"
-                }
-                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    return new ApiResult<List<ApplicableLocationResponseDTO>>((string)errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không tồn tại"
-                }
-                else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
-                {
-                    return new ApiResult<List<ApplicableLocationResponseDTO>>((string)errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Lỗi máy chủ nội bộ"
-                }
-                else
-                {
-                    return new ApiResult<List<ApplicableLocationResponseDTO>>((string)errorMessage, false); // Trả về thông điệp lỗi chung        
-                }
-            }  catch(HttpRequestException ex)
-            {                 // Lỗi mạng
-                return new ApiResult<List<ApplicableLocationResponseDTO>>($"Lỗi mạng: {ex.Message}", false);
-            }
-            catch (JsonException ex)
-            {
-                // Lỗi phân tích JSON
-                return new ApiResult<List<ApplicableLocationResponseDTO>>($"Lỗi phân tích phản hồi: {ex.Message}", false);
-            }
-            catch (Exception ex)
-            {
-                // Lỗi không xác định
-                return new ApiResult<List<ApplicableLocationResponseDTO>>($"Lỗi không xác định: {ex.Message}", false);
-            }
-        }
-
         public async Task<ApiResult<int>> GetTotalGroupCount()
         {
             try

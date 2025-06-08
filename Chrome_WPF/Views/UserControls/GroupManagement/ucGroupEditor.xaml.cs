@@ -1,4 +1,5 @@
-﻿using Chrome_WPF.Services.NotificationService;
+﻿using Chrome_WPF.Models.GroupFunctionDTO;
+using Chrome_WPF.Services.NotificationService;
 using Chrome_WPF.ViewModels;
 using Chrome_WPF.ViewModels.GroupManagementViewModel;
 using Microsoft.Extensions.DependencyInjection;
@@ -46,5 +47,7 @@ namespace Chrome_WPF.Views.UserControls.GroupManagement
                 mainContent.Content = groupManagement;
             }
         }
+
+        
     }
 }

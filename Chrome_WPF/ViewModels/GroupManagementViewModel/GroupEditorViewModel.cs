@@ -1,5 +1,4 @@
 ﻿using Chrome_WPF.Helpers;
-using Chrome_WPF.Models.AccountManagementDTO;
 using Chrome_WPF.Models.APIResult;
 using Chrome_WPF.Models.FunctionDTO;
 using Chrome_WPF.Models.GroupFunctionDTO;
@@ -28,9 +27,11 @@ namespace Chrome_WPF.ViewModels
 
         private ObservableCollection<GroupFunctionResponseDTO> _lstGroupFunctions;
         private GroupManagementRequestDTO? _groupManagementRequestDTO;
-        private ObservableCollection<ApplicableLocationResponseDTO> _lstApplicableLocations;
+        private ObservableCollection<ApplicableLocationResponseDTO> _lstListBoxLocations;
+        private GroupFunctionResponseDTO _selectedGroupFunction;
         private bool _isAddingNew;
         private readonly RelayCommand _saveCommand;
+        private readonly RelayCommand _selectAllLocationsCommand;
 
         public ObservableCollection<GroupFunctionResponseDTO> LstGroupFunctions
         {
@@ -41,31 +42,53 @@ namespace Chrome_WPF.ViewModels
                 OnPropertyChanged(nameof(LstGroupFunctions));
             }
         }
-        public ObservableCollection<ApplicableLocationResponseDTO> LstApplicableLocations
+
+        public ObservableCollection<ApplicableLocationResponseDTO> LstListBoxLocations
         {
-            get => _lstApplicableLocations;
+            get => _lstListBoxLocations;
             set
             {
-                _lstApplicableLocations = value;
-                OnPropertyChanged(nameof(LstApplicableLocations));
+                if (_lstListBoxLocations != null)
+                {
+                    foreach (var location in _lstListBoxLocations)
+                        location.PropertyChanged -= ListBoxLocation_PropertyChanged;
+                }
+
+                _lstListBoxLocations = value;
+
+                if (_lstListBoxLocations != null)
+                {
+                    foreach (var location in _lstListBoxLocations)
+                        location.PropertyChanged += ListBoxLocation_PropertyChanged;
+                }
+
+                OnPropertyChanged(nameof(LstListBoxLocations));
             }
         }
 
-        public GroupManagementRequestDTO GroupManagementRequestDTO
+        public GroupManagementRequestDTO? GroupManagementRequestDTO
         {
-            get => _groupManagementRequestDTO!;
+            get => _groupManagementRequestDTO;
             set
             {
                 if (_groupManagementRequestDTO != null)
-                {
                     _groupManagementRequestDTO.PropertyChanged -= OnPropertyChangedHandler;
-                }
+
                 _groupManagementRequestDTO = value ?? new GroupManagementRequestDTO();
                 _groupManagementRequestDTO.PropertyChanged += OnPropertyChangedHandler;
-                OnPropertyChanged(nameof(GroupManagementRequestDTO));
-                // Tải danh sách chức năng khi GroupManagementRequestDTO được gán
-                _ = LoadGroupFunctionsAsync();
 
+                OnPropertyChanged(nameof(GroupManagementRequestDTO));
+                _ = LoadGroupFunctionsAsync();
+            }
+        }
+
+        public GroupFunctionResponseDTO SelectedGroupFunction
+        {
+            get => _selectedGroupFunction;
+            set
+            {
+                _selectedGroupFunction = value;
+                OnPropertyChanged(nameof(SelectedGroupFunction));
             }
         }
 
@@ -80,6 +103,7 @@ namespace Chrome_WPF.ViewModels
         }
 
         public RelayCommand SaveCommand => _saveCommand;
+        public RelayCommand SelectAllLocationsCommand => _selectAllLocationsCommand;
 
         public GroupEditorViewModel(
             IGroupManagementService groupManagementService,
@@ -92,15 +116,14 @@ namespace Chrome_WPF.ViewModels
             _groupManagementService = groupManagementService ?? throw new ArgumentNullException(nameof(groupManagementService));
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
-            _messengerService = messengerService ?? throw new ArgumentException(nameof(messengerService));
-            
+            _messengerService = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
+
             IsAddingNew = isAddingNew;
             _lstGroupFunctions = new ObservableCollection<GroupFunctionResponseDTO>();
-            _lstApplicableLocations = new ObservableCollection<ApplicableLocationResponseDTO>();
-            _saveCommand = new RelayCommand(SaveAsync, CanSave);
-            // Khởi tạo DTO và tải dữ liệu
+            _lstListBoxLocations = new ObservableCollection<ApplicableLocationResponseDTO>();
+            _saveCommand = new RelayCommand(async p => await SaveAsync(), CanSave);
+            _selectAllLocationsCommand = new RelayCommand(SelectAllLocations);
             GroupManagementRequestDTO = initialDto ?? new GroupManagementRequestDTO();
-            _ = LoadApplicableLocationsAsync();
         }
 
         private void OnPropertyChangedHandler(object? sender, PropertyChangedEventArgs e)
@@ -108,85 +131,73 @@ namespace Chrome_WPF.ViewModels
             _saveCommand.RaiseCanExecuteChanged();
         }
 
-        private bool CanSave(object? _)
+        private void ListBoxLocation_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            var dto = GroupManagementRequestDTO;
-            var propertiesToValidate = new[] { nameof(dto.GroupId), nameof(dto.GroupName)};
-
-            foreach (var prop in propertiesToValidate)
+            if (e.PropertyName == nameof(ApplicableLocationResponseDTO.IsSelected) && sender is ApplicableLocationResponseDTO location)
             {
-                if (!string.IsNullOrEmpty(dto[prop]))
+                foreach (var function in LstGroupFunctions)
                 {
+                    var funcLocation = function.ApplicableLocations
+                        .FirstOrDefault(l => l.ApplicableLocation == location.ApplicableLocation);
 
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        private async Task LoadApplicableLocationsAsync()
-        {
-            try
-            {
-                var result = await _groupManagementService.GetListApplicableSelected();
-                if (result.Success && result.Data != null)
-                {
-                    LstApplicableLocations.Clear();
-                    foreach (var location in result.Data)
+                    if (funcLocation != null)
                     {
-                        LstApplicableLocations.Add(location);
+                        funcLocation.IsSelected = location.IsSelected;
+                    }
+                    else if (location.IsSelected)
+                    {
+                        function.ApplicableLocations.Add(new ApplicableLocationResponseDTO
+                        {
+                            ApplicableLocation = location.ApplicableLocation,
+                            IsSelected = true
+                        });
                     }
                 }
-                else
-                {
-                    _notificationService.ShowMessage(result.Message ?? "Không thể tải danh sách vị trí áp dụng.", "OK", isError: true);
-                }
             }
-            catch (Exception ex)
-            {
-                _notificationService.ShowMessage($"Lỗi: {ex.Message}", "OK", isError: true);
-            }
+        }
+
+        private bool CanSave(object? _) =>
+            string.IsNullOrWhiteSpace(GroupManagementRequestDTO[nameof(GroupManagementRequestDTO.GroupId)]) &&
+            string.IsNullOrWhiteSpace(GroupManagementRequestDTO[nameof(GroupManagementRequestDTO.GroupName)]);
+
+        private void SelectAllLocations(object? _)
+        {
+            foreach (var location in LstListBoxLocations)
+                location.IsSelected = true;
         }
 
         private async Task LoadGroupFunctionsAsync()
         {
             try
             {
-                List<GroupFunctionResponseDTO> groupFunctions = new List<GroupFunctionResponseDTO>();
+                List<GroupFunctionResponseDTO> groupFunctions = new();
 
-                // Lấy danh sách ApplicableLocations từ service
-                var applicableLocationsResult = await _groupManagementService.GetListApplicableSelected();
-                var applicableLocations = applicableLocationsResult.Success && applicableLocationsResult.Data != null
-                    ? applicableLocationsResult.Data
-                    : new List<ApplicableLocationResponseDTO>();
-
-                if (!IsAddingNew && !string.IsNullOrEmpty(GroupManagementRequestDTO.GroupId))
+                if (!IsAddingNew && !string.IsNullOrWhiteSpace(GroupManagementRequestDTO?.GroupId))
                 {
                     var result = await _groupManagementService.GetGroupFunctionWithGroupID(GroupManagementRequestDTO.GroupId);
-
-                    if (result.Success && result.Data != null && result.Data.Count > 0)
-                    {
+                    if (result.Success && result.Data != null)
                         groupFunctions = result.Data;
-                    }
                 }
 
-                // Nếu không có groupFunctions hoặc đang thêm mới
                 if (groupFunctions.Count == 0)
                 {
                     var resultFunctionNew = await _groupManagementService.GetAllFunctions();
-
                     if (resultFunctionNew.Success && resultFunctionNew.Data != null)
                     {
                         groupFunctions = resultFunctionNew.Data
                             .Select(f => new GroupFunctionResponseDTO
                             {
+                                GroupId = GroupManagementRequestDTO!.GroupId,
                                 FunctionId = f.FunctionId!,
                                 FunctionName = f.FunctionName!,
                                 IsEnable = f.IsEnable,
-                                LstApplicableLocations = new ObservableCollection<ApplicableLocationResponseDTO>(applicableLocations)
-                            })
-                            .ToList();
+                                ApplicableLocations = new ObservableCollection<ApplicableLocationResponseDTO>(
+                                    f.ApplicableLocations?.Select(a => new ApplicableLocationResponseDTO
+                                    {
+                                        ApplicableLocation = a.ApplicableLocation,
+                                        IsSelected = a.IsSelected
+                                    }) ?? new List<ApplicableLocationResponseDTO>())
+                            }).ToList();
                     }
                     else
                     {
@@ -194,73 +205,65 @@ namespace Chrome_WPF.ViewModels
                         return;
                     }
                 }
-                else
-                {
-                    // Gán LstApplicableLocations cho các groupFunctions hiện có
-                    foreach (var function in groupFunctions)
-                    {
-                        function.LstApplicableLocations = new ObservableCollection<ApplicableLocationResponseDTO>(applicableLocations);
-                    }
-                }
 
-                // Đưa dữ liệu vào danh sách hiển thị
+                var allLocations = groupFunctions
+                    .SelectMany(f => f.ApplicableLocations)
+                    .GroupBy(l => l.ApplicableLocation)
+                    .Select(g => new ApplicableLocationResponseDTO
+                    {
+                        ApplicableLocation = g.Key,
+                        IsSelected = g.Any(l => l.IsSelected)
+                    }).ToList();
+
+                LstListBoxLocations = new ObservableCollection<ApplicableLocationResponseDTO>(allLocations);
+
                 LstGroupFunctions.Clear();
                 foreach (var function in groupFunctions)
-                {
                     LstGroupFunctions.Add(function);
-                }
             }
             catch (Exception ex)
             {
-                _notificationService.ShowMessage($"Lỗi: {ex.Message}", "OK", isError: true);
+                _notificationService.ShowMessage($"Lỗi: {ex.Message}", "OK", isError:true);
             }
         }
 
-        private async void SaveAsync(object? _)
+        private async Task SaveAsync()
         {
             try
             {
-                GroupManagementRequestDTO.RequestValidation();
-
+                GroupManagementRequestDTO!.RequestValidation();
                 if (!CanSave(null))
                 {
                     _notificationService.ShowMessage("Vui lòng điền đầy đủ thông tin.", "OK", isError: true);
                     return;
                 }
 
-                GroupManagementRequestDTO.GroupFunctions = LstGroupFunctions.ToList();
+                GroupManagementRequestDTO.GroupFunctions = LstGroupFunctions
+                    .Select(f => new GroupFunctionResponseDTO
+                    {
+                        GroupId = GroupManagementRequestDTO.GroupId,
+                        FunctionId = f.FunctionId,
+                        FunctionName = f.FunctionName,
+                        IsEnable = f.IsEnable,
+                        ApplicableLocations = new ObservableCollection<ApplicableLocationResponseDTO>(
+                            LstListBoxLocations.Select(l => new ApplicableLocationResponseDTO
+                            {
+                                ApplicableLocation = l.ApplicableLocation,
+                                IsSelected = l.IsSelected
+                            }))
+                    }).ToList();
+
                 var result = IsAddingNew
                     ? await _groupManagementService.AddGroupManagement(GroupManagementRequestDTO)
                     : await _groupManagementService.UpdateGroupManagement(GroupManagementRequestDTO);
 
-                if (result.Success)
-                {
-                    _notificationService.ShowMessage(
-                        result.Message ?? (IsAddingNew ? "Thêm nhóm thành công!" : "Cập nhật nhóm thành công!"),
-                        "OK", isError: false);
+                _notificationService.ShowMessage(result.Message ?? (IsAddingNew ? "Thêm nhóm thành công!" : "Cập nhật nhóm thành công!"), "OK", isError:false);
 
-                    if (IsAddingNew)
-                    {
-                        GroupManagementRequestDTO.ClearValidation();
-                        GroupManagementRequestDTO = new GroupManagementRequestDTO();
-                        LstGroupFunctions.Clear();
-                    }
-
-                    await _messengerService.SendMessageAsync("ReloadGroupListMessage");
-
-                    var ucGroupManagement = App.ServiceProvider!.GetRequiredService<ucGroupManagement>();
-                    _navigationService.NavigateTo(ucGroupManagement);
-                }
-                else
-                {
-                    _notificationService.ShowMessage(
-                        result.Message ?? (IsAddingNew ? "Không thể thêm nhóm." : "Không thể cập nhật nhóm."),
-                        "OK", isError: true);
-                }
+            
             }
             catch (Exception ex)
             {
-                _notificationService.ShowMessage($"Lỗi: {ex.Message}", "OK", isError: true);
+                _notificationService.ShowMessage($"Lỗi: {ex.Message}", "OK", isError:true);
             }
         }
     }

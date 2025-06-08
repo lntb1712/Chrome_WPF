@@ -1,14 +1,37 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace Chrome_WPF.Models.GroupFunctionDTO
 {
-    public class ApplicableLocationResponseDTO
+    public class ApplicableLocationResponseDTO : INotifyPropertyChanged
     {
-        public string ApplicableLocation { get; set; } = null!;
-        public bool IsSelected { get; set; }
+        private string? _applicableLocation;
+        private bool _isSelected;
+
+        public string ApplicableLocation
+        {
+            get => _applicableLocation!;
+            set
+            {
+                _applicableLocation = value;
+                OnPropertyChanged(nameof(ApplicableLocation));
+            }
+        }
+
+        public bool IsSelected
+        {
+            get => _isSelected;
+            set
+            {
+                _isSelected = value;
+                OnPropertyChanged(nameof(IsSelected));
+            }
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 }

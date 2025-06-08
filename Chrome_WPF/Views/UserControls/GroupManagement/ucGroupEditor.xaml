@@ -29,8 +29,7 @@
             <Setter Property="EnableColumnVirtualization" Value="True" />
             <Setter Property="VirtualizingPanel.IsVirtualizing" Value="True" />
             <Setter Property="VirtualizingPanel.VirtualizationMode" Value="Recycling" />
-            <Setter Property="IsReadOnly" Value="True" />
-            <!--  Cho phép chỉnh sửa checkbox  -->
+            <Setter Property="IsReadOnly" Value="False" />
             <Setter Property="CellStyle">
                 <Setter.Value>
                     <Style TargetType="{x:Type DataGridCell}">
@@ -46,7 +45,7 @@
                         <Setter Property="Foreground" Value="#2D3748" />
                         <Setter Property="FontWeight" Value="SemiBold" />
                         <Setter Property="Padding" Value="8" />
-                        <Setter Property="BorderThickness" Value="0,0,0,0" />
+                        <Setter Property="BorderThickness" Value="0,0,0,1" />
                         <Setter Property="BorderBrush" Value="#E0E7FF" />
                         <Setter Property="HorizontalContentAlignment" Value="Center" />
                         <Setter Property="VerticalContentAlignment" Value="Center" />
@@ -54,7 +53,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
         <Style x:Key="ScrollBarLineButton" TargetType="RepeatButton">
             <Setter Property="OverridesDefaultStyle" Value="True" />
             <Setter Property="IsTabStop" Value="False" />
@@ -72,7 +70,6 @@
         <Style x:Key="MaterialDesignScrollBar" TargetType="ScrollBar">
             <Setter Property="SnapsToDevicePixels" Value="True" />
             <Setter Property="OverridesDefaultStyle" Value="True" />
-            <Setter Property="Height" Value="200" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ScrollBar">
@@ -102,6 +99,18 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style x:Key="HighlightedCheckBoxStyle" TargetType="CheckBox">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#2D3748" />
+            <Setter Property="BorderBrush" Value="#2D3748" />
+            <Style.Triggers>
+                <Trigger Property="IsChecked" Value="True">
+                    <Setter Property="Background" Value="#E2E8F0" />
+                    <Setter Property="Foreground" Value="#2D3748" />
+                    <Setter Property="BorderBrush" Value="#2D3748" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </UserControl.Resources>
     <Grid Background="#F5F7FA">
         <Grid.RowDefinitions>
@@ -124,16 +133,15 @@
                     Width="24"
                     Height="24"
                     Margin="0,0,10,0"
-                    Kind="Backburger" />
+                    Kind="ArrowLeft" />
                 <TextBlock VerticalAlignment="Center" Text="Quay lại" />
             </StackPanel>
         </Button>
-        <!--  Card Editor  -->
         <materialDesign:Card
             Grid.Row="1"
             Width="700"
             Margin="16,8,16,16"
-            Padding="24"
+            Padding="10"
             materialDesign:ElevationAssist.Elevation="Dp6"
             Background="White"
             UniformCornerRadius="16">
@@ -196,12 +204,12 @@
                 <TextBox
                     x:Name="GroupDescriptionTextBox"
                     Grid.Row="3"
-                    Margin="0,8,8,24"
+                    Margin="0,8,8,0"
                     Padding="12,8"
-                    materialDesign:HintAssist.Hint="Mô tả người dùng"
+                    materialDesign:HintAssist.Hint="Mô tả nhóm người dùng"
                     materialDesign:HintAssist.IsFloating="True"
                     materialDesign:TextFieldAssist.HasLeadingIcon="True"
-                    materialDesign:TextFieldAssist.LeadingIcon="EditBox"
+                    materialDesign:TextFieldAssist.LeadingIcon="TextBox"
                     AcceptsReturn="True"
                     FontSize="14"
                     IsEnabled="True"
@@ -215,81 +223,73 @@
                             ValidatesOnNotifyDataErrors="True" />
                     </TextBox.Text>
                 </TextBox>
-
-                <DataGrid
-                    Grid.Row="4"
-                    MaxWidth="700"
-                    MaxHeight="300"
-                    Margin="0,16,0,0"
-                    EnableColumnVirtualization="True"
-                    EnableRowVirtualization="True"
-                    ItemsSource="{Binding LstGroupFunctions, UpdateSourceTrigger=PropertyChanged}"
-                    RowDetailsVisibilityMode="VisibleWhenSelected"
-                    ScrollViewer.CanContentScroll="True"
-                    ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                    ScrollViewer.VerticalScrollBarVisibility="Auto"
-                    SelectedItem="{Binding SelectedGroupFunction, UpdateSourceTrigger=PropertyChanged}"
-                    Style="{StaticResource ModernDataGridStyle}"
-                    VirtualizingPanel.IsVirtualizing="True"
-                    VirtualizingPanel.VirtualizationMode="Recycling">
-
-                    <DataGrid.Resources>
-                        <Style BasedOn="{StaticResource MaterialDesignScrollBar}" TargetType="ScrollBar" />
-                    </DataGrid.Resources>
-
-                    <DataGrid.Columns>
-                        <DataGridTextColumn
-                            Width="*"
-                            Binding="{Binding FunctionName, UpdateSourceTrigger=PropertyChanged}"
-                            Header="Tên chức năng" />
-                        <DataGridCheckBoxColumn
-                            Width="80"
-                            Binding="{Binding IsEnable, UpdateSourceTrigger=PropertyChanged}"
-                            Header="Bật/Tắt">
-                            <DataGridCheckBoxColumn.ElementStyle>
-                                <Style TargetType="{x:Type CheckBox}">
-                                    <Setter Property="HorizontalAlignment" Value="Center" />
-                                    <Setter Property="VerticalAlignment" Value="Center" />
-                                </Style>
-                            </DataGridCheckBoxColumn.ElementStyle>
-                        </DataGridCheckBoxColumn>
-                    </DataGrid.Columns>
-                    <DataGrid.RowDetailsTemplate>
-                        <DataTemplate>
-                            <ItemsControl ItemsSource="{Binding LstApplicableLocations}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <StackPanel
-                                            Margin="0,5,0,5"
-                                            HorizontalAlignment="Center"
-                                            Orientation="Horizontal">
-                                            <TextBlock
-                                                Margin="0,0,10,0"
-                                                FontSize="12"
-                                                Foreground="#2D3748"
-                                                Text="{Binding ApplicableLocation}" />
-                                            <CheckBox
-                                                HorizontalAlignment="Right"
-                                                VerticalAlignment="Center"
-                                                IsChecked="{Binding IsSelected, Mode=TwoWay}" />
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <StackPanel Margin="10" Orientation="Vertical" />
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                            </ItemsControl>
-                        </DataTemplate>
-                    </DataGrid.RowDetailsTemplate>
-                </DataGrid>
-
+                <Grid Grid.Row="4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="130" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel
+                        Grid.Column="1"
+                        Margin="16"
+                        Orientation="Vertical">
+                        <TextBlock Text="Kho áp dụng:" />
+                        <ListBox
+                            Width="300"
+                            materialDesign:HintAssist.Hint="Kho áp dụng"
+                            materialDesign:HintAssist.IsFloating="True"
+                            ItemsSource="{Binding LstListBoxLocations, UpdateSourceTrigger=PropertyChanged}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <CheckBox
+                                        Content="{Binding ApplicableLocation}"
+                                        IsChecked="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                        Style="{StaticResource HighlightedCheckBoxStyle}" />
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </StackPanel>
+                    <DataGrid
+                        Grid.Column="0"
+                        MaxWidth="700"
+                        MaxHeight="300"
+                        Margin="0,0,8,0"
+                        EnableColumnVirtualization="True"
+                        EnableRowVirtualization="True"
+                        ItemsSource="{Binding LstGroupFunctions, UpdateSourceTrigger=PropertyChanged}"
+                        RowDetailsVisibilityMode="VisibleWhenSelected"
+                        ScrollViewer.CanContentScroll="True"
+                        ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                        ScrollViewer.VerticalScrollBarVisibility="Auto"
+                        SelectedItem="{Binding SelectedGroupFunction, UpdateSourceTrigger=PropertyChanged}"
+                        Style="{StaticResource ModernDataGridStyle}"
+                        VirtualizingPanel.IsVirtualizing="True"
+                        VirtualizingPanel.VirtualizationMode="Recycling">
+                        <DataGrid.Resources>
+                            <Style BasedOn="{StaticResource MaterialDesignScrollBar}" TargetType="ScrollBar" />
+                        </DataGrid.Resources>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn
+                                Width="*"
+                                Binding="{Binding FunctionName, UpdateSourceTrigger=PropertyChanged}"
+                                Header="Tên chức năng" />
+                            <DataGridCheckBoxColumn
+                                Width="80"
+                                Binding="{Binding IsEnable, UpdateSourceTrigger=PropertyChanged}"
+                                Header="Bật/Tắt">
+                                <DataGridCheckBoxColumn.ElementStyle>
+                                    <Style TargetType="{x:Type CheckBox}">
+                                        <Setter Property="HorizontalAlignment" Value="Center" />
+                                        <Setter Property="VerticalAlignment" Value="Center" />
+                                    </Style>
+                                </DataGridCheckBoxColumn.ElementStyle>
+                            </DataGridCheckBoxColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
                 <Button
                     Grid.Row="5"
-                    Grid.ColumnSpan="2"
                     Width="120"
-                    Height="40"
+                    Height="30"
                     Margin="0,16,0,0"
                     HorizontalAlignment="Center"
                     materialDesign:ButtonAssist.CornerRadius="10"
@@ -302,8 +302,6 @@
                 <materialDesign:Snackbar
                     x:Name="GroupEditorSnackbar"
                     Grid.Row="6"
-                    Width="Auto"
-                    Margin="16"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Bottom"
                     MessageQueue="{materialDesign:MessageQueue}" />
