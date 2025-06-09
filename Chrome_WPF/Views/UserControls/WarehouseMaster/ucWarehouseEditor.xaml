@@ -1,0 +1,523 @@
+﻿<UserControl
+    x:Class="Chrome_WPF.Views.UserControls.WarehouseMaster.ucWarehouseEditor"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="clr-namespace:Chrome_WPF.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:helper="clr-namespace:Chrome_WPF.Helpers"
+    xmlns:local="clr-namespace:Chrome_WPF.Views.UserControls.WarehouseMaster"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:viewSelectors="clr-namespace:Chrome_WPF.ViewSelectors"
+    d:DesignHeight="700"
+    d:DesignWidth="800"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <converters:PageEqualityConverter x:Key="PageEqualityConverter" />
+        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+
+        <!--  Location Templates  -->
+        <DataTemplate x:Key="LocationStorageProductDisplayTemplate">
+            <TextBlock Text="{Binding StorageProductName}" />
+        </DataTemplate>
+        <DataTemplate x:Key="LocationStorageProductEditTemplate">
+            <ComboBox
+                DisplayMemberPath="StorageProductName"
+                ItemsSource="{Binding DataContext.LstStorageProducts, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                SelectedItem="{Binding SelectedStorageProduct, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                SelectedValuePath="StorageProductId" />
+        </DataTemplate>
+        <viewSelectors:LocationCellTemplateSelector
+            x:Key="LocationStorageProductTemplateSelector"
+            DisplayTemplate="{StaticResource LocationStorageProductDisplayTemplate}"
+            EditTemplate="{StaticResource LocationStorageProductEditTemplate}" />
+
+        <!--  LocationCode Templates  -->
+        <DataTemplate x:Key="LocationCodeDisplayTemplate">
+            <TextBlock Text="{Binding LocationCode}" />
+        </DataTemplate>
+        <DataTemplate x:Key="LocationCodeEditTemplate">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBlock
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    Text="{Binding DataContext.WarehouseMasterRequestDTO.WarehouseCode, RelativeSource={RelativeSource AncestorType=UserControl}, StringFormat={}{0}/}" />
+                <TextBox
+                    Grid.Column="1"
+                    Padding="1"
+                    VerticalContentAlignment="Center"
+                    Text="{Binding LocationCodeSuffix, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True}" />
+            </Grid>
+        </DataTemplate>
+        <viewSelectors:LocationCellTemplateSelector
+            x:Key="LocationCodeTemplateSelector"
+            DisplayTemplate="{StaticResource LocationCodeDisplayTemplate}"
+            EditTemplate="{StaticResource LocationCodeEditTemplate}" />
+
+        <!--  Styles  -->
+        <SolidColorBrush x:Key="BorderNormalColor" Color="#E0E0E0" />
+        <Style x:Key="ModernDataGridStyle" TargetType="{x:Type DataGrid}">
+            <Setter Property="RowBackground" Value="White" />
+            <Setter Property="AlternatingRowBackground" Value="#F5F5F5" />
+            <Setter Property="GridLinesVisibility" Value="None" />
+            <Setter Property="HeadersVisibility" Value="Column" />
+            <Setter Property="CanUserAddRows" Value="False" />
+            <Setter Property="AutoGenerateColumns" Value="False" />
+            <Setter Property="SelectionMode" Value="Single" />
+            <Setter Property="RowHeight" Value="35" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="Background" Value="White" />
+            <Setter Property="EnableRowVirtualization" Value="True" />
+            <Setter Property="EnableColumnVirtualization" Value="True" />
+            <Setter Property="VirtualizingPanel.IsVirtualizing" Value="True" />
+            <Setter Property="VirtualizingPanel.VirtualizationMode" Value="Recycling" />
+            <Setter Property="CellStyle">
+                <Setter.Value>
+                    <Style TargetType="{x:Type DataGridCell}">
+                        <Setter Property="Padding" Value="8" />
+                        <Setter Property="BorderBrush" Value="{StaticResource BorderNormalColor}" />
+                        <Setter Property="VerticalContentAlignment" Value="Center" />
+                    </Style>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="ColumnHeaderStyle">
+                <Setter.Value>
+                    <Style TargetType="{x:Type DataGridColumnHeader}">
+                        <Setter Property="Background" Value="#F5F7FA" />
+                        <Setter Property="Foreground" Value="#2D3748" />
+                        <Setter Property="FontWeight" Value="SemiBold" />
+                        <Setter Property="Padding" Value="8" />
+                        <Setter Property="BorderThickness" Value="0,0,0,0" />
+                        <Setter Property="BorderBrush" Value="#E0E7FF" />
+                    </Style>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <helper:PageItemTemplateSelector x:Key="PageItemTemplateSelector">
+            <helper:PageItemTemplateSelector.PageNumberTemplate>
+                <DataTemplate>
+                    <Button
+                        Width="40"
+                        Height="40"
+                        Margin="5,0"
+                        Command="{Binding DataContext.SelectPageCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                        CommandParameter="{Binding}"
+                        Content="{Binding}"
+                        ToolTip="{Binding}">
+                        <Button.Style>
+                            <Style BasedOn="{StaticResource MaterialDesignIconButton}" TargetType="Button">
+                                <Setter Property="Background" Value="Transparent" />
+                                <Setter Property="Foreground" Value="{DynamicResource MaterialDesignBody}" />
+                                <Style.Triggers>
+                                    <DataTrigger Value="True">
+                                        <DataTrigger.Binding>
+                                            <MultiBinding Converter="{StaticResource PageEqualityConverter}">
+                                                <Binding Path="." />
+                                                <Binding Path="DataContext.CurrentPage" />
+                                            </MultiBinding>
+                                        </DataTrigger.Binding>
+                                        <Setter Property="Background" Value="White" />
+                                        <Setter Property="Foreground" Value="Black" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </DataTemplate>
+            </helper:PageItemTemplateSelector.PageNumberTemplate>
+            <helper:PageItemTemplateSelector.EllipsisTemplate>
+                <DataTemplate>
+                    <TextBlock
+                        Width="40"
+                        Height="40"
+                        Margin="5,0"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Foreground="{DynamicResource MaterialDesignBody}"
+                        Text="..." />
+                </DataTemplate>
+            </helper:PageItemTemplateSelector.EllipsisTemplate>
+        </helper:PageItemTemplateSelector>
+
+        <Style TargetType="{x:Type TabControl}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabControl">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Border
+                                Grid.Row="0"
+                                Height="1"
+                                VerticalAlignment="Bottom"
+                                Background="#2D3748" />
+                            <TabPanel
+                                Grid.Row="0"
+                                Margin="0,0,0,0"
+                                Background="Transparent"
+                                IsItemsHost="True" />
+                            <Border
+                                Grid.Row="1"
+                                Background="White"
+                                BorderBrush="#E0E0E0"
+                                BorderThickness="0,0,0,0">
+                                <ContentPresenter Margin="0" ContentSource="SelectedContent" />
+                            </Border>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="CustomTabItemStyle" TargetType="{x:Type TabItem}">
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="#2D3748" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Grid SnapsToDevicePixels="True">
+                            <Border
+                                x:Name="TabBorder"
+                                Margin="2,0,2,0"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="#2D3748"
+                                BorderThickness="0,0,0,0">
+                                <ContentPresenter
+                                    x:Name="Content"
+                                    Margin="{TemplateBinding Padding}"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    ContentSource="Header" />
+                            </Border>
+                            <Border
+                                x:Name="SelectedBorder"
+                                Margin="2,0,2,0"
+                                BorderBrush="Black"
+                                BorderThickness="1,1,1,0"
+                                Visibility="Collapsed" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="TabBorder" Property="BorderThickness" Value="0,0,0,0" />
+                                <Setter TargetName="TabBorder" Property="Background" Value="White" />
+                                <Setter TargetName="SelectedBorder" Property="Visibility" Value="Visible" />
+                                <Setter Property="FontWeight" Value="SemiBold" />
+                                <Setter Property="Panel.ZIndex" Value="1" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Foreground" Value="#4A5568" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+    <Grid Background="#F5F7FA">
+        <materialDesign:Card
+            Margin="16,8,16,16"
+            Padding="24"
+            materialDesign:ElevationAssist.Elevation="Dp6"
+            Background="White"
+            UniformCornerRadius="16">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <!--  Header  -->
+                <Grid Grid.Row="0" Margin="0,0,0,24">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                        <Button
+                            x:Name="BackButton"
+                            Height="36"
+                            HorizontalAlignment="Left"
+                            materialDesign:ButtonAssist.CornerRadius="8"
+                            Background="Transparent"
+                            Command="{Binding BackCommand}"
+                            Foreground="#2D3748"
+                            Style="{StaticResource MaterialDesignFlatButton}"
+                            ToolTip="Quay lại danh sách kho">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon
+                                    Width="24"
+                                    Height="24"
+                                    Kind="ArrowLeft" />
+                            </StackPanel>
+                        </Button>
+                        <TextBlock
+                            Margin="10,0,0,0"
+                            FontSize="24"
+                            FontWeight="Bold"
+                            Text="Thông tin kho" />
+                    </StackPanel>
+
+                    <Button
+                        x:Name="SaveButton"
+                        Grid.Column="2"
+                        materialDesign:ButtonAssist.CornerRadius="8"
+                        Background="AliceBlue"
+                        Command="{Binding SaveCommand}"
+                        Style="{StaticResource MaterialDesignFlatButton}"
+                        ToolTip="Lưu">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon
+                                Width="24"
+                                Height="24"
+                                Margin="0,0,10,0"
+                                Kind="ContentSave" />
+                            <TextBlock VerticalAlignment="Center" Text="Lưu" />
+                        </StackPanel>
+                    </Button>
+                </Grid>
+                <!--  General Information  -->
+                <Grid Grid.Row="1" Margin="0,0,0,24">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <StackPanel
+                        Grid.Row="0"
+                        Grid.Column="0"
+                        Margin="0,10,0,16"
+                        Orientation="Horizontal">
+                        <TextBlock
+                            Width="120"
+                            VerticalAlignment="Center"
+                            Text="Mã kho" />
+                        <TextBox
+                            x:Name="WarehouseCodeTextBox"
+                            Width="200"
+                            Margin="8,0,0,0"
+                            Padding="12,8"
+                            materialDesign:HintAssist.Hint="Nhập mã kho"
+                            materialDesign:HintAssist.IsFloating="True"
+                            materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                            materialDesign:TextFieldAssist.LeadingIcon="Warehouse"
+                            FontSize="14"
+                            IsEnabled="{Binding IsAddingNew, FallbackValue=True}"
+                            Visibility="Visible">
+                            <TextBox.Text>
+                                <Binding
+                                    FallbackValue=""
+                                    Path="WarehouseMasterRequestDTO.WarehouseCode"
+                                    UpdateSourceTrigger="LostFocus"
+                                    ValidatesOnDataErrors="True"
+                                    ValidatesOnNotifyDataErrors="True" />
+                            </TextBox.Text>
+                        </TextBox>
+                    </StackPanel>
+                    <StackPanel
+                        Grid.Row="1"
+                        Grid.Column="0"
+                        Margin="0,10,0,16"
+                        Orientation="Horizontal">
+                        <TextBlock
+                            Width="120"
+                            VerticalAlignment="Center"
+                            Text="Tên kho" />
+                        <TextBox
+                            x:Name="WarehouseNameTextBox"
+                            Width="200"
+                            Margin="8,0,0,0"
+                            Padding="12,8"
+                            materialDesign:HintAssist.Hint="Nhập tên kho"
+                            materialDesign:HintAssist.IsFloating="True"
+                            materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                            materialDesign:TextFieldAssist.LeadingIcon="FormatText"
+                            FontSize="14">
+                            <TextBox.Text>
+                                <Binding
+                                    FallbackValue=""
+                                    Path="WarehouseMasterRequestDTO.WarehouseName"
+                                    UpdateSourceTrigger="LostFocus"
+                                    ValidatesOnDataErrors="True"
+                                    ValidatesOnNotifyDataErrors="True" />
+                            </TextBox.Text>
+                        </TextBox>
+                    </StackPanel>
+                    <StackPanel
+                        Grid.Row="0"
+                        Grid.Column="1"
+                        Margin="0,10,0,16"
+                        Orientation="Horizontal">
+                        <TextBlock
+                            Width="120"
+                            VerticalAlignment="Center"
+                            Text="Địa chỉ" />
+                        <TextBox
+                            x:Name="WarehouseAddressTextBox"
+                            Width="200"
+                            Margin="8,0,0,0"
+                            Padding="12,8"
+                            materialDesign:HintAssist.Hint="Nhập địa chỉ kho"
+                            materialDesign:HintAssist.IsFloating="True"
+                            materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                            materialDesign:TextFieldAssist.LeadingIcon="MapMarker"
+                            FontSize="14">
+                            <TextBox.Text>
+                                <Binding
+                                    FallbackValue=""
+                                    Path="WarehouseMasterRequestDTO.WarehouseAddress"
+                                    UpdateSourceTrigger="LostFocus"
+                                    ValidatesOnDataErrors="True"
+                                    ValidatesOnNotifyDataErrors="True" />
+                            </TextBox.Text>
+                        </TextBox>
+                    </StackPanel>
+                    <StackPanel
+                        Grid.Row="2"
+                        Grid.Column="0"
+                        Grid.ColumnSpan="2"
+                        Margin="0,10,0,16"
+                        Orientation="Vertical">
+                        <TextBlock VerticalAlignment="Center" Text="Mô tả kho" />
+                        <TextBox
+                            Margin="0,8,0,0"
+                            Padding="12,8"
+                            AcceptsReturn="True"
+                            FontSize="14"
+                            Text="{Binding WarehouseMasterRequestDTO.WarehouseDescription, FallbackValue='', UpdateSourceTrigger=LostFocus, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True}"
+                            TextWrapping="Wrap"
+                            ToolTip="Mô tả chi tiết về kho" />
+                    </StackPanel>
+                </Grid>
+                <!--  Locations Section with TabControl  -->
+                <TabControl
+                    Grid.Row="2"
+                    Margin="0,0,0,-1"
+                    Panel.ZIndex="0"
+                    Background="Transparent"
+                    ItemContainerStyle="{StaticResource CustomTabItemStyle}">
+                    <TabItem Header="Vị trí trong kho">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <DataGrid
+                                x:Name="LocationDataGrid"
+                                Grid.Row="0"
+                                Margin="0,8,0,16"
+                                AutoGenerateColumns="False"
+                                CanUserAddRows="False"
+                                CanUserDeleteRows="True"
+                                ItemsSource="{Binding LstLocations, UpdateSourceTrigger=PropertyChanged}"
+                                Style="{StaticResource ModernDataGridStyle}">
+                                <DataGrid.Columns>
+                                    <DataGridTemplateColumn
+                                        Width="*"
+                                        CellTemplateSelector="{StaticResource LocationCodeTemplateSelector}"
+                                        Header="Mã vị trí" />
+                                    <DataGridTextColumn
+                                        Width="*"
+                                        Binding="{Binding LocationName, UpdateSourceTrigger=PropertyChanged}"
+                                        Header="Tên vị trí" />
+                                    <DataGridTemplateColumn
+                                        Width="*"
+                                        CellTemplateSelector="{StaticResource LocationStorageProductTemplateSelector}"
+                                        Header="Sản phẩm lưu trữ" />
+                                    <DataGridTemplateColumn Width="80" IsReadOnly="True">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Button
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    Command="{Binding DataContext.DeleteLocationLineCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                    CommandParameter="{Binding}"
+                                                    Style="{StaticResource MaterialDesignFlatButton}"
+                                                    ToolTip="Xóa dòng">
+                                                    <materialDesign:PackIcon
+                                                        Width="20"
+                                                        Height="20"
+                                                        Kind="Delete" />
+                                                </Button>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                            <Button
+                                Grid.Row="1"
+                                Margin="0,0,0,8"
+                                Padding="8,4"
+                                HorizontalAlignment="Left"
+                                Command="{Binding AddLocationLineCommand}"
+                                Content="Thêm dòng"
+                                Style="{StaticResource MaterialDesignFlatButton}"
+                                ToolTip="Thêm vị trí mới" />
+                            <StackPanel
+                                Grid.Row="2"
+                                Margin="0,10,0,0"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Bottom"
+                                Orientation="Horizontal">
+                                <Button
+                                    Width="40"
+                                    Height="40"
+                                    Command="{Binding PreviousPageCommand}"
+                                    Style="{StaticResource MaterialDesignIconButton}"
+                                    ToolTip="Trang trước">
+                                    <materialDesign:PackIcon
+                                        Width="20"
+                                        Height="20"
+                                        Kind="ArrowLeft" />
+                                </Button>
+                                <ItemsControl ItemsSource="{Binding DisplayPages}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplateSelector>
+                                        <StaticResource ResourceKey="PageItemTemplateSelector" />
+                                    </ItemsControl.ItemTemplateSelector>
+                                </ItemsControl>
+                                <Button
+                                    Width="40"
+                                    Height="40"
+                                    Command="{Binding NextPageCommand}"
+                                    Style="{StaticResource MaterialDesignIconButton}"
+                                    ToolTip="Trang sau">
+                                    <materialDesign:PackIcon
+                                        Width="20"
+                                        Height="20"
+                                        Kind="ArrowRight" />
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                    </TabItem>
+                </TabControl>
+                <!--  Snackbar  -->
+                <materialDesign:Snackbar
+                    x:Name="WarehouseEditorSnackbar"
+                    Grid.Row="3"
+                    Width="Auto"
+                    Margin="16"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom"
+                    MessageQueue="{materialDesign:MessageQueue}" />
+            </Grid>
+        </materialDesign:Card>
+    </Grid>
+</UserControl>

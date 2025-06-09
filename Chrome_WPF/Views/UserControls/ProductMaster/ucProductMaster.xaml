@@ -107,7 +107,6 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <!--  Header Section  -->
         <Grid Grid.Row="0" Margin="20,20,0,20">
@@ -269,6 +268,7 @@
         <Grid Grid.Row="2" Margin="10">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
@@ -505,15 +505,16 @@
                         Kind="ArrowRight" />
                 </Button>
             </StackPanel>
+            <materialDesign:Snackbar
+                x:Name="ProductMasterSnackbar"
+                Grid.Row="3"
+                Width="Auto"
+                Margin="16"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Bottom"
+                MessageQueue="{materialDesign:MessageQueue}" />
         </Grid>
         <!--  Snackbar  -->
-        <materialDesign:Snackbar
-            x:Name="ProductMasterSnackbar"
-            Grid.Row="3"
-            Width="Auto"
-            Margin="16"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Bottom"
-            MessageQueue="{materialDesign:MessageQueue}" />
+
     </Grid>
 </UserControl>

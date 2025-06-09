@@ -324,16 +324,17 @@
                         Kind="ArrowRight" />
                 </Button>
             </StackPanel>
+            <materialDesign:Snackbar
+                x:Name="GroupManagementSnackbar"
+                Grid.Row="2"
+                Width="Auto"
+                Margin="16"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Bottom"
+                MessageQueue="{materialDesign:MessageQueue}" />
         </Grid>
 
         <!--  Snackbar  -->
-        <materialDesign:Snackbar
-            x:Name="GroupManagementSnackbar"
-            Grid.Row="2"
-            Width="Auto"
-            Margin="16"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Bottom"
-            MessageQueue="{materialDesign:MessageQueue}" />
+
     </Grid>
 </UserControl>

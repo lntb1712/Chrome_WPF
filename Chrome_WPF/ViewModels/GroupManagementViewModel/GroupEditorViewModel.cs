@@ -119,6 +119,7 @@ namespace Chrome_WPF.ViewModels
             _messengerService = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
 
             IsAddingNew = isAddingNew;
+            _selectedGroupFunction = new GroupFunctionResponseDTO();
             _lstGroupFunctions = new ObservableCollection<GroupFunctionResponseDTO>();
             _lstListBoxLocations = new ObservableCollection<ApplicableLocationResponseDTO>();
             _saveCommand = new RelayCommand(async p => await SaveAsync(), CanSave);
@@ -157,7 +158,7 @@ namespace Chrome_WPF.ViewModels
         }
 
         private bool CanSave(object? _) =>
-            string.IsNullOrWhiteSpace(GroupManagementRequestDTO[nameof(GroupManagementRequestDTO.GroupId)]) &&
+            string.IsNullOrWhiteSpace(GroupManagementRequestDTO![nameof(GroupManagementRequestDTO.GroupId)]) &&
             string.IsNullOrWhiteSpace(GroupManagementRequestDTO[nameof(GroupManagementRequestDTO.GroupName)]);
 
         private void SelectAllLocations(object? _)

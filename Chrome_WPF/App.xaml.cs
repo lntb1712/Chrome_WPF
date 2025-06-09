@@ -4,6 +4,7 @@ using Chrome_WPF.Services.AuthServices;
 using Chrome_WPF.Services.CategoryService;
 using Chrome_WPF.Services.CustomerMasterService;
 using Chrome_WPF.Services.GroupManagementService;
+using Chrome_WPF.Services.LocationMasterService;
 using Chrome_WPF.Services.LoginServices;
 using Chrome_WPF.Services.MessengerService;
 using Chrome_WPF.Services.NavigationService;
@@ -11,12 +12,15 @@ using Chrome_WPF.Services.NotificationService;
 using Chrome_WPF.Services.ProductCustomerService;
 using Chrome_WPF.Services.ProductMasterService;
 using Chrome_WPF.Services.ProductSupplierService;
+using Chrome_WPF.Services.StorageProductService;
 using Chrome_WPF.Services.SupplierMasterService;
+using Chrome_WPF.Services.WarehouseMasterService;
 using Chrome_WPF.ViewModels;
 using Chrome_WPF.ViewModels.CustomerMasterViewModel;
 using Chrome_WPF.ViewModels.GroupManagementViewModel;
 using Chrome_WPF.ViewModels.ProductMasterViewModel;
 using Chrome_WPF.ViewModels.SupplierMasterViewModel;
+using Chrome_WPF.ViewModels.WarehouseMasterViewModel;
 using Chrome_WPF.Views;
 using Chrome_WPF.Views.UserControls;
 using Chrome_WPF.Views.UserControls.AccountManagement;
@@ -24,6 +28,7 @@ using Chrome_WPF.Views.UserControls.CustomerMaster;
 using Chrome_WPF.Views.UserControls.GroupManagement;
 using Chrome_WPF.Views.UserControls.ProductMaster;
 using Chrome_WPF.Views.UserControls.SupplierMaster;
+using Chrome_WPF.Views.UserControls.WarehouseMaster;
 using Microsoft.Extensions.DependencyInjection;
 using System.Globalization;
 using System.Windows;
@@ -61,6 +66,9 @@ namespace Chrome_WPF
             services.AddSingleton<ISupplierMasterService, SupplierMasterService>();
             services.AddSingleton<ICustomerMasterService, CustomerMasterService>();
             services.AddSingleton<IProductCustomerService, ProductCustomerService>();
+            services.AddSingleton<IWarehouseMasterService, WarehouseMasterService>();
+            services.AddSingleton<ILocationMasterService, LocationMasterService>();
+            services.AddSingleton<IStorageProductService,StorageProductService>();
 
 
             // Register IServiceProvider
@@ -87,6 +95,8 @@ namespace Chrome_WPF
             services.AddTransient<SupplierEditorViewModel>();
             services.AddTransient<CustomerMasterViewModel>();
             services.AddTransient<CustomerEditorViewModel>();
+            services.AddTransient<WarehouseMasterViewModel>();
+            services.AddTransient<WarehouseEditorViewModel>();
 
             // Register Views
             services.AddTransient<LoginWindow>(provider =>
@@ -147,6 +157,16 @@ namespace Chrome_WPF
             services.AddTransient<ucCustomerEditor>(provider =>
                 new ucCustomerEditor(
                     provider.GetRequiredService<CustomerEditorViewModel>(),
+                    provider.GetRequiredService<INotificationService>()));
+
+            services.AddTransient<ucWarehouseMaster>(provider =>
+                new ucWarehouseMaster(
+                    provider.GetRequiredService<WarehouseMasterViewModel>(),  
+                    provider.GetRequiredService<INotificationService>())); // Thêm dịch vụ kho nếu cần
+
+            services.AddTransient<ucWarehouseEditor>(provider =>
+                new ucWarehouseEditor(
+                    provider.GetRequiredService<WarehouseEditorViewModel>(),
                     provider.GetRequiredService<INotificationService>()));
 
 

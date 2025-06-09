@@ -1,23 +1,24 @@
 ﻿<UserControl
-    x:Class="Chrome_WPF.Views.UserControls.CustomerMaster.ucCustomerMaster"
+    x:Class="Chrome_WPF.Views.UserControls.WarehouseMaster.ucWarehouseMaster"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="clr-namespace:Chrome_WPF.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:helper="clr-namespace:Chrome_WPF.Helpers"
-    xmlns:local="clr-namespace:Chrome_WPF.Views.UserControls.CustomerMaster"
+    xmlns:local="clr-namespace:Chrome_WPF.Views.UserControls.WarehouseMaster"
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
     <UserControl.Resources>
-        <!--  Các Converter  -->
+        <!--  Converters  -->
         <converters:RangeConverter x:Key="RangeConverter" />
         <converters:PageEqualityConverter x:Key="PageEqualityConverter" />
         <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
         <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-        <!--  PageItemTemplateSelector cho phân trang  -->
+
+        <!--  PageItemTemplateSelector for pagination  -->
         <helper:PageItemTemplateSelector x:Key="PageItemTemplateSelector">
             <helper:PageItemTemplateSelector.PageNumberTemplate>
                 <DataTemplate>
@@ -64,6 +65,7 @@
             </helper:PageItemTemplateSelector.EllipsisTemplate>
         </helper:PageItemTemplateSelector>
 
+        <!--  Filter Button Style  -->
         <Style x:Key="FilterButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="#E6F0FA" />
             <Setter Property="BorderBrush" Value="Transparent" />
@@ -94,8 +96,10 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
+
         <SolidColorBrush x:Key="BorderNormalColor" Color="#E0E0E0" />
 
+        <!--  Modern DataGrid Style  -->
         <Style x:Key="ModernDataGridStyle" TargetType="{x:Type DataGrid}">
             <Setter Property="RowBackground" Value="White" />
             <Setter Property="AlternatingRowBackground" Value="#F5F5F5" />
@@ -107,9 +111,10 @@
             <Setter Property="RowHeight" Value="35" />
             <Setter Property="BorderBrush" Value="Transparent" />
             <Setter Property="Background" Value="White" />
-            <Setter Property="EnableRowVirtualization" Value="False" />
-            <Setter Property="EnableColumnVirtualization" Value="False" />
+            <Setter Property="EnableRowVirtualization" Value="True" />
+            <Setter Property="EnableColumnVirtualization" Value="True" />
             <Setter Property="VirtualizingPanel.IsVirtualizing" Value="True" />
+            <Setter Property="VirtualizingPanel.VirtualizationMode" Value="Recycling" />
             <Setter Property="CellStyle">
                 <Setter.Value>
                     <Style TargetType="{x:Type DataGridCell}">
@@ -132,6 +137,7 @@
             </Setter>
         </Style>
     </UserControl.Resources>
+
     <Grid Background="#F5F7FA">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -146,12 +152,12 @@
                 FontWeight="Bold"
                 Foreground="#2D3748"
                 Style="{StaticResource MaterialDesignHeadline6TextBlock}">
-                <Run Text="Quản lý khách hàng" />
+                <Run Text="Quản lý kho" />
                 <Run Foreground="Gray" Text=" (" />
                 <Run
                     Foreground="Gray"
-                    Text="{Binding TotalCustomersCount}"
-                    ToolTip="Tổng khách hàng" />
+                    Text="{Binding TotalWarehousesCount}"
+                    ToolTip="Tổng số kho" />
                 <Run Foreground="Gray" Text=")" />
             </TextBlock>
         </Grid>
@@ -178,7 +184,7 @@
                         Grid.Column="0"
                         Margin="0,0,10,0"
                         Padding="8"
-                        materialDesign:HintAssist.Hint="Tìm kiếm khách hàng ..."
+                        materialDesign:HintAssist.Hint="Tìm kiếm kho ..."
                         Foreground="#A0AEC0"
                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
@@ -212,7 +218,7 @@
                             <TextBlock
                                 VerticalAlignment="Center"
                                 Foreground="#2D3748"
-                                Text="Thêm khách hàng" />
+                                Text="Thêm kho" />
                         </StackPanel>
                     </Button>
                     <Button
@@ -239,31 +245,27 @@
                 CanUserAddRows="False"
                 EnableColumnVirtualization="False"
                 EnableRowVirtualization="False"
-                ItemsSource="{Binding CustomerList, UpdateSourceTrigger=PropertyChanged}"
+                ItemsSource="{Binding WarehouseList, UpdateSourceTrigger=PropertyChanged}"
                 SelectionMode="Single"
                 Style="{StaticResource ModernDataGridStyle}"
                 VirtualizingPanel.IsVirtualizing="True">
                 <DataGrid.Columns>
                     <DataGridTextColumn
                         Width="*"
-                        Binding="{Binding CustomerCode}"
-                        Header="Mã khách hàng" />
+                        Binding="{Binding WarehouseCode}"
+                        Header="Mã kho" />
                     <DataGridTextColumn
                         Width="*"
-                        Binding="{Binding CustomerName}"
-                        Header="Tên khách hàng" />
+                        Binding="{Binding WarehouseName}"
+                        Header="Tên kho" />
                     <DataGridTextColumn
                         Width="*"
-                        Binding="{Binding CustomerAddress}"
+                        Binding="{Binding WarehouseAddress}"
                         Header="Địa chỉ" />
                     <DataGridTextColumn
                         Width="*"
-                        Binding="{Binding CustomerPhone}"
-                        Header="Số điện thoại" />
-                    <DataGridTextColumn
-                        Width="*"
-                        Binding="{Binding CustomerEmail}"
-                        Header="Email" />
+                        Binding="{Binding WarehouseDescription}"
+                        Header="Mô tả" />
                     <DataGridTemplateColumn Width="*" Header="Hành động">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
@@ -337,7 +339,7 @@
             </StackPanel>
             <!--  Snackbar  -->
             <materialDesign:Snackbar
-                x:Name="CustomerManagementSnackbar"
+                x:Name="WarehouseManagementSnackbar"
                 Grid.Row="2"
                 Width="Auto"
                 Margin="16"

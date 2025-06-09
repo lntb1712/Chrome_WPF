@@ -213,33 +213,8 @@
         </helper:PageItemTemplateSelector>
     </UserControl.Resources>
     <Grid Background="#F5F7FA">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-        <Button
-            x:Name="BackButton"
-            Width="150"
-            Height="36"
-            Margin="16,16,0,8"
-            HorizontalAlignment="Left"
-            materialDesign:ButtonAssist.CornerRadius="8"
-            Background="#E2E8F0"
-            Command="{Binding BackCommand}"
-            Foreground="#2D3748"
-            Style="{StaticResource MaterialDesignFlatButton}"
-            ToolTip="Quay lại danh sách sản phẩm">
-            <StackPanel Orientation="Horizontal">
-                <materialDesign:PackIcon
-                    Width="24"
-                    Height="24"
-                    Margin="0,0,10,0"
-                    Kind="ArrowLeft" />
-                <TextBlock VerticalAlignment="Center" Text="Quay lại" />
-            </StackPanel>
-        </Button>
+
         <materialDesign:Card
-            Grid.Row="1"
             Margin="16,8,16,16"
             Padding="24"
             materialDesign:ElevationAssist.Elevation="Dp6"
@@ -258,7 +233,24 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <StackPanel Margin="0,5,0,0" Orientation="Horizontal">
+                        <Button
+                            x:Name="BackButton"
+                            HorizontalAlignment="Left"
+                            materialDesign:ButtonAssist.CornerRadius="8"
+                            Background="Transparent"
+                            Command="{Binding BackCommand}"
+                            Foreground="#2D3748"
+                            Style="{StaticResource MaterialDesignFlatButton}"
+                            ToolTip="Quay lại danh sách sản phẩm">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon
+                                    Width="24"
+                                    Height="24"
+                                    Kind="ArrowLeft" />
+                            </StackPanel>
+                        </Button>
                         <TextBlock
+                            Margin="10,0,0,0"
                             FontSize="24"
                             FontWeight="Bold"
                             Text="Thông tin " />

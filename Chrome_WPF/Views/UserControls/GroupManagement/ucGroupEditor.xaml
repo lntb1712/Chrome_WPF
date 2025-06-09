@@ -113,33 +113,9 @@
         </Style>
     </UserControl.Resources>
     <Grid Background="#F5F7FA">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-        <Button
-            x:Name="BackButton"
-            Width="150"
-            Height="36"
-            Margin="16,16,0,0"
-            HorizontalAlignment="Left"
-            materialDesign:ButtonAssist.CornerRadius="8"
-            Background="#E2E8F0"
-            Click="BackButton_Click"
-            Foreground="#2D3748"
-            Style="{StaticResource MaterialDesignFlatButton}">
-            <StackPanel Orientation="Horizontal">
-                <materialDesign:PackIcon
-                    Width="24"
-                    Height="24"
-                    Margin="0,0,10,0"
-                    Kind="ArrowLeft" />
-                <TextBlock VerticalAlignment="Center" Text="Quay lại" />
-            </StackPanel>
-        </Button>
+
         <materialDesign:Card
-            Grid.Row="1"
-            Width="700"
+            Width="Auto"
             Margin="16,8,16,16"
             Padding="10"
             materialDesign:ElevationAssist.Elevation="Dp6"
@@ -155,14 +131,34 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <TextBlock
-                    Grid.Row="0"
-                    Margin="0,0,0,24"
-                    HorizontalAlignment="Center"
-                    FontSize="24"
-                    FontWeight="SemiBold"
-                    Foreground="#1A202C"
-                    Text="Thông tin nhóm" />
+                <StackPanel
+                    Margin="0,0,0,10"
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal">
+                    <Button
+                        x:Name="BackButton"
+                        Height="36"
+                        HorizontalAlignment="Left"
+                        materialDesign:ButtonAssist.CornerRadius="8"
+                        Background="Transparent"
+                        Click="BackButton_Click"
+                        Foreground="#2D3748"
+                        Style="{StaticResource MaterialDesignFlatButton}"
+                        ToolTip="Quay lại danh sách kho">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon
+                                Width="24"
+                                Height="24"
+                                Kind="ArrowLeft" />
+                        </StackPanel>
+                    </Button>
+                    <TextBlock
+                        Margin="10,0,0,0"
+                        FontSize="24"
+                        FontWeight="Bold"
+                        Text="Thông tin nhóm" />
+                </StackPanel>
+
                 <TextBox
                     x:Name="GroupIDTextBox"
                     Grid.Row="1"
@@ -226,7 +222,7 @@
                 <Grid Grid.Row="4">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="130" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <StackPanel
                         Grid.Column="1"
@@ -250,7 +246,6 @@
                     </StackPanel>
                     <DataGrid
                         Grid.Column="0"
-                        MaxWidth="700"
                         Margin="0,0,8,0"
                         EnableColumnVirtualization="True"
                         EnableRowVirtualization="True"

@@ -7,6 +7,7 @@ using Chrome_WPF.Views.UserControls.CustomerMaster;
 using Chrome_WPF.Views.UserControls.GroupManagement;
 using Chrome_WPF.Views.UserControls.ProductMaster;
 using Chrome_WPF.Views.UserControls.SupplierMaster;
+using Chrome_WPF.Views.UserControls.WarehouseMaster;
 using MaterialDesignThemes.Wpf;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -107,6 +108,9 @@ namespace Chrome_WPF.Views
                         break;
                     case "ucCustomerMaster":
                         _navigationService.NavigateTo<ucCustomerMaster>();
+                        break;
+                    case "ucWarehouseMaster":
+                        _navigationService.NavigateTo<ucWarehouseMaster>();
                         break;
                     default:
                         break;

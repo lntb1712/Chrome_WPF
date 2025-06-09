@@ -24,7 +24,7 @@ namespace Chrome_WPF.Models.ProductSupplierDTO
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        [Required(ErrorMessage ="Mã nhf cung cấp không được để trống")]
+        [Required(ErrorMessage ="Mã nhà cung cấp không được để trống")]
         public string SupplierCode
         {
             get=> _supplierCode;
