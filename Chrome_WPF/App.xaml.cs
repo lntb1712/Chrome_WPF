@@ -12,6 +12,7 @@ using Chrome_WPF.Services.NotificationService;
 using Chrome_WPF.Services.ProductCustomerService;
 using Chrome_WPF.Services.ProductMasterService;
 using Chrome_WPF.Services.ProductSupplierService;
+using Chrome_WPF.Services.PutAwayRulesService;
 using Chrome_WPF.Services.StorageProductService;
 using Chrome_WPF.Services.SupplierMasterService;
 using Chrome_WPF.Services.WarehouseMasterService;
@@ -68,7 +69,8 @@ namespace Chrome_WPF
             services.AddSingleton<IProductCustomerService, ProductCustomerService>();
             services.AddSingleton<IWarehouseMasterService, WarehouseMasterService>();
             services.AddSingleton<ILocationMasterService, LocationMasterService>();
-            services.AddSingleton<IStorageProductService,StorageProductService>();
+            services.AddSingleton<IStorageProductService, StorageProductService>();
+            services.AddSingleton<IPutAwayRulesService, PutAwayRulesService>();
 
 
             // Register IServiceProvider
@@ -97,6 +99,9 @@ namespace Chrome_WPF
             services.AddTransient<CustomerEditorViewModel>();
             services.AddTransient<WarehouseMasterViewModel>();
             services.AddTransient<WarehouseEditorViewModel>();
+            services.AddTransient<StorageProductViewModel>();
+            services.AddTransient<PutAwayRulesViewModel>();
+
 
             // Register Views
             services.AddTransient<LoginWindow>(provider =>
@@ -167,6 +172,16 @@ namespace Chrome_WPF
             services.AddTransient<ucWarehouseEditor>(provider =>
                 new ucWarehouseEditor(
                     provider.GetRequiredService<WarehouseEditorViewModel>(),
+                    provider.GetRequiredService<INotificationService>()));
+
+            services .AddTransient<ucStorageProduct>(provider =>
+                new ucStorageProduct(
+                    provider.GetRequiredService<StorageProductViewModel>(),
+                    provider.GetRequiredService<INotificationService>()));
+
+            services.AddTransient<ucPutAwayRules>(provider =>
+                new ucPutAwayRules(
+                    provider.GetRequiredService<PutAwayRulesViewModel>(),
                     provider.GetRequiredService<INotificationService>()));
 
 

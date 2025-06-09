@@ -147,7 +147,12 @@
 
         <!--  Header Section  -->
         <Grid Grid.Row="0" Margin="20,20,0,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
             <TextBlock
+                Grid.Column="0"
                 FontSize="24"
                 FontWeight="Bold"
                 Foreground="#2D3748"
@@ -160,6 +165,84 @@
                     ToolTip="Tổng số kho" />
                 <Run Foreground="Gray" Text=")" />
             </TextBlock>
+            <Button
+                x:Name="btnSetting"
+                Grid.Column="1"
+                Width="35"
+                Height="35"
+                Margin="0,0,30,0"
+                Background="Transparent"
+                BorderBrush="Transparent"
+                Command="{Binding OpenSettingsCommand}"
+                Style="{StaticResource MaterialDesignFloatingActionMiniButton}">
+                <materialDesign:PackIcon
+                    Width="20"
+                    Height="20"
+                    Foreground="Gray"
+                    Kind="Settings" />
+            </Button>
+
+            <Popup
+                AllowsTransparency="True"
+                IsOpen="{Binding IsSettingPopupOpen}"
+                Placement="Left"
+                PlacementTarget="{Binding ElementName=btnSetting}"
+                StaysOpen="False">
+                <Border
+                    Padding="10"
+                    Background="White"
+                    CornerRadius="5">
+                    <Border.Effect>
+                        <DropShadowEffect
+                            BlurRadius="10"
+                            Opacity="0.3"
+                            ShadowDepth="2"
+                            Color="Black" />
+                    </Border.Effect>
+                    <StackPanel>
+
+                        <Button
+                            Width="Auto"
+                            Margin="0,5,0,5"
+                            Padding="10"
+                            HorizontalAlignment="Left"
+                            Command="{Binding OpenStorageProductCommand}"
+                            Style="{StaticResource FilterButtonStyle}">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon
+                                    Margin="0,0,5,0"
+                                    VerticalAlignment="Center"
+                                    Foreground="#4B5EAA"
+                                    Kind="SettingsInputComponent" />
+                                <TextBlock
+                                    Width="180"
+                                    VerticalAlignment="Center"
+                                    Foreground="#2D3748"
+                                    Text="Định mức sản phẩm trong kho" />
+                            </StackPanel>
+                        </Button>
+                        <Button
+                            Margin="0,5,0,5"
+                            Padding="10"
+                            HorizontalAlignment="Left"
+                            Command="{Binding OpenPutAwaysRulesCommand}"
+                            Style="{StaticResource FilterButtonStyle}">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon
+                                    Margin="0,0,5,0"
+                                    VerticalAlignment="Center"
+                                    Foreground="#4B5EAA"
+                                    Kind="SettingsBox" />
+                                <TextBlock
+                                    Width="180"
+                                    VerticalAlignment="Center"
+                                    Foreground="#2D3748"
+                                    Text="Quy tắc để hàng" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Border>
+            </Popup>
         </Grid>
 
         <!--  Table and Filters Section  -->

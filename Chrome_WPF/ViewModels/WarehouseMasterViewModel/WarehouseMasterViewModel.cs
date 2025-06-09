@@ -4,6 +4,8 @@ using Chrome_WPF.Services.LocationMasterService;
 using Chrome_WPF.Services.MessengerService;
 using Chrome_WPF.Services.NavigationService;
 using Chrome_WPF.Services.NotificationService;
+using Chrome_WPF.Services.ProductMasterService;
+using Chrome_WPF.Services.PutAwayRulesService;
 using Chrome_WPF.Services.StorageProductService;
 using Chrome_WPF.Services.WarehouseMasterService;
 using Chrome_WPF.Views.UserControls.WarehouseMaster;
@@ -33,6 +35,16 @@ namespace Chrome_WPF.ViewModels.WarehouseMasterViewModel
         private WarehouseMasterResponseDTO _selectedWarehouse;
         private WarehouseMasterRequestDTO _warehouseMasterRequestDTO;
         private int _totalWarehousesCount;
+        private bool _isSettingPopupOpen;
+        public bool IsSettingPopupOpen
+        {
+            get => _isSettingPopupOpen;
+            set
+            {
+                _isSettingPopupOpen = value;
+                OnPropertyChanged();
+            }
+        }
 
         public ObservableCollection<WarehouseMasterResponseDTO> WarehouseList
         {
@@ -151,7 +163,12 @@ namespace Chrome_WPF.ViewModels.WarehouseMasterViewModel
         public ICommand NextPageCommand { get; }
         public ICommand PreviousPageCommand { get; }
         public ICommand SelectPageCommand { get; }
-
+        public ICommand OpenSettingsCommand => new RelayCommand(_ =>
+        {
+            IsSettingPopupOpen = true;
+        });
+        public ICommand OpenPutAwaysRulesCommand { get; }
+        public ICommand OpenStorageProductCommand { get; }
         public WarehouseMasterViewModel(
             IWarehouseMasterService warehouseMasterService,
             INotificationService notificationService,
@@ -177,6 +194,8 @@ namespace Chrome_WPF.ViewModels.WarehouseMasterViewModel
             PreviousPageCommand = new RelayCommand(_ => PreviousPage());
             NextPageCommand = new RelayCommand(_ => NextPage());
             SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
+            OpenStorageProductCommand = new RelayCommand(_ => OpenStorageProduct());
+            OpenPutAwaysRulesCommand = new RelayCommand(_ => OpenPutAwaysRules());
 
             _ = messengerService.RegisterMessageAsync("ReloadWarehouseListMessage", async (obj) =>
             {
@@ -184,6 +203,35 @@ namespace Chrome_WPF.ViewModels.WarehouseMasterViewModel
             });
 
             _ = LoadWarehousesAsync();
+        }
+
+        private void OpenPutAwaysRules()
+        {
+            var putAwayRules = App.ServiceProvider!.GetRequiredService<ucPutAwayRules>();
+            var viewModel = new PutAwayRulesViewModel(
+                App.ServiceProvider!.GetRequiredService<IPutAwayRulesService>(),
+                App.ServiceProvider!.GetRequiredService<IWarehouseMasterService>(),
+                App.ServiceProvider!.GetRequiredService<IProductMasterService>(),
+                App.ServiceProvider!.GetRequiredService<ILocationMasterService>(),
+                App.ServiceProvider!.GetRequiredService<IStorageProductService>(),
+                _notificationService,
+                _messengerService,
+                _navigationService);
+            putAwayRules.DataContext = viewModel;
+            _navigationService.NavigateTo(putAwayRules);
+        }
+
+        private void OpenStorageProduct()
+        {
+            var storageProduct = App.ServiceProvider!.GetRequiredService<ucStorageProduct>();
+            var viewModel = new StorageProductViewModel(
+                App.ServiceProvider!.GetRequiredService<IStorageProductService>(),
+                _notificationService,
+                _messengerService,
+                _navigationService,
+                App.ServiceProvider!.GetRequiredService<IProductMasterService>());
+            storageProduct.DataContext = viewModel;
+            _navigationService.NavigateTo(storageProduct);
         }
 
         private async Task SearchWarehousesAsync()

@@ -21,8 +21,8 @@ namespace Chrome_WPF.Models.StorageProductDTO
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        [Required(ErrorMessage = "Mã sản phẩm lưu kho không được để trống")]
-        [RegularExpression(@"^[a-zA-Z0-9_]+$", ErrorMessage = "Mã sản phẩm lưu kho chỉ được chứa chữ, số và dấu gạch dưới")]
+        [Required(ErrorMessage = "Mã định mức không được để trống")]
+        [RegularExpression(@"^[a-zA-Z0-9_]+$", ErrorMessage = "Mã định mức chỉ được chứa chữ, số và dấu gạch dưới")]
         public string StorageProductId
         {
             get => _storageProductId;
@@ -33,7 +33,7 @@ namespace Chrome_WPF.Models.StorageProductDTO
             }
         }
 
-        [Required(ErrorMessage = "Tên sản phẩm lưu kho không được để trống")]
+        [Required(ErrorMessage = "Tên định mức không được để trống")]
         public string StorageProductName
         {
             get => _storageProductName;
