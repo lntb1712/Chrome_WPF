@@ -1,6 +1,8 @@
 ﻿using Chrome_WPF.Constants.API_Constant;
 using Chrome_WPF.Services.AccountManagementService;
 using Chrome_WPF.Services.AuthServices;
+using Chrome_WPF.Services.BOMComponentService;
+using Chrome_WPF.Services.BOMMasterService;
 using Chrome_WPF.Services.CategoryService;
 using Chrome_WPF.Services.CustomerMasterService;
 using Chrome_WPF.Services.GroupManagementService;
@@ -17,6 +19,7 @@ using Chrome_WPF.Services.StorageProductService;
 using Chrome_WPF.Services.SupplierMasterService;
 using Chrome_WPF.Services.WarehouseMasterService;
 using Chrome_WPF.ViewModels;
+using Chrome_WPF.ViewModels.BOMMasterViewModel;
 using Chrome_WPF.ViewModels.CustomerMasterViewModel;
 using Chrome_WPF.ViewModels.GroupManagementViewModel;
 using Chrome_WPF.ViewModels.ProductMasterViewModel;
@@ -25,6 +28,7 @@ using Chrome_WPF.ViewModels.WarehouseMasterViewModel;
 using Chrome_WPF.Views;
 using Chrome_WPF.Views.UserControls;
 using Chrome_WPF.Views.UserControls.AccountManagement;
+using Chrome_WPF.Views.UserControls.BOMMaster;
 using Chrome_WPF.Views.UserControls.CustomerMaster;
 using Chrome_WPF.Views.UserControls.GroupManagement;
 using Chrome_WPF.Views.UserControls.ProductMaster;
@@ -53,6 +57,7 @@ namespace Chrome_WPF
         {
             // Register API_Constant
             services.AddSingleton<API_Constant>();
+            services.AddMemoryCache();
 
             // Register Services
             services.AddSingleton<INotificationService, NotificationService>();
@@ -71,6 +76,8 @@ namespace Chrome_WPF
             services.AddSingleton<ILocationMasterService, LocationMasterService>();
             services.AddSingleton<IStorageProductService, StorageProductService>();
             services.AddSingleton<IPutAwayRulesService, PutAwayRulesService>();
+            services.AddSingleton<IBOMComponentService,BOMComponentService>();
+            services.AddSingleton<IBOMMasterService, BOMMasterService>();   
 
 
             // Register IServiceProvider
@@ -101,6 +108,10 @@ namespace Chrome_WPF
             services.AddTransient<WarehouseEditorViewModel>();
             services.AddTransient<StorageProductViewModel>();
             services.AddTransient<PutAwayRulesViewModel>();
+            services.AddTransient<BOMMasterViewModel>();
+            services.AddTransient<BOMComponentViewModel>();
+            services.AddTransient<BOMPreviewViewModel>();
+            services.AddTransient<BOMNodeViewModel>();
 
 
             // Register Views
@@ -182,6 +193,21 @@ namespace Chrome_WPF
             services.AddTransient<ucPutAwayRules>(provider =>
                 new ucPutAwayRules(
                     provider.GetRequiredService<PutAwayRulesViewModel>(),
+                    provider.GetRequiredService<INotificationService>()));
+
+            services.AddTransient<ucBOMMaster>(provider =>
+                new ucBOMMaster(
+                    provider.GetRequiredService<BOMMasterViewModel>(),
+                    provider.GetRequiredService<INotificationService>()));
+
+            services.AddTransient<ucBOMComponent>(provider =>
+                new ucBOMComponent(
+                    provider.GetRequiredService<BOMComponentViewModel>(),
+                    provider.GetRequiredService<INotificationService>()));
+
+            services.AddTransient<ucBOMPreview>(provider =>
+                new ucBOMPreview(
+                    provider.GetRequiredService<BOMPreviewViewModel>(),
                     provider.GetRequiredService<INotificationService>()));
 
 

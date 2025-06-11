@@ -24,7 +24,7 @@ namespace Chrome_WPF.ViewModels
         private bool _canSupplierMaster;
         private bool _canCustomerMaster;
         private bool _canWarehouserMaster;
-        private bool _canBOMList;
+        private bool _canBOMMaster;
         private bool _canStockIn;
         private bool _canStockOut;
         private bool _canTransfer;
@@ -129,13 +129,13 @@ namespace Chrome_WPF.ViewModels
                 OnPropertyChanged(nameof(CanWarehouserMaster));
             }
         }
-        public bool CanBOMList
+        public bool CanBOMMaster
         {
-            get => _canBOMList;
+            get => _canBOMMaster;
             set
             {
-                _canBOMList = value;
-                OnPropertyChanged(nameof(CanBOMList));
+                _canBOMMaster = value;
+                OnPropertyChanged(nameof(CanBOMMaster));
             }
         }
         public bool CanStockIn
@@ -276,7 +276,7 @@ namespace Chrome_WPF.ViewModels
             CanSupplierMaster = Permission.Contains("ucSupplierMaster");
             CanCustomerMaster = Permission.Contains("ucCustomerMaster");
             CanWarehouserMaster = Permission.Contains("ucWarehouserMaster");
-            CanBOMList = Permission.Contains("ucBOMList");
+            CanBOMMaster = Permission.Contains("ucBOMMaster");
             CanStockIn = Permission.Contains("ucStockIn");
             CanStockOut = Permission.Contains("ucStockOut");
             CanTransfer = Permission.Contains("ucTransfer");

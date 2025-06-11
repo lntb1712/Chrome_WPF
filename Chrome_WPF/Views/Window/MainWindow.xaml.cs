@@ -3,6 +3,7 @@ using Chrome_WPF.Services.NavigationService;
 using Chrome_WPF.Services.NotificationService;
 using Chrome_WPF.ViewModels;
 using Chrome_WPF.Views.UserControls;
+using Chrome_WPF.Views.UserControls.BOMMaster;
 using Chrome_WPF.Views.UserControls.CustomerMaster;
 using Chrome_WPF.Views.UserControls.GroupManagement;
 using Chrome_WPF.Views.UserControls.ProductMaster;
@@ -111,6 +112,9 @@ namespace Chrome_WPF.Views
                         break;
                     case "ucWarehouseMaster":
                         _navigationService.NavigateTo<ucWarehouseMaster>();
+                        break;
+                    case "ucBOMMaster":
+                        _navigationService.NavigateTo<ucBOMMaster>();
                         break;
                     default:
                         break;

@@ -19,6 +19,7 @@ namespace Chrome_WPF.Services.ProductMasterService
         Task<ApiResult<bool>> UpdateProductMaster(ProductMasterRequestDTO productMasterRequestDTO);
         Task<ApiResult<bool>> DeleteProductMaster(string productCode);
         Task<ApiResult<int>> GetTotalProductCount();
+        Task<ApiResult<List<ProductMasterResponseDTO>>> GetProductWithCategoryIDs(string[] categoryIds);
 
     }
 }

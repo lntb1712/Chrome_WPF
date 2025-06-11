@@ -239,6 +239,7 @@
                 CanUserAddRows="False"
                 EnableColumnVirtualization="False"
                 EnableRowVirtualization="False"
+                IsReadOnly="True"
                 ItemsSource="{Binding SupplierList, UpdateSourceTrigger=PropertyChanged}"
                 SelectionMode="Single"
                 Style="{StaticResource ModernDataGridStyle}"

@@ -2,6 +2,7 @@
 using Chrome_WPF.Models.APIResult;
 using Chrome_WPF.Models.PagedResponse;
 using Chrome_WPF.Models.ProductMasterDTO;
+using DocumentFormat.OpenXml.Wordprocessing;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -324,6 +325,67 @@ namespace Chrome_WPF.Services.ProductMasterService
             {
                 // Lỗi không xác định
                 return new ApiResult<ProductMasterResponseDTO>($"Lỗi không xác định: {ex.Message}", false);
+            }
+        }
+
+        public async Task<ApiResult<List<ProductMasterResponseDTO>>> GetProductWithCategoryIDs(string[] categoryIds)
+        {
+            if (categoryIds.Length==0)
+            {
+                return new ApiResult<List<ProductMasterResponseDTO>>("Mã loại sản phẩm không được để trống", false);
+            }
+ 
+            try
+            {
+                var queryString = string.Join("&", categoryIds.Select(id => $"categoryIds={Uri.EscapeDataString(id)}"));
+                var response = await _httpClient.GetAsync($"ProductMaster/GetProductWithCategoryIDs?{queryString}").ConfigureAwait(false);
+                var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = JsonConvert.DeserializeObject<ApiResult<List<ProductMasterResponseDTO>>>(jsonResponse);
+                    if (result == null || !result.Success)
+                    {
+                        return new ApiResult<List<ProductMasterResponseDTO>>(result?.Message ?? "Không thể phân tích phản hồi", false);
+                    }
+                    return result;
+                }
+                var errorResult = JsonConvert.DeserializeObject<ApiResult<List<ProductMasterResponseDTO>>>(jsonResponse);
+                var errorMessage = errorResult?.Message ?? "Không thể lấy danh sách sản phẩm theo loại";
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    return new ApiResult<List<ProductMasterResponseDTO>>(errorMessage, false);
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    return new ApiResult<List<ProductMasterResponseDTO>>(errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không có quyền truy cập"
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return new ApiResult<List<ProductMasterResponseDTO>>(errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không tồn tại"
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+                {
+                    return new ApiResult<List<ProductMasterResponseDTO>>(errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Lỗi máy chủ nội bộ"
+                }
+                else
+                {
+                    return new ApiResult<List<ProductMasterResponseDTO>>(errorMessage, false); // Trả về thông điệp lỗi chung
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                // Lỗi mạng
+                return new ApiResult<List<ProductMasterResponseDTO>>($"Lỗi mạng: {ex.Message}", false);
+            }
+            catch (JsonException ex)
+            {
+                // Lỗi phân tích JSON
+                return new ApiResult<List<ProductMasterResponseDTO>>($"Lỗi phân tích phản hồi: {ex.Message}", false);
+            }
+            catch (Exception ex)
+            {
+                // Lỗi không xác định
+                return new ApiResult<List<ProductMasterResponseDTO>>($"Lỗi không xác định: {ex.Message}", false);
             }
         }
 

@@ -294,7 +294,7 @@
                             <TextBlock Text="Quản lí kho" />
                         </StackPanel>
                     </ListBoxItem>
-                    <ListBoxItem x:Name="ucBOMList" IsEnabled="{Binding CanBOMList}">
+                    <ListBoxItem x:Name="ucBOMMaster" IsEnabled="{Binding CanBOMMaster}">
                         <StackPanel
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"

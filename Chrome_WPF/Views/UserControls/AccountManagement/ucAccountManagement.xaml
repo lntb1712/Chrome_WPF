@@ -493,6 +493,7 @@
                 Grid.Row="1"
                 EnableColumnVirtualization="False"
                 EnableRowVirtualization="False"
+                IsReadOnly="True"
                 ItemsSource="{Binding AccountList}"
                 SelectedItem="{Binding SelectedAccount, UpdateSourceTrigger=PropertyChanged}"
                 Style="{StaticResource ModernDataGridStyle}"

@@ -238,7 +238,10 @@
 
             <!--  DataGrid  -->
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                <DataGrid ItemsSource="{Binding GroupList}" Style="{StaticResource ModernDataGridStyle}">
+                <DataGrid
+                    IsReadOnly="True"
+                    ItemsSource="{Binding GroupList}"
+                    Style="{StaticResource ModernDataGridStyle}">
                     <DataGrid.Columns>
                         <DataGridTextColumn
                             Width="*"
