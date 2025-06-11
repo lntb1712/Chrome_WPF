@@ -11,10 +11,8 @@ using Chrome_WPF.Views.UserControls.SupplierMaster;
 using Chrome_WPF.Views.UserControls.WarehouseMaster;
 using MaterialDesignThemes.Wpf;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using System.Windows.Media.Animation;
 
 namespace Chrome_WPF.Views
@@ -67,13 +65,108 @@ namespace Chrome_WPF.Views
         {
             if (listBox == null) return;
 
+            // Lấy các mục con cho từng nhóm
+            var overviewItems = new List<ListBoxItem>
+    {
+        listBox.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Name == "ucDashboard")!
+    }.Where(item => item != null).ToList();
+
+            var accountItems = new List<ListBoxItem>
+    {
+        listBox.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Name == "ucAccountManagement")!,
+        listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucGroupManagement") !
+    }.Where(item => item != null).ToList();
+
+            var dataItems = new List<ListBoxItem>
+    {
+        listBox.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Name == "ucProductMaster")!,
+        listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucSupplierMaster") !,
+        listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucCustomerMaster") !,
+        listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucWarehouseMaster") !,
+        listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucBOMMaster") !
+    }.Where(item => item != null).ToList();
+
+            var commandItems = new List<ListBoxItem>
+    {
+        listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucInventory") ! ,
+        listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucStockIn") !,
+        listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucStockOut") !,
+        listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucTransfer") !,
+        listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucMovement") !,
+        listBox.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Name == "ucPickList")!,
+        listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucPutAway") !,
+        listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucStockTake") !
+    }.Where(item => item != null).ToList();
+
+            var productionItems = new List<ListBoxItem>
+    {
+        listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucProductionOrder") !
+    }.Where(item => item != null).ToList();
+
+            // Kiểm tra trạng thái hiển thị của các mục con
+            bool hasVisibleOverviewItem = overviewItems.Any(item => item.Visibility == Visibility.Visible);
+            bool hasVisibleAccountItem = accountItems.Any(item => item.Visibility == Visibility.Visible);
+            bool hasVisibleDataItem = dataItems.Any(item => item.Visibility == Visibility.Visible);
+            bool hasVisibleCommandItem = commandItems.Any(item => item.Visibility == Visibility.Visible);
+            bool hasVisibleProductionItem = productionItems.Any(item => item.Visibility == Visibility.Visible);
+
             foreach (var item in listBox.Items)
             {
                 if (item is ListBoxItem listBoxItem)
                 {
                     if (listBoxItem.Style == (Style)FindResource("TitleItemStyle"))
                     {
-                        listBoxItem.Visibility = isSidebarCollapsed ? Visibility.Visible : Visibility.Collapsed;
+                        // Xử lý từng tiêu đề
+                        if (listBoxItem.Name == "OverviewTitle")
+                        {
+                            listBoxItem.Visibility = hasVisibleOverviewItem
+                                ? (isSidebarCollapsed ? Visibility.Visible : Visibility.Collapsed)
+                                : Visibility.Collapsed;
+                        }
+                        else if (listBoxItem.Name == "AccountTitle")
+                        {
+                            listBoxItem.Visibility = hasVisibleAccountItem
+                                ? (isSidebarCollapsed ? Visibility.Visible : Visibility.Collapsed)
+                                : Visibility.Collapsed;
+                        }
+                        else if (listBoxItem.Name == "MasterDataTitle")
+                        {
+                            listBoxItem.Visibility = hasVisibleDataItem
+                                ? (isSidebarCollapsed ? Visibility.Visible : Visibility.Collapsed)
+                                : Visibility.Collapsed;
+                        }
+                        else if (listBoxItem.Name == "CommandTitle")
+                        {
+                            listBoxItem.Visibility = hasVisibleCommandItem
+                                ? (isSidebarCollapsed ? Visibility.Visible : Visibility.Collapsed)
+                                : Visibility.Collapsed;
+                        }
+                        else if (listBoxItem.Name == "ProductionTitle")
+                        {
+                            listBoxItem.Visibility = hasVisibleProductionItem
+                                ? (isSidebarCollapsed ? Visibility.Visible : Visibility.Collapsed)
+                                : Visibility.Collapsed;
+                        }
+                        else
+                        {
+                            // Các tiêu đề không xác định (nếu có)
+                            listBoxItem.Visibility = isSidebarCollapsed ? Visibility.Visible : Visibility.Collapsed;
+                        }
+                    }
+                    else if (listBoxItem.Style == (Style)FindResource("SeparatorItemStyle"))
+                    {
+                        // Xử lý thanh phân cách
+                        bool hasVisibleAdjacentItems = false;
+                        int itemIndex = listBox.Items.IndexOf(item);
+                        if (itemIndex > 0 && itemIndex < listBox.Items.Count - 1)
+                        {
+                            var prevItem = listBox.Items[itemIndex - 1] as ListBoxItem;
+                            var nextItem = listBox.Items[itemIndex + 1] as ListBoxItem;
+                            hasVisibleAdjacentItems = (prevItem?.Visibility == Visibility.Visible || nextItem?.Visibility == Visibility.Visible);
+                        }
+                        listBoxItem.Visibility = hasVisibleAdjacentItems
+                            ? (isSidebarCollapsed ? Visibility.Visible : Visibility.Collapsed)
+                            : Visibility.Collapsed;
                     }
                     else if (listBoxItem.Content is StackPanel stackPanel)
                     {
@@ -124,7 +217,7 @@ namespace Chrome_WPF.Views
 
         private void LogOut_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if( LogOut.SelectedItem is ListBoxItem selectedItem )
+            if (LogOut.SelectedItem is ListBoxItem selectedItem)
             {
                 switch (selectedItem.Name)
                 {

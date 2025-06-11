@@ -23,7 +23,7 @@ namespace Chrome_WPF.ViewModels
         private bool _canProductMaster;
         private bool _canSupplierMaster;
         private bool _canCustomerMaster;
-        private bool _canWarehouserMaster;
+        private bool _canWarehouseMaster;
         private bool _canBOMMaster;
         private bool _canStockIn;
         private bool _canStockOut;
@@ -33,6 +33,7 @@ namespace Chrome_WPF.ViewModels
         private bool _canPutAway;
         private bool _canStockTake;
         private bool _canProductionOrder;
+        private bool _canInventory;
         private string _currentDateTime;
         private readonly DispatcherTimer _timer;
 
@@ -102,6 +103,15 @@ namespace Chrome_WPF.ViewModels
                 OnPropertyChanged(nameof(CanProductMaster));
             }
         }
+        public bool CanInventory
+        {
+            get => _canInventory;
+            set
+            {
+                _canInventory = value;
+                OnPropertyChanged(nameof(CanInventory));
+            }
+        }
         public bool CanSupplierMaster
         {
             get => _canSupplierMaster;
@@ -120,13 +130,13 @@ namespace Chrome_WPF.ViewModels
                 OnPropertyChanged(nameof(CanCustomerMaster));
             }
         }
-        public bool CanWarehouserMaster
+        public bool CanWarehouseMaster
         {
-            get => _canWarehouserMaster;
+            get => _canWarehouseMaster;
             set
             {
-                _canWarehouserMaster = value;
-                OnPropertyChanged(nameof(CanWarehouserMaster));
+                _canWarehouseMaster = value;
+                OnPropertyChanged(nameof(CanWarehouseMaster));
             }
         }
         public bool CanBOMMaster
@@ -275,7 +285,7 @@ namespace Chrome_WPF.ViewModels
             CanProductMaster = Permission.Contains("ucProductMaster");
             CanSupplierMaster = Permission.Contains("ucSupplierMaster");
             CanCustomerMaster = Permission.Contains("ucCustomerMaster");
-            CanWarehouserMaster = Permission.Contains("ucWarehouserMaster");
+            CanWarehouseMaster = Permission.Contains("ucWarehouseMaster");
             CanBOMMaster = Permission.Contains("ucBOMMaster");
             CanStockIn = Permission.Contains("ucStockIn");
             CanStockOut = Permission.Contains("ucStockOut");
@@ -285,6 +295,7 @@ namespace Chrome_WPF.ViewModels
             CanPutAway = Permission.Contains("ucPutAway");
             CanStockTake = Permission.Contains("ucStockTake");
             CanProductionOrder = Permission.Contains("ucProductionOrder");
+            CanInventory = Permission.Contains("ucInventory");
         }
     }
 }

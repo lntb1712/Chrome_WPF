@@ -222,7 +222,7 @@
                                             VerticalContentAlignment="Center"
                                             DisplayMemberPath="LocationName"
                                             IsEditable="False"
-                                            ItemsSource="{Binding DataContext.AvailableLocations, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            ItemsSource="{Binding AvailableLocations}"
                                             SelectedItem="{Binding SelectedLocation, UpdateSourceTrigger=PropertyChanged}"
                                             SelectedValue="{Binding LocationCode, UpdateSourceTrigger=PropertyChanged}"
                                             SelectedValuePath="LocationCode" />

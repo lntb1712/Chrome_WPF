@@ -2,8 +2,10 @@
 using Chrome_WPF.Models.ProductMasterDTO;
 using Chrome_WPF.Models.StorageProductDTO;
 using Chrome_WPF.Models.WarehouseMasterDTO;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
@@ -79,6 +81,7 @@ namespace Chrome_WPF.Models.PutAwayRulesDTO
                 OnPropertyChanged(nameof(ProductName));
             }
         }
+        [JsonProperty("LocationCode")]
         public string? LocationCode
         {
             get => _locationCode;
@@ -88,6 +91,7 @@ namespace Chrome_WPF.Models.PutAwayRulesDTO
                 OnPropertyChanged(nameof(LocationCode));
             }
         }
+        [JsonProperty("LocationName")]
         public string? LocationName
         {
             get => _locationName;
@@ -142,6 +146,8 @@ namespace Chrome_WPF.Models.PutAwayRulesDTO
                 LocationName = value?.LocationName ?? string.Empty;
             }
         }
+        // Thêm thuộc tính mới
+        public ObservableCollection<LocationMasterResponseDTO> AvailableLocations { get; set; } = new ObservableCollection<LocationMasterResponseDTO>();
         public ProductMasterResponseDTO? SelectedProduct
         {
             get => _selectedProduct;

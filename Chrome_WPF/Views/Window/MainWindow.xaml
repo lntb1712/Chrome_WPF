@@ -2,6 +2,7 @@
     x:Class="Chrome_WPF.Views.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:convertert="clr-namespace:Chrome_WPF.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Chrome_WPF.Views"
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
@@ -14,6 +15,8 @@
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
     <Window.Resources>
+        <convertert:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <convertert:AllFalseToVisibilityConverter x:Key="AllFalseToVisibilityConverter" />
         <!--  Style for Menu Items  -->
         <Style x:Key="MenuItemStyle" TargetType="ListBoxItem">
             <Setter Property="Background" Value="Transparent" />
@@ -213,8 +216,16 @@
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem Style="{StaticResource SeparatorItemStyle}" />
-                    <ListBoxItem x:Name="AccountTitle" Style="{StaticResource TitleItemStyle}">Tài khoản</ListBoxItem>
-                    <ListBoxItem x:Name="ucAccountManagement" IsEnabled="{Binding CanAccountManagement}">
+                    <ListBoxItem x:Name="AccountTitle" Style="{StaticResource TitleItemStyle}">
+                        <ListBoxItem.Visibility>
+                            <MultiBinding Converter="{StaticResource AllFalseToVisibilityConverter}">
+                                <Binding Path="CanAccountManagement" />
+                                <Binding Path="CanGroupManagement" />
+                            </MultiBinding>
+                        </ListBoxItem.Visibility>
+                        Tài khoản
+                    </ListBoxItem>
+                    <ListBoxItem x:Name="ucAccountManagement" Visibility="{Binding CanAccountManagement, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <StackPanel
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
@@ -227,7 +238,7 @@
                             <TextBlock Text="Quản lí người dùng" />
                         </StackPanel>
                     </ListBoxItem>
-                    <ListBoxItem x:Name="ucGroupManagement" IsEnabled="{Binding CanGroupManagement}">
+                    <ListBoxItem x:Name="ucGroupManagement" Visibility="{Binding CanGroupManagement, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <StackPanel
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
@@ -240,9 +251,27 @@
                             <TextBlock Text="Quản lí nhóm người dùng" />
                         </StackPanel>
                     </ListBoxItem>
-                    <ListBoxItem Style="{StaticResource SeparatorItemStyle}" />
-                    <ListBoxItem Style="{StaticResource TitleItemStyle}">Dữ liệu nền tảng</ListBoxItem>
-                    <ListBoxItem x:Name="ucProductMaster" IsEnabled="{Binding CanProductMaster}">
+                    <ListBoxItem Style="{StaticResource SeparatorItemStyle}">
+                        <ListBoxItem.Visibility>
+                            <MultiBinding Converter="{StaticResource AllFalseToVisibilityConverter}">
+                                <Binding Path="CanAccountManagement" />
+                                <Binding Path="CanGroupManagement" />
+                            </MultiBinding>
+                        </ListBoxItem.Visibility>
+                    </ListBoxItem>
+                    <ListBoxItem x:Name="MasterDataTitle" Style="{StaticResource TitleItemStyle}">
+                        <ListBoxItem.Visibility>
+                            <MultiBinding Converter="{StaticResource AllFalseToVisibilityConverter}">
+                                <Binding Path="CanProductMaster" />
+                                <Binding Path="CanSupplierMaster" />
+                                <Binding Path="CanCustomerMaster" />
+                                <Binding Path="CanWarehouseMaster" />
+                                <Binding Path="CanBOMMaster" />
+                            </MultiBinding>
+                        </ListBoxItem.Visibility>
+                        Dữ liệu chung
+                    </ListBoxItem>
+                    <ListBoxItem x:Name="ucProductMaster" Visibility="{Binding CanProductMaster, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <StackPanel
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
@@ -255,7 +284,7 @@
                             <TextBlock Text="Quản lí sản phẩm" />
                         </StackPanel>
                     </ListBoxItem>
-                    <ListBoxItem x:Name="ucSupplierMaster" IsEnabled="{Binding CanSupplierMaster}">
+                    <ListBoxItem x:Name="ucSupplierMaster" Visibility="{Binding CanSupplierMaster, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <StackPanel
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
@@ -268,7 +297,7 @@
                             <TextBlock Text="Quản lí nhà cung cấp" />
                         </StackPanel>
                     </ListBoxItem>
-                    <ListBoxItem x:Name="ucCustomerMaster" IsEnabled="{Binding CanCustomerMaster}">
+                    <ListBoxItem x:Name="ucCustomerMaster" Visibility="{Binding CanCustomerMaster, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <StackPanel
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
@@ -281,7 +310,7 @@
                             <TextBlock Text="Quản lí khách hàng" />
                         </StackPanel>
                     </ListBoxItem>
-                    <ListBoxItem x:Name="ucWarehouseMaster" IsEnabled="{Binding CanWarehoseMaster}">
+                    <ListBoxItem x:Name="ucWarehouseMaster" Visibility="{Binding CanWarehouseMaster, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <StackPanel
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
@@ -291,10 +320,10 @@
                                 Height="24"
                                 Margin="10,0,10,0"
                                 Kind="Warehouse" />
-                            <TextBlock Text="Quản lí kho" />
+                            <TextBlock Text="Quản lí danh mục kho" />
                         </StackPanel>
                     </ListBoxItem>
-                    <ListBoxItem x:Name="ucBOMMaster" IsEnabled="{Binding CanBOMMaster}">
+                    <ListBoxItem x:Name="ucBOMMaster" Visibility="{Binding CanBOMMaster, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <StackPanel
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
@@ -307,9 +336,46 @@
                             <TextBlock Text="Quản lí BOM" />
                         </StackPanel>
                     </ListBoxItem>
-                    <ListBoxItem Style="{StaticResource SeparatorItemStyle}" />
-                    <ListBoxItem x:Name="CommandTitle" Style="{StaticResource TitleItemStyle}">Quản lí lệnh</ListBoxItem>
-                    <ListBoxItem x:Name="ucStockIn" IsEnabled="{Binding CanStockIn}">
+                    <ListBoxItem Style="{StaticResource SeparatorItemStyle}">
+                        <ListBoxItem.Visibility>
+                            <MultiBinding Converter="{StaticResource AllFalseToVisibilityConverter}">
+                                <Binding Path="CanProductMaster" />
+                                <Binding Path="CanSupplierMaster" />
+                                <Binding Path="CanCustomerMaster" />
+                                <Binding Path="CanWarehouseMaster" />
+                                <Binding Path="CanBOMMaster" />
+                            </MultiBinding>
+                        </ListBoxItem.Visibility>
+                    </ListBoxItem>
+                    <ListBoxItem x:Name="CommandTitle" Style="{StaticResource TitleItemStyle}">
+                        <ListBoxItem.Visibility>
+                            <MultiBinding Converter="{StaticResource AllFalseToVisibilityConverter}">
+                                <Binding Path="CanInventory" />
+                                <Binding Path="CanStockIn" />
+                                <Binding Path="CanStockOut" />
+                                <Binding Path="CanTransfer" />
+                                <Binding Path="CanMovement" />
+                                <Binding Path="CanPickList" />
+                                <Binding Path="CanPutAway" />
+                                <Binding Path="CanStockTake" />
+                            </MultiBinding>
+                        </ListBoxItem.Visibility>
+                        Quản lí kho
+                    </ListBoxItem>
+                    <ListBoxItem x:Name="ucInventory" Visibility="{Binding CanInventory, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <StackPanel
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            Orientation="Horizontal">
+                            <materialDesign:PackIcon
+                                Width="24"
+                                Height="24"
+                                Margin="10,0,10,0"
+                                Kind="ClipboardList" />
+                            <TextBlock Text="Tồn kho" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem x:Name="ucStockIn" Visibility="{Binding CanStockIn, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <StackPanel
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
@@ -322,7 +388,7 @@
                             <TextBlock Text="Nhập hàng" />
                         </StackPanel>
                     </ListBoxItem>
-                    <ListBoxItem x:Name="ucStockOut" IsEnabled="{Binding CanStockOut}">
+                    <ListBoxItem x:Name="ucStockOut" Visibility="{Binding CanStockOut, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <StackPanel
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
@@ -335,7 +401,7 @@
                             <TextBlock Text="Xuất hàng" />
                         </StackPanel>
                     </ListBoxItem>
-                    <ListBoxItem x:Name="ucTransfer" IsEnabled="{Binding CanTransfer}">
+                    <ListBoxItem x:Name="ucTransfer" Visibility="{Binding CanTransfer, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <StackPanel
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
@@ -348,7 +414,7 @@
                             <TextBlock Text="Chuyển kho" />
                         </StackPanel>
                     </ListBoxItem>
-                    <ListBoxItem x:Name="ucMovement" IsEnabled="{Binding CanMovement}">
+                    <ListBoxItem x:Name="ucMovement" Visibility="{Binding CanMovement, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <StackPanel
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
@@ -361,7 +427,7 @@
                             <TextBlock Text="Chuyển kệ" />
                         </StackPanel>
                     </ListBoxItem>
-                    <ListBoxItem x:Name="ucPickList" IsEnabled="{Binding CanPickList}">
+                    <ListBoxItem x:Name="ucPickList" Visibility="{Binding CanPickList, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <StackPanel
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
@@ -374,7 +440,7 @@
                             <TextBlock Text="Lấy hàng" />
                         </StackPanel>
                     </ListBoxItem>
-                    <ListBoxItem x:Name="ucPutAway" IsEnabled="{Binding CanPutAway}">
+                    <ListBoxItem x:Name="ucPutAway" Visibility="{Binding CanPutAway, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <StackPanel
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
@@ -387,7 +453,7 @@
                             <TextBlock Text="Cất hàng" />
                         </StackPanel>
                     </ListBoxItem>
-                    <ListBoxItem x:Name="ucStockTake" IsEnabled="{Binding CanStockTake}">
+                    <ListBoxItem x:Name="ucStockTake" Visibility="{Binding CanStockTake, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <StackPanel
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
@@ -400,9 +466,29 @@
                             <TextBlock Text="Kiểm kê" />
                         </StackPanel>
                     </ListBoxItem>
-                    <ListBoxItem Style="{StaticResource SeparatorItemStyle}" />
-                    <ListBoxItem x:Name="ProductionTitle" Style="{StaticResource TitleItemStyle}">Sản xuất</ListBoxItem>
-                    <ListBoxItem x:Name="ucProductionOrder" IsEnabled="{Binding ProductionOrder}">
+                    <ListBoxItem Style="{StaticResource SeparatorItemStyle}">
+                        <ListBoxItem.Visibility>
+                            <MultiBinding Converter="{StaticResource AllFalseToVisibilityConverter}">
+                                <Binding Path="CanInventory" />
+                                <Binding Path="CanStockIn" />
+                                <Binding Path="CanStockOut" />
+                                <Binding Path="CanTransfer" />
+                                <Binding Path="CanMovement" />
+                                <Binding Path="CanPickList" />
+                                <Binding Path="CanPutAway" />
+                                <Binding Path="CanStockTake" />
+                            </MultiBinding>
+                        </ListBoxItem.Visibility>
+                    </ListBoxItem>
+                    <ListBoxItem x:Name="ProductionTitle" Style="{StaticResource TitleItemStyle}">
+                        <ListBoxItem.Visibility>
+                            <MultiBinding Converter="{StaticResource AllFalseToVisibilityConverter}">
+                                <Binding Path="CanProductionOrder" />
+                            </MultiBinding>
+                        </ListBoxItem.Visibility>
+                        Quản lí Sản xuất
+                    </ListBoxItem>
+                    <ListBoxItem x:Name="ucProductionOrder" Visibility="{Binding CanProductionOrder, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <StackPanel
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"

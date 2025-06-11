@@ -245,28 +245,23 @@ namespace Chrome_WPF.ViewModels.WarehouseMasterViewModel
             {
                 if (rule.SelectedWarehouse?.WarehouseCode == null)
                 {
-                    // Clear locations if no warehouse is selected
-                    rule.SelectedLocation = null;
+                    rule.AvailableLocations.Clear();
                     return;
                 }
 
                 // Fetch locations filtered by the selected warehouse
-                var locationResult = await _locationMasterService.GetAllLocationMaster(rule.SelectedWarehouse.WarehouseCode,1, int.MaxValue);
+                var locationResult = await _locationMasterService.GetAllLocationMaster(rule.SelectedWarehouse.WarehouseCode, 1, int.MaxValue);
                 if (locationResult.Success && locationResult.Data != null)
                 {
-                    // Assuming you want to update a specific list for the rule, you may need to adjust your data structure
-                    // For simplicity, we'll update AvailableLocations, but you might want a separate collection per rule
-                    AvailableLocations.Clear();
+                    rule.AvailableLocations.Clear();
                     foreach (var item in locationResult.Data.Data ?? Enumerable.Empty<LocationMasterResponseDTO>())
                     {
-                        AvailableLocations.Add(item);
+                        rule.AvailableLocations.Add(item);
                     }
 
-                    // Optionally clear the selected location if it no longer matches the new warehouse
-                    if (rule.SelectedLocation != null && !AvailableLocations.Any(l => l.LocationCode == rule.SelectedLocation.LocationCode))
-                    {
-                        rule.SelectedLocation = null;
-                    }
+                    var selected = rule.AvailableLocations.FirstOrDefault(l => l.LocationCode == rule.LocationCode);
+                    rule.SelectedLocation = selected;
+                    rule.LocationName = selected?.LocationName;
                 }
                 else
                 {
@@ -454,6 +449,8 @@ namespace Chrome_WPF.ViewModels.WarehouseMasterViewModel
                     {
                         LstPutAwayRules.Add(item);
                         _existingPutAwayRuleCodes.Add(item.PutAwayRuleCode);
+                        // Load locations for each rule
+                        await LoadLocationsForRuleAsync(item);
                     }
                     TotalPages = result.Data.TotalPages;
                 }
@@ -468,7 +465,7 @@ namespace Chrome_WPF.ViewModels.WarehouseMasterViewModel
             }
         }
 
-       
+
 
         private async Task DeletePutAwayRuleLineAsync(PutAwayRulesResponseDTO rule)
         {
