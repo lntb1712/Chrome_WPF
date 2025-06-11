@@ -6,11 +6,13 @@ using Chrome_WPF.Views.UserControls;
 using Chrome_WPF.Views.UserControls.BOMMaster;
 using Chrome_WPF.Views.UserControls.CustomerMaster;
 using Chrome_WPF.Views.UserControls.GroupManagement;
+using Chrome_WPF.Views.UserControls.Inventory;
 using Chrome_WPF.Views.UserControls.ProductMaster;
 using Chrome_WPF.Views.UserControls.SupplierMaster;
 using Chrome_WPF.Views.UserControls.WarehouseMaster;
 using MaterialDesignThemes.Wpf;
 using Microsoft.Extensions.DependencyInjection;
+using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Animation;
@@ -67,41 +69,41 @@ namespace Chrome_WPF.Views
 
             // Lấy các mục con cho từng nhóm
             var overviewItems = new List<ListBoxItem>
-    {
-        listBox.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Name == "ucDashboard")!
-    }.Where(item => item != null).ToList();
+            {
+                listBox.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Name == "ucDashboard")!
+            }.Where(item => item != null).ToList();
 
             var accountItems = new List<ListBoxItem>
-    {
-        listBox.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Name == "ucAccountManagement")!,
-        listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucGroupManagement") !
-    }.Where(item => item != null).ToList();
+            {
+                listBox.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Name == "ucAccountManagement")!,
+                listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucGroupManagement") !
+            }.Where(item => item != null).ToList();
 
             var dataItems = new List<ListBoxItem>
-    {
-        listBox.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Name == "ucProductMaster")!,
-        listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucSupplierMaster") !,
-        listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucCustomerMaster") !,
-        listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucWarehouseMaster") !,
-        listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucBOMMaster") !
-    }.Where(item => item != null).ToList();
+            {
+                listBox.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Name == "ucProductMaster")!,
+                listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucSupplierMaster") !,
+                listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucCustomerMaster") !,
+                listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucWarehouseMaster") !,
+                listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucBOMMaster") !
+            }.Where(item => item != null).ToList();
 
             var commandItems = new List<ListBoxItem>
-    {
-        listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucInventory") ! ,
-        listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucStockIn") !,
-        listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucStockOut") !,
-        listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucTransfer") !,
-        listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucMovement") !,
-        listBox.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Name == "ucPickList")!,
-        listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucPutAway") !,
-        listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucStockTake") !
-    }.Where(item => item != null).ToList();
+            {
+                listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucInventory") ! ,
+                listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucStockIn") !,
+                listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucStockOut") !,
+                listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucTransfer") !,
+                listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucMovement") !,
+                listBox.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Name == "ucPickList")!,
+                listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucPutAway") !,
+                listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucStockTake") !
+            }.Where(item => item != null).ToList();
 
             var productionItems = new List<ListBoxItem>
-    {
-        listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucProductionOrder") !
-    }.Where(item => item != null).ToList();
+            {
+                listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucProductionOrder") !
+            }.Where(item => item != null).ToList();
 
             // Kiểm tra trạng thái hiển thị của các mục con
             bool hasVisibleOverviewItem = overviewItems.Any(item => item.Visibility == Visibility.Visible);
@@ -209,6 +211,9 @@ namespace Chrome_WPF.Views
                     case "ucBOMMaster":
                         _navigationService.NavigateTo<ucBOMMaster>();
                         break;
+                    case "ucInventory":
+                        _navigationService.NavigateTo<ucInventory>();
+                        break;
                     default:
                         break;
                 }
@@ -217,24 +222,62 @@ namespace Chrome_WPF.Views
 
         private void LogOut_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (LogOut.SelectedItem is ListBoxItem selectedItem)
+            if (e.AddedItems.Count == 0 || !(e.AddedItems[0] is ListBoxItem selectedItem))
+                return;
+
+            if (selectedItem.Name != "LogOutItem")
+                return;
+
+
+            try
             {
-                switch (selectedItem.Name)
+                // Xóa thông tin đăng nhập
+                Properties.Settings.Default.AccessToken = string.Empty;
+                Properties.Settings.Default.UserName = string.Empty;
+                Properties.Settings.Default.FullName = string.Empty;
+                Properties.Settings.Default.Role = string.Empty;
+                Properties.Settings.Default.WarehousePermission = new StringCollection();
+                Properties.Settings.Default.Save();
+
+                // Đóng các cửa sổ khác
+                foreach (Window window in Application.Current.Windows)
                 {
-                    case "LogOutItem":
-                        Properties.Settings.Default.AccessToken = string.Empty;
-                        Properties.Settings.Default.UserName = string.Empty;
-                        Properties.Settings.Default.FullName = string.Empty;
-                        Properties.Settings.Default.Role = string.Empty;
-                        Properties.Settings.Default.Save();
-                        var loginWindow = App.ServiceProvider!.GetRequiredService<LoginWindow>();
-                        loginWindow.Show();
-                        Close();
-                        break;
-                    default:
-                        break;
+                    if (window != this && window.IsVisible)
+                    {
+                        try
+                        {
+                            window.Close();
+                        }
+                        catch (InvalidOperationException ex)
+                        {
+                            _notificationService.ShowMessage(
+                                $"Không thể đóng cửa sổ: {ex.Message}",
+                                "OK",
+                                isError: true);
+                        }
+                    }
                 }
+
+                // Reset ServiceProvider để tạo mới các dịch vụ
+                App.ResetServiceProvider();
+
+                // Hiển thị LoginWindow với ServiceProvider mới
+                var loginWindow = App.ServiceProvider!.GetRequiredService<LoginWindow>();
+                loginWindow.Show();
+
+                // Đóng cửa sổ hiện tại
+                Close();
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage(
+                    $"Lỗi khi đăng xuất: {ex.Message}",
+                    "OK",
+                    isError: true);
+                LogOut.SelectedItem = null; // Bỏ chọn mục
             }
         }
+
     }
+
 }

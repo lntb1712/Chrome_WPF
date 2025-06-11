@@ -267,15 +267,16 @@
                                         Style="{StaticResource ExpanderToggleStyle}"
                                         Visibility="{Binding Children, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=HasItems}" />
 
-                                    <!--  ComponentCode column: Indented  -->
-                                    <TextBlock
-                                        Grid.Column="1"
-                                        Margin="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Converter={StaticResource TreeViewIndentConverter}}"
-                                        Padding="12,8"
-                                        VerticalAlignment="Center"
-                                        Text="{Binding Data.ComponentCode}" />
+                                    <!--  ComponentCode column: Indented with ToggleButton  -->
+                                    <Grid Grid.Column="1">
+                                        <TextBlock
+                                            Margin="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Converter={StaticResource TreeViewIndentConverter}}"
+                                            Padding="12,8"
+                                            VerticalAlignment="Center"
+                                            Text="{Binding Data.ComponentCode}" />
+                                    </Grid>
 
-                                    <!--  Other columns: No indentation  -->
+                                    <!--  Other columns: No indentation, aligned with header  -->
                                     <TextBlock
                                         Grid.Column="2"
                                         Padding="12,8"

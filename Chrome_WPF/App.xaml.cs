@@ -6,6 +6,7 @@ using Chrome_WPF.Services.BOMMasterService;
 using Chrome_WPF.Services.CategoryService;
 using Chrome_WPF.Services.CustomerMasterService;
 using Chrome_WPF.Services.GroupManagementService;
+using Chrome_WPF.Services.InventoryService;
 using Chrome_WPF.Services.LocationMasterService;
 using Chrome_WPF.Services.LoginServices;
 using Chrome_WPF.Services.MessengerService;
@@ -22,6 +23,7 @@ using Chrome_WPF.ViewModels;
 using Chrome_WPF.ViewModels.BOMMasterViewModel;
 using Chrome_WPF.ViewModels.CustomerMasterViewModel;
 using Chrome_WPF.ViewModels.GroupManagementViewModel;
+using Chrome_WPF.ViewModels.InventoryViewModel;
 using Chrome_WPF.ViewModels.ProductMasterViewModel;
 using Chrome_WPF.ViewModels.SupplierMasterViewModel;
 using Chrome_WPF.ViewModels.WarehouseMasterViewModel;
@@ -31,24 +33,39 @@ using Chrome_WPF.Views.UserControls.AccountManagement;
 using Chrome_WPF.Views.UserControls.BOMMaster;
 using Chrome_WPF.Views.UserControls.CustomerMaster;
 using Chrome_WPF.Views.UserControls.GroupManagement;
+using Chrome_WPF.Views.UserControls.Inventory;
 using Chrome_WPF.Views.UserControls.ProductMaster;
 using Chrome_WPF.Views.UserControls.SupplierMaster;
 using Chrome_WPF.Views.UserControls.WarehouseMaster;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 
 namespace Chrome_WPF
 {
-    public partial class App : Application
+    public partial class App : Application, IDisposable
     {
-        public static IServiceProvider? ServiceProvider { get; private set; }
-        private readonly ServiceCollection _services = new ServiceCollection();
+        private static IServiceProvider? _serviceProvider;
+        private static ServiceCollection? _services;
+        private bool _disposed;
+
+        public static IServiceProvider? ServiceProvider
+        {
+            get => _serviceProvider;
+            private set => _serviceProvider = value;
+        }
 
         public App()
         {
             InitializeComponent();
+            InitializeServiceProvider();
+        }
+
+        private void InitializeServiceProvider()
+        {
+            _services = new ServiceCollection();
             ConfigureServices(_services);
             ServiceProvider = _services.BuildServiceProvider();
         }
@@ -76,19 +93,18 @@ namespace Chrome_WPF
             services.AddSingleton<ILocationMasterService, LocationMasterService>();
             services.AddSingleton<IStorageProductService, StorageProductService>();
             services.AddSingleton<IPutAwayRulesService, PutAwayRulesService>();
-            services.AddSingleton<IBOMComponentService,BOMComponentService>();
-            services.AddSingleton<IBOMMasterService, BOMMasterService>();   
-
+            services.AddSingleton<IBOMComponentService, BOMComponentService>();
+            services.AddSingleton<IBOMMasterService, BOMMasterService>();
+            services.AddSingleton<IInventoryService, InventoryService>();
 
             // Register IServiceProvider
-            services.AddSingleton(sp => sp); // Đăng ký chính container DI như IServiceProvider
+            services.AddSingleton(sp => sp);
 
             // Register NavigationService with ContentControl and IServiceProvider
             services.AddSingleton<INavigationService>(provider =>
             {
                 var serviceProvider = provider.GetRequiredService<IServiceProvider>();
-                // Trì hoãn việc lấy MainContent bằng cách sử dụng IServiceProvider
-                return new NavigationService(null!, serviceProvider); // MainContent sẽ được gán sau
+                return new NavigationService(null!, serviceProvider);
             });
 
             // Register ViewModels
@@ -112,7 +128,8 @@ namespace Chrome_WPF
             services.AddTransient<BOMComponentViewModel>();
             services.AddTransient<BOMPreviewViewModel>();
             services.AddTransient<BOMNodeViewModel>();
-
+            services.AddTransient<InventoryViewModel>();
+            services.AddTransient<InventoryDetailViewModel>();
 
             // Register Views
             services.AddTransient<LoginWindow>(provider =>
@@ -177,15 +194,15 @@ namespace Chrome_WPF
 
             services.AddTransient<ucWarehouseMaster>(provider =>
                 new ucWarehouseMaster(
-                    provider.GetRequiredService<WarehouseMasterViewModel>(),  
-                    provider.GetRequiredService<INotificationService>())); // Thêm dịch vụ kho nếu cần
+                    provider.GetRequiredService<WarehouseMasterViewModel>(),
+                    provider.GetRequiredService<INotificationService>()));
 
             services.AddTransient<ucWarehouseEditor>(provider =>
                 new ucWarehouseEditor(
                     provider.GetRequiredService<WarehouseEditorViewModel>(),
                     provider.GetRequiredService<INotificationService>()));
 
-            services .AddTransient<ucStorageProduct>(provider =>
+            services.AddTransient<ucStorageProduct>(provider =>
                 new ucStorageProduct(
                     provider.GetRequiredService<StorageProductViewModel>(),
                     provider.GetRequiredService<INotificationService>()));
@@ -210,9 +227,35 @@ namespace Chrome_WPF
                     provider.GetRequiredService<BOMPreviewViewModel>(),
                     provider.GetRequiredService<INotificationService>()));
 
+            services.AddTransient<ucInventory>(provider =>
+                new ucInventory(
+                    provider.GetRequiredService<InventoryViewModel>(),
+                    provider.GetRequiredService<INotificationService>()));
 
+            services.AddTransient<ucInventoryDetail>(provider =>
+                new ucInventoryDetail(
+                    provider.GetRequiredService<InventoryDetailViewModel>(),
+                    provider.GetRequiredService<INotificationService>()));
+        }
 
+        public static void ResetServiceProvider()
+        {
+            // Dispose ServiceProvider hiện tại nếu nó tồn tại
+            if (_serviceProvider is IDisposable disposableProvider)
+            {
+                disposableProvider.Dispose();
+            }
 
+            // Xóa ServiceProvider và ServiceCollection cũ
+            _serviceProvider = null;
+            _services?.Clear();
+            _services = null;
+
+            // Tạo mới ServiceCollection và ServiceProvider
+            _services = new ServiceCollection();
+            var app = Current as App;
+            app?.ConfigureServices(_services);
+            _serviceProvider = _services.BuildServiceProvider();
         }
 
         protected override void OnStartup(StartupEventArgs e)
@@ -227,6 +270,45 @@ namespace Chrome_WPF
             // Hiển thị LoginWindow
             var loginWindow = ServiceProvider!.GetRequiredService<LoginWindow>();
             loginWindow.Show();
+        }
+
+        protected override void OnExit(ExitEventArgs e)
+        {
+            Dispose();
+            base.OnExit(e);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
+                return;
+
+            if (disposing)
+            {
+                // Dispose ServiceProvider
+                if (_serviceProvider is IDisposable disposableProvider)
+                {
+                    disposableProvider.Dispose();
+                }
+
+                // Clear ServiceProvider and ServiceCollection
+                _serviceProvider = null;
+                _services?.Clear();
+                _services = null;
+            }
+
+            _disposed = true;
+        }
+
+        ~App()
+        {
+            Dispose(false);
         }
     }
 }

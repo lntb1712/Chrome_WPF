@@ -221,7 +221,7 @@
                                             HorizontalAlignment="Center"
                                             VerticalAlignment="Center"
                                             Foreground="#4B5EAA"
-                                            Kind="{Binding CategoryName, Converter={StaticResource CategoryNameToIconKindConverter}}" />
+                                            Kind="{Binding CategoryId, Converter={StaticResource CategoryNameToIconKindConverter}}" />
 
                                         <StackPanel Grid.Column="1" Orientation="Vertical">
                                             <TextBlock

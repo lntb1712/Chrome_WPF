@@ -78,5 +78,20 @@ namespace Chrome_WPF.Properties {
                 this["Role"] = value;
             }
         }
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public global::System.Collections.Specialized.StringCollection WarehousePermission
+        {
+            get
+            {
+                return ((global::System.Collections.Specialized.StringCollection)(this["WarehousePermission"]));
+            }
+            set
+            {
+                this["WarehousePermission"] = value;
+            }
+        }
+
     }
 }

@@ -57,5 +57,14 @@ namespace Chrome_WPF.Services.AuthServices
             }
             return new List<string>();
         }
+        public async Task<List<string>> GetWarehousePermissionFromToken(string token)
+        {
+            var claims = await DecodeJWT(token); // Await the DecodeJWT method to get the result
+            if (claims != null && claims.ContainsKey("Warehouse"))
+            {
+                return JsonSerializer.Deserialize<List<string>>(claims["Warehouse"].ToString()!)!;
+            }
+            return new List<string>();
+        }
     }
 }

@@ -17,9 +17,9 @@ namespace Chrome_WPF.Converters
 
             return category switch
             {
-                "Semi-Finished Goods" => PackIconKind.Cog,
-                "Material" => PackIconKind.Archive,
-                "Finished Goods" => PackIconKind.PackageCheck,
+                "SFG" => PackIconKind.Cog,
+                "MAT" => PackIconKind.Archive,
+                "FG" => PackIconKind.PackageCheck,
                 _ => PackIconKind.HelpCircleOutline // default icon
             };
         }

@@ -11,6 +11,7 @@ namespace Chrome_WPF.Services.AuthServices
     {
         Task <Dictionary<string, object>> DecodeJWT(string token);
         Task <List<string>> GetPermissionFromToken(string token);
+        Task<List<string>> GetWarehousePermissionFromToken(string token);
         Task<string> GetName(string token);
         Task<string> GetRole(string token);
 

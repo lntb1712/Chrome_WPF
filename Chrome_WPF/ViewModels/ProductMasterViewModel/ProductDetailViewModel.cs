@@ -617,6 +617,28 @@ namespace Chrome_WPF.ViewModels
                 _notificationService.ShowMessage($"Lỗi: {ex.Message}", "OK", isError: true);
             }
         }
+        public byte[] ResizeImage(byte[] imageBytes, int maxWidth)
+        {
+            using (var inputStream = new MemoryStream(imageBytes))
+            using (var image = System.Drawing.Image.FromStream(inputStream))
+            {
+                var ratio = (double)maxWidth / image.Width;
+                var newWidth = maxWidth;
+                var newHeight = (int)(image.Height * ratio);
+
+                var resized = new System.Drawing.Bitmap(newWidth, newHeight);
+                using (var graphics = System.Drawing.Graphics.FromImage(resized))
+                {
+                    graphics.DrawImage(image, 0, 0, newWidth, newHeight);
+                }
+
+                using (var outputStream = new MemoryStream())
+                {
+                    resized.Save(outputStream, System.Drawing.Imaging.ImageFormat.Jpeg);
+                    return outputStream.ToArray();
+                }
+            }
+        }
 
         private void SelectImage(object parameter)
         {
@@ -637,8 +659,8 @@ namespace Chrome_WPF.ViewModels
                         _notificationService.ShowMessage("Tệp ảnh rỗng hoặc không thể đọc.", "OK", isError: true);
                         return;
                     }
-
-                    string base64String = Convert.ToBase64String(imageBytes);
+                    var resizedBytes = ResizeImage(imageBytes, 50); 
+                    string base64String = Convert.ToBase64String(resizedBytes);
                     ProductImage = base64String;
                 }
             }

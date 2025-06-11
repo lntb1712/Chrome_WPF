@@ -5,8 +5,10 @@ using Chrome_WPF.Services.LoginServices;
 using Chrome_WPF.Services.NotificationService;
 using Chrome_WPF.Views;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -54,6 +56,10 @@ namespace Chrome_WPF.ViewModels
                     Properties.Settings.Default.UserName = response.Data!.Username;
                     Properties.Settings.Default.FullName = await _authService.GetName(response.Data!.Token!);
                     Properties.Settings.Default.Role = await _authService.GetRole(response.Data!.Token!);
+                    List<string> warehousePermission = await _authService.GetWarehousePermissionFromToken(response.Data!.Token!);
+                    var stringCollection = new StringCollection();
+                    stringCollection.AddRange(warehousePermission.ToArray());
+                    Properties.Settings.Default.WarehousePermission = stringCollection;
                     Properties.Settings.Default.Save();
 
                     _notificationService.QueueMessageForNextSnackbar("Đăng nhập thành công!", "OK", isError: false);
