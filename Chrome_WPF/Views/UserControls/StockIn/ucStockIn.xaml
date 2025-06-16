@@ -1,12 +1,12 @@
 ﻿<UserControl
-    x:Class="Chrome_WPF.Views.UserControls.Inventory.ucInventory"
+    x:Class="Chrome_WPF.Views.UserControls.StockIn.ucStockIn"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="clr-namespace:Chrome_WPF.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:helper="clr-namespace:Chrome_WPF.Helpers"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-    xmlns:local="clr-namespace:Chrome_WPF.Views.UserControls.Inventory"
+    xmlns:local="clr-namespace:Chrome_WPF.Views.UserControls.StockIn"
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DesignHeight="450"
@@ -149,7 +149,7 @@
                 FontWeight="Bold"
                 Foreground="#2D3748"
                 Style="{StaticResource MaterialDesignHeadline6TextBlock}">
-                <Run Text="Quản lý tồn kho" />
+                <Run Text="Quản lý nhập kho" />
                 <Run Text="(" />
                 <Run Text="{Binding ApplicableLocation}" />
                 <Run Text=")" />
@@ -169,27 +169,29 @@
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="0.5*" />
+                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <TextBox
-                        Grid.Column="0"
+                        Grid.Column="1"
                         Margin="0,0,10,0"
                         Padding="8"
-                        materialDesign:HintAssist.Hint="Tìm kiếm sản phẩm ..."
+                        materialDesign:HintAssist.Hint="Tìm kiếm nhập kho ..."
                         Foreground="#A0AEC0"
                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
                     <TabControl
-                        Grid.Column="1"
+                        Grid.Column="0"
                         Margin="10,0,10,0"
-                        SelectedIndex="{Binding SelectedCategoryIndex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                        SelectedIndex="{Binding SelectedStatusIndex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                         <TabControl.ItemsSource>
-                            <Binding Path="Categories" />
+                            <Binding Path="Statuses" />
                         </TabControl.ItemsSource>
                         <TabControl.ItemTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding CategoryName}" />
+                                <TextBlock Text="{Binding StatusName}" />
                             </DataTemplate>
                         </TabControl.ItemTemplate>
                         <TabControl.ContentTemplate>
@@ -200,6 +202,22 @@
                     </TabControl>
                     <Button
                         Grid.Column="2"
+                        Command="{Binding AddCommand}"
+                        Style="{StaticResource FilterButtonStyle}">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon
+                                Margin="0,0,5,0"
+                                VerticalAlignment="Center"
+                                Foreground="#4B5EAA"
+                                Kind="Add" />
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                Foreground="#2D3748"
+                                Text="Thêm phiếu nhập mới" />
+                        </StackPanel>
+                    </Button>
+                    <Button
+                        Grid.Column="3"
                         Command="{Binding SearchCommand}"
                         Style="{StaticResource FilterButtonStyle}">
                         <StackPanel Orientation="Horizontal">
@@ -214,6 +232,20 @@
                                 Text="Tìm kiếm" />
                         </StackPanel>
                     </Button>
+                    <Button
+                        Grid.Column="4"
+                        HorizontalAlignment="Right"
+                        Background="Transparent"
+                        Command="{Binding RefreshCommand}"
+                        Style="{StaticResource FilterButtonStyle}"
+                        ToolTip="Làm mới">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon
+                                VerticalAlignment="Center"
+                                Foreground="#4B5EAA"
+                                Kind="Refresh" />
+                        </StackPanel>
+                    </Button>
                 </Grid>
             </StackPanel>
 
@@ -223,7 +255,7 @@
                 AutoGenerateColumns="False"
                 CanUserAddRows="False"
                 IsReadOnly="True"
-                ItemsSource="{Binding InventoryList, UpdateSourceTrigger=PropertyChanged}"
+                ItemsSource="{Binding StockInList, UpdateSourceTrigger=PropertyChanged}"
                 SelectionMode="Single"
                 Style="{StaticResource ModernDataGridStyle}"
                 VirtualizingPanel.IsVirtualizing="True">
@@ -235,47 +267,74 @@
                 <DataGrid.Columns>
                     <DataGridTextColumn
                         Width="1.5*"
-                        Binding="{Binding ProductCode}"
-                        Header="Mã sản phẩm" />
-                    <DataGridTextColumn
-                        Width="3*"
-                        Binding="{Binding ProductName}"
-                        Header="Tên sản phẩm" />
+                        Binding="{Binding StockInCode}"
+                        Header="Mã nhập kho" />
                     <DataGridTextColumn
                         Width="2*"
-                        Binding="{Binding CategoryName}"
-                        Header="Danh mục" />
+                        Binding="{Binding OrderTypeName}"
+                        Header="Loại lệnh" />
                     <DataGridTextColumn
-                        Width="100"
-                        Binding="{Binding BaseQuantity}"
-                        Header="Số lượng">
-                        <DataGridTextColumn.ElementStyle>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="HorizontalAlignment" Value="Right" />
+                        Width="2*"
+                        Binding="{Binding WarehouseName}"
+                        Header="Tên kho" />
+                    <DataGridTextColumn
+                        Width="2*"
+                        Binding="{Binding SupplierName}"
+                        Header="Nhà cung cấp" />
+                    <DataGridTextColumn
+                        Width="2*"
+                        Binding="{Binding FullNameResponsible}"
+                        Header="Người phụ trách" />
+                    <DataGridTextColumn
+                        Width="1.5*"
+                        Binding="{Binding StatusName}"
+                        Header="Trạng thái">
+                        <DataGridTextColumn.CellStyle>
+                            <Style BasedOn="{StaticResource {x:Type DataGridCell}}" TargetType="DataGridCell">
+                                <Setter Property="Padding" Value="8" />
+                                <Setter Property="Foreground" Value="Black" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding StatusId}" Value="1">
+                                        <Setter Property="Background" Value="#FF9999" />
+                                        <!--  Red  -->
+                                        <Setter Property="Foreground" Value="White" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding StatusId}" Value="2">
+                                        <Setter Property="Background" Value="#FFFF99" />
+                                        <!--  Yellow  -->
+                                        <Setter Property="Foreground" Value="Black" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding StatusId}" Value="3">
+                                        <Setter Property="Background" Value="#99FF99" />
+                                        <!--  Green  -->
+                                        <Setter Property="Foreground" Value="Black" />
+                                    </DataTrigger>
+                                </Style.Triggers>
                             </Style>
-                        </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn.CellStyle>
                     </DataGridTextColumn>
-
                     <DataGridTextColumn
-                        Width="1*"
-                        Binding="{Binding BaseUOM}"
-                        Header="Đơn vị" />
-                    <DataGridTextColumn
-                        Width="130"
-                        Binding="{Binding Quantity}"
-                        Header="Số lượng cơ bản">
-                        <DataGridTextColumn.ElementStyle>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="HorizontalAlignment" Value="Right" />
-                            </Style>
-                        </DataGridTextColumn.ElementStyle>
-                    </DataGridTextColumn>
-
-                    <DataGridTextColumn
-                        Width="1*"
-                        Binding="{Binding UOM}"
-                        Header="Đơn vị cơ bản" />
-
+                        Width="1.5*"
+                        Binding="{Binding OrderDeadline}"
+                        Header="Hạn nhập hàng" />
+                    <DataGridTemplateColumn Width="80" IsReadOnly="True">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                    CommandParameter="{Binding}"
+                                    Style="{StaticResource MaterialDesignFlatButton}"
+                                    ToolTip="Xóa dòng">
+                                    <materialDesign:PackIcon
+                                        Width="20"
+                                        Height="20"
+                                        Kind="Delete" />
+                                </Button>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
                 </DataGrid.Columns>
             </DataGrid>
 
@@ -321,7 +380,7 @@
 
             <!--  Snackbar  -->
             <materialDesign:Snackbar
-                x:Name="InventorySnackbar"
+                x:Name="StockInSnackbar"
                 Grid.Row="2"
                 Width="Auto"
                 Margin="16"

@@ -34,6 +34,7 @@ namespace Chrome_WPF.ViewModels.InventoryViewModel
         private int _pageSize = 10;
         private int _totalPages;
         private int _selectedCategoryIndex = 0; // 0 đại diện cho tab "Tất cả"
+        private string _applicableLocataion;
 
         public ObservableCollection<InventorySummaryDTO> InventoryList
         {
@@ -131,6 +132,15 @@ namespace Chrome_WPF.ViewModels.InventoryViewModel
                 _ = LoadInventoryAsync(); // Tải lại danh sách khi thay đổi tab
             }
         }
+        public string ApplicableLocation
+        {
+            get => _applicableLocataion;
+            set
+            {
+                _applicableLocataion = value;
+                OnPropertyChanged(nameof(ApplicableLocation));
+            }
+        }
 
         public ICommand SearchCommand { get; }
         public ICommand RefreshCommand { get; }
@@ -163,6 +173,13 @@ namespace Chrome_WPF.ViewModels.InventoryViewModel
             NextPageCommand = new RelayCommand(_ => NextPage());
             SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
             ViewDetailCommand = new RelayCommand(product => OpenDetail((InventorySummaryDTO)product));
+            List<string> warehousePermissions = new List<string>();
+           var savedPermissions = Properties.Settings.Default.WarehousePermission;
+            if (savedPermissions != null)
+            {
+                 warehousePermissions = savedPermissions.Cast<string>().ToList();
+            }
+            _applicableLocataion = string.Join(",", warehousePermissions.Select(id => $"{Uri.EscapeDataString(id)}"));
 
             _ = LoadCategoriesAsync();
             _ = LoadInventoryAsync();

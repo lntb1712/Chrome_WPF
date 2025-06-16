@@ -1,0 +1,77 @@
+﻿<Window
+    x:Class="Chrome_WPF.Views.UserControls.StockIn.BackOrderDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Chrome_WPF.Views.UserControls.StockIn"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:Chrome_WPF.ViewModels.StockInViewModel"
+    Title="Tạo Backorder?"
+    Width="500"
+    Height="200"
+    ResizeMode="NoResize"
+    WindowStartupLocation="CenterScreen"
+    mc:Ignorable="d">
+    <Grid Margin="20" HorizontalAlignment="Center">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Tiêu đề -->
+        <TextBlock
+            Grid.Row="0"
+            Margin="0,0,0,10"
+            FontSize="16"
+            FontWeight="Bold"
+            Text="Tạo Backorder?" />
+
+        <!-- Thông báo -->
+        <TextBlock
+            Grid.Row="1"
+            Margin="0,0,0,10"
+            FontSize="12"
+            Text="Bạn đã xử lý ít sản phẩm hơn so với yêu cầu ban đầu." />
+
+        <!-- Lựa chọn -->
+        <StackPanel
+            Grid.Row="2"
+            Margin="0,0,0,10"
+            Orientation="Vertical">
+            <TextBlock
+                Margin="0,0,20,0"
+                FontSize="12"
+                Text="Tạo backorder nếu bạn dự kiến xử lý các sản phẩm còn lại sau này." />
+            <TextBlock FontSize="12" Text="Không tạo backorder nếu bạn sẽ không xử lý các sản phẩm còn lại." />
+        </StackPanel>
+
+        <!-- Nút điều khiển -->
+        <StackPanel
+            Grid.Row="3"
+            HorizontalAlignment="Left"
+            Orientation="Horizontal">
+            <Button
+                Margin="0,0,10,0"
+                Padding="10,5"
+                Background="#6A1B9A"
+                Command="{Binding CreateBackorderCommand}"
+                Content="Tạo Backorder"
+                Foreground="White" />
+            <Button
+                Margin="0,0,10,0"
+                Padding="10,5"
+                Background="#D32F2F"
+                Command="{Binding NoBackorderCommand}"
+                Content="Không Tạo Backorder"
+                Foreground="White" />
+            <Button
+                Padding="10,5"
+                Background="#B0BEC5"
+                Command="{Binding DiscardCommand}"
+                Content="Hủy"
+                Foreground="Black" />
+        </StackPanel>
+    </Grid>
+</Window>
