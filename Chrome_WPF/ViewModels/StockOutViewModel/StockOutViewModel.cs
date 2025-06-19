@@ -230,7 +230,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                     {
                         Statuses.Add(status);
                     }
-                    SelectedStatusIndex = 0;
+                    SelectedStatusIndex = 1;
                 }
                 else
                 {
