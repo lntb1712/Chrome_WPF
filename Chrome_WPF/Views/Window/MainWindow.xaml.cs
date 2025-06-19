@@ -9,6 +9,7 @@ using Chrome_WPF.Views.UserControls.GroupManagement;
 using Chrome_WPF.Views.UserControls.Inventory;
 using Chrome_WPF.Views.UserControls.ProductMaster;
 using Chrome_WPF.Views.UserControls.StockIn;
+using Chrome_WPF.Views.UserControls.StockOut;
 using Chrome_WPF.Views.UserControls.SupplierMaster;
 using Chrome_WPF.Views.UserControls.WarehouseMaster;
 using MaterialDesignThemes.Wpf;
@@ -217,6 +218,9 @@ namespace Chrome_WPF.Views
                         break;
                     case "ucStockIn":
                         _navigationService.NavigateTo<ucStockIn>();
+                        break;
+                    case "ucStockOut":
+                        _navigationService.NavigateTo<ucStockOut>();
                         break;
                     default:
                         break;

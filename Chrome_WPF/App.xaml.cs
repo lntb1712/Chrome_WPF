@@ -18,6 +18,8 @@ using Chrome_WPF.Services.ProductSupplierService;
 using Chrome_WPF.Services.PutAwayRulesService;
 using Chrome_WPF.Services.StockInDetailService;
 using Chrome_WPF.Services.StockInService;
+using Chrome_WPF.Services.StockOutDetailService;
+using Chrome_WPF.Services.StockOutService;
 using Chrome_WPF.Services.StorageProductService;
 using Chrome_WPF.Services.SupplierMasterService;
 using Chrome_WPF.Services.WarehouseMasterService;
@@ -28,6 +30,7 @@ using Chrome_WPF.ViewModels.GroupManagementViewModel;
 using Chrome_WPF.ViewModels.InventoryViewModel;
 using Chrome_WPF.ViewModels.ProductMasterViewModel;
 using Chrome_WPF.ViewModels.StockInViewModel;
+using Chrome_WPF.ViewModels.StockOutViewModel;
 using Chrome_WPF.ViewModels.SupplierMasterViewModel;
 using Chrome_WPF.ViewModels.WarehouseMasterViewModel;
 using Chrome_WPF.Views;
@@ -39,6 +42,7 @@ using Chrome_WPF.Views.UserControls.GroupManagement;
 using Chrome_WPF.Views.UserControls.Inventory;
 using Chrome_WPF.Views.UserControls.ProductMaster;
 using Chrome_WPF.Views.UserControls.StockIn;
+using Chrome_WPF.Views.UserControls.StockOut;
 using Chrome_WPF.Views.UserControls.SupplierMaster;
 using Chrome_WPF.Views.UserControls.WarehouseMaster;
 using Microsoft.Extensions.DependencyInjection;
@@ -102,6 +106,8 @@ namespace Chrome_WPF
             services.AddSingleton<IInventoryService, InventoryService>();
             services.AddSingleton<IStockInService, StockInService>();
             services.AddSingleton<IStockInDetailService, StockInDetailService>();
+            services.AddSingleton<IStockOutService, StockOutService>();
+            services.AddSingleton<IStockOutDetailService, StockOutDetailService>();
 
             // Register IServiceProvider
             services.AddSingleton(sp => sp);
@@ -138,7 +144,10 @@ namespace Chrome_WPF
             services.AddTransient<InventoryDetailViewModel>();
             services.AddTransient<StockInViewModel>();
             services.AddTransient<StockInDetailViewModel>();
-            services.AddTransient<BackOrderDialogViewModel>();
+            services.AddTransient<ViewModels.StockInViewModel.BackOrderDialogViewModel>();
+            services.AddTransient<StockOutViewModel>();
+            services.AddTransient<StockOutDetailViewModel>();
+            services.AddTransient<ViewModels.StockOutViewModel.BackOrderDialogViewModel>();
 
             // Register Views
             services.AddTransient<LoginWindow>(provider =>
@@ -256,11 +265,25 @@ namespace Chrome_WPF
                     provider.GetRequiredService<StockInDetailViewModel>(),
                     provider.GetRequiredService<INotificationService>()));
 
-            services.AddTransient<BackOrderDialog>(provider =>
-                new BackOrderDialog(
-                    provider.GetRequiredService<BackOrderDialogViewModel>()));
+            services.AddTransient<Views.UserControls.StockIn.BackOrderDialog>(provider =>
+                new Views.UserControls.StockIn.BackOrderDialog(
+                    provider.GetRequiredService<ViewModels.StockInViewModel.BackOrderDialogViewModel>()));
+
+            services.AddTransient<ucStockOut>(provider =>
+                new ucStockOut(
+                    provider.GetRequiredService<StockOutViewModel>(),
+                    provider.GetRequiredService<INotificationService>()));
+
+            services.AddTransient<ucStockOutDetail>(provider =>
+                new ucStockOutDetail(
+                    provider.GetRequiredService<StockOutDetailViewModel>(),
+                    provider.GetRequiredService<INotificationService>()));
+
+            services.AddTransient<Views.UserControls.StockOut.BackOrderDialog>(provider =>
+                new Views.UserControls.StockOut.BackOrderDialog(
+                    provider.GetRequiredService<ViewModels.StockOutViewModel.BackOrderDialogViewModel>()));
         }
-                
+
 
         public static void ResetServiceProvider()
         {
