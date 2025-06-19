@@ -240,7 +240,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
             ConfirmQuantityCommand = new RelayCommand(async _ => await CheckQuantityAsync());
 
-            _stockOutRequestDTO.PropertyChanged += OnPropertyChangedHandler;
+            _stockOutRequestDTO.PropertyChanged += OnPropertyChangedHandler!;
             _ = InitializeAsync();
         }
 
@@ -284,7 +284,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                     _notificationService.ShowMessage("Danh sách chi tiết xuất kho rỗng.", "OK", isError: true);
                     return;
                 }
-
+                _ = SaveStockOutAsync();
                 bool hasShortage = LstStockOutDetails.Any(d => d.Quantity < d.Demand);
                 if (!hasShortage)
                 {
@@ -690,7 +690,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
         {
             if (_stockOutRequestDTO != null)
             {
-                _stockOutRequestDTO.PropertyChanged -= OnPropertyChangedHandler;
+                _stockOutRequestDTO.PropertyChanged -= OnPropertyChangedHandler!;
             }
 
             var stockOutList = App.ServiceProvider!.GetRequiredService<ucStockOut>();

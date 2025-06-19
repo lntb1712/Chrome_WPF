@@ -252,7 +252,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                     _notificationService.ShowMessage("Danh sách chi tiết nhập kho rỗng.", "OK", isError: true);
                     return;
                 }
-
+                _ = SaveStockInAsync();
                 // Kiểm tra xem có sản phẩm nào thiếu số lượng không
                 bool hasShortage = LstStockInDetails.Any(d => d.Quantity < d.Demand);
                 if (!hasShortage)
