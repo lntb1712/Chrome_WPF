@@ -1,8 +1,9 @@
 ﻿using Chrome_WPF.Helpers;
 using Chrome_WPF.Models.StockInDetailDTO;
 using Chrome_WPF.Services.NotificationService;
+using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
+using System.Windows;
 using System.Windows.Input;
 
 namespace Chrome_WPF.ViewModels.StockInViewModel
@@ -10,38 +11,39 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
     public class BackOrderDialogViewModel : BaseViewModel
     {
         private readonly INotificationService _notificationService;
+        private ObservableCollection<StockInDetailResponseDTO> _stockInDetails; // Removed readonly modifier
+        private bool _createBackorder;
+        private bool _noBackorder;
         private bool _isClosed;
 
-        public ObservableCollection<StockInDetailResponseDTO> StockInDetails { get; set; }
-        public ICommand CreateBackorderCommand { get; }
-        public ICommand NoBackorderCommand { get; }
-        public ICommand DiscardCommand { get; }
-
-        public BackOrderDialogViewModel(INotificationService notificationService, ObservableCollection<StockInDetailResponseDTO> stockInDetails)
+        public ObservableCollection<StockInDetailResponseDTO> StockInDetails
         {
-            _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
-            StockInDetails = stockInDetails ?? new ObservableCollection<StockInDetailResponseDTO>();
-            CreateBackorderCommand = new RelayCommand(OnCreateBackorder);
-            NoBackorderCommand = new RelayCommand(OnNoBackorder);
-            DiscardCommand = new RelayCommand(OnDiscard);
+            get => _stockInDetails;
+            set
+            {
+                _stockInDetails = value;
+                OnPropertyChanged();
+            }
         }
 
-        private void OnCreateBackorder(object parameter)
+        public bool CreateBackorder
         {
-            _isClosed = true;
-            OnPropertyChanged(nameof(IsClosed)); // Đảm bảo thông báo thay đổi
+            get => _createBackorder;
+            set
+            {
+                _createBackorder = value;
+                OnPropertyChanged();
+            }
         }
 
-        private void OnNoBackorder(object parameter)
+        public bool NoBackorder
         {
-            _isClosed = true;
-            OnPropertyChanged(nameof(IsClosed)); // Đảm bảo thông báo thay đổi
-        }
-
-        private void OnDiscard(object parameter)
-        {
-            _isClosed = true;
-            OnPropertyChanged(nameof(IsClosed)); // Đảm bảo thông báo thay đổi
+            get => _noBackorder;
+            set
+            {
+                _noBackorder = value;
+                OnPropertyChanged();
+            }
         }
 
         public bool IsClosed
@@ -52,6 +54,59 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                 _isClosed = value;
                 OnPropertyChanged();
             }
+        }
+
+        public ICommand CreateBackorderCommand { get; }
+        public ICommand NoBackorderCommand { get; }
+        public ICommand DiscardCommand { get; }
+
+        public BackOrderDialogViewModel(
+            INotificationService notificationService,
+            ObservableCollection<StockInDetailResponseDTO> stockInDetails)
+        {
+            _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
+            _stockInDetails = stockInDetails ?? throw new ArgumentNullException(nameof(stockInDetails));
+
+            CreateBackorderCommand = new RelayCommand(_ => ExecuteCreateBackorder());
+            NoBackorderCommand = new RelayCommand(_ => ExecuteNoBackorder());
+            DiscardCommand = new RelayCommand(_ => ExecuteDiscard());
+        }
+
+        private void ExecuteCreateBackorder()
+        {
+            if (StockInDetails.Any(d => d.Quantity < d.Demand))
+            {
+                CreateBackorder = true;
+                NoBackorder = false;
+                IsClosed = true;
+                CloseDialog();
+            }
+            else
+            {
+                _notificationService.ShowMessage("Không cần tạo backorder vì tất cả sản phẩm đã đủ số lượng.", "OK", isError: true);
+            }
+        }
+
+        private void ExecuteNoBackorder()
+        {
+            CreateBackorder = false;
+            NoBackorder = true;
+            IsClosed = true;
+            CloseDialog();
+        }
+
+        private void ExecuteDiscard()
+        {
+            CreateBackorder = false;
+            NoBackorder = false;
+            IsClosed = true;
+            CloseDialog();
+        }
+
+        private void CloseDialog()
+        {
+            var window = Application.Current.Windows.OfType<Window>().FirstOrDefault(w => w.DataContext == this);
+            window?.Close();
         }
     }
 }

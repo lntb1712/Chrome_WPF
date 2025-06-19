@@ -281,7 +281,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
 
                 if (viewModel.IsClosed)
                 {
-                    if (viewModel.CreateBackorderCommand.CanExecute(null)) // Người dùng chọn tạo backorder
+                    if (viewModel.CreateBackorder) // Người dùng chọn tạo backorder
                     {
                         // Tạo backorder và xác nhận phiếu nhập kho
                         var backOrderResult = await _stockInDetailService.CreateBackOrder(StockInRequestDTO.StockInCode, $"Tạo back order cho phiếu nhập {StockInRequestDTO.StockInCode}");
@@ -302,7 +302,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                             _notificationService.ShowMessage(confirmResult.Message ?? "Không thể xác nhận phiếu nhập kho.", "OK", isError: true);
                         }
                     }
-                    else if (viewModel.NoBackorderCommand.CanExecute(null)) // Người dùng không tạo backorder
+                    else if (viewModel.NoBackorder) // Người dùng không tạo backorder
                     {
                         // Xác nhận phiếu nhập kho mà không tạo backorder
                         var confirmResult = await _stockInDetailService.ConfirmnStockIn(StockInRequestDTO.StockInCode);
