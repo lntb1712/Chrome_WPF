@@ -28,6 +28,8 @@ using Chrome_WPF.Services.StockInDetailService;
 using Chrome_WPF.Services.StockInService;
 using Chrome_WPF.Services.StockOutDetailService;
 using Chrome_WPF.Services.StockOutService;
+using Chrome_WPF.Services.StockTakeDetailService;
+using Chrome_WPF.Services.StockTakeService;
 using Chrome_WPF.Services.StorageProductService;
 using Chrome_WPF.Services.SupplierMasterService;
 using Chrome_WPF.Services.TransferDetailService;
@@ -45,6 +47,7 @@ using Chrome_WPF.ViewModels.PutAwayViewModel;
 using Chrome_WPF.ViewModels.ReservationViewModel;
 using Chrome_WPF.ViewModels.StockInViewModel;
 using Chrome_WPF.ViewModels.StockOutViewModel;
+using Chrome_WPF.ViewModels.StockTakeViewModel;
 using Chrome_WPF.ViewModels.SupplierMasterViewModel;
 using Chrome_WPF.ViewModels.TransferViewModel;
 using Chrome_WPF.ViewModels.WarehouseMasterViewModel;
@@ -62,6 +65,7 @@ using Chrome_WPF.Views.UserControls.PutAway;
 using Chrome_WPF.Views.UserControls.Reservation;
 using Chrome_WPF.Views.UserControls.StockIn;
 using Chrome_WPF.Views.UserControls.StockOut;
+using Chrome_WPF.Views.UserControls.StockTake;
 using Chrome_WPF.Views.UserControls.SupplierMaster;
 using Chrome_WPF.Views.UserControls.Transfer;
 using Chrome_WPF.Views.UserControls.WarehouseMaster;
@@ -138,6 +142,8 @@ namespace Chrome_WPF
             services.AddSingleton<IMovementDetailService, MovementDetailService>();
             services.AddSingleton<ITransferService, TransferService>();
             services.AddSingleton<ITransferDetailService, TransferDetailService>();
+            services.AddSingleton<IStockTakeService, StockTakeService>();
+            services.AddSingleton<IStockTakeDetailService, StockTakeDetailService>();
 
             // Register IServiceProvider
             services.AddSingleton(sp => sp);
@@ -188,6 +194,8 @@ namespace Chrome_WPF
             services.AddTransient<MovementDetailViewModel>();
             services.AddTransient<TransferViewModel>();
             services.AddTransient<TransferDetailViewModel>();
+            services.AddTransient<StockTakeViewModel>();
+            services.AddTransient<StockTakeDetailViewModel>();
 
             // Register Views
             services.AddTransient<LoginWindow>(provider =>
@@ -372,6 +380,18 @@ namespace Chrome_WPF
                  new ucTransferDetail(
                      provider.GetRequiredService<TransferDetailViewModel>(),
                      provider.GetRequiredService<INotificationService>()));
+
+            services.AddTransient<ucStockTake>(provider =>
+                new ucStockTake(
+                    provider.GetRequiredService<StockTakeViewModel>(),
+                    provider.GetRequiredService<INotificationService>()));
+            
+            services.AddTransient<ucStockTakeDetail>(provider =>
+                new ucStockTakeDetail(
+                    provider.GetRequiredService<StockTakeDetailViewModel>(),
+                    provider.GetRequiredService<INotificationService>()));
+
+
 
 
 

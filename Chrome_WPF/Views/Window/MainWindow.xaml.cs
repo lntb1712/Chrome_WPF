@@ -14,6 +14,7 @@ using Chrome_WPF.Views.UserControls.PutAway;
 using Chrome_WPF.Views.UserControls.Reservation;
 using Chrome_WPF.Views.UserControls.StockIn;
 using Chrome_WPF.Views.UserControls.StockOut;
+using Chrome_WPF.Views.UserControls.StockTake;
 using Chrome_WPF.Views.UserControls.SupplierMaster;
 using Chrome_WPF.Views.UserControls.Transfer;
 using Chrome_WPF.Views.UserControls.WarehouseMaster;
@@ -241,6 +242,9 @@ namespace Chrome_WPF.Views
                         break;
                     case "ucTransfer":
                         _navigationService.NavigateTo<ucTransfer>();
+                        break;
+                    case "ucStockTake":
+                        _navigationService.NavigateTo<ucStockTake>();
                         break;
 
                     default:

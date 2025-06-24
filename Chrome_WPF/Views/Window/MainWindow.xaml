@@ -477,7 +477,7 @@
                                 Height="24"
                                 Margin="10,0,10,0"
                                 Kind="ClipboardCheck" />
-                            <TextBlock Text="Kiểm kê" />
+                            <TextBlock Text="Kiểm đếm" />
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem Style="{StaticResource SeparatorItemStyle}">
