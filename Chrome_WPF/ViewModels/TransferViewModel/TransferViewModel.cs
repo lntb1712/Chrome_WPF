@@ -1,14 +1,14 @@
 ﻿using Chrome_WPF.Helpers;
 using Chrome_WPF.Models.APIResult;
-using Chrome_WPF.Models.MovementDTO;
 using Chrome_WPF.Models.PagedResponse;
 using Chrome_WPF.Models.StatusMasterDTO;
+using Chrome_WPF.Models.TransferDTO;
 using Chrome_WPF.Services.MessengerService;
-using Chrome_WPF.Services.MovementDetailService;
-using Chrome_WPF.Services.MovementService;
 using Chrome_WPF.Services.NavigationService;
 using Chrome_WPF.Services.NotificationService;
-using Chrome_WPF.Views.UserControls.Movement;
+using Chrome_WPF.Services.TransferDetailService;
+using Chrome_WPF.Services.TransferService;
+using Chrome_WPF.Views.UserControls.Transfer;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.ObjectModel;
@@ -17,16 +17,16 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 
-namespace Chrome_WPF.ViewModels.MovementViewModel
+namespace Chrome_WPF.ViewModels.TransferViewModel
 {
-    public class MovementViewModel : BaseViewModel
+    public class TransferViewModel : BaseViewModel
     {
-        private readonly IMovementService _movementService;
+        private readonly ITransferService _transferService;
         private readonly INotificationService _notificationService;
         private readonly INavigationService _navigationService;
         private readonly IMessengerService _messengerService;
 
-        private ObservableCollection<MovementResponseDTO> _movementList;
+        private ObservableCollection<TransferResponseDTO> _transferList;
         private ObservableCollection<object> _displayPages;
         private ObservableCollection<StatusMasterResponseDTO> _statuses;
         private string _searchText;
@@ -39,12 +39,12 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
         private int _lastStatusIndex;
         private string _applicableLocation;
 
-        public ObservableCollection<MovementResponseDTO> MovementList
+        public ObservableCollection<TransferResponseDTO> TransferList
         {
-            get => _movementList;
+            get => _transferList;
             set
             {
-                _movementList = value;
+                _transferList = value;
                 OnPropertyChanged();
             }
         }
@@ -79,7 +79,7 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
                     _searchText = value;
                     OnPropertyChanged();
                     CurrentPage = 1;
-                    _ = LoadMovementsAsync();
+                    _ = LoadTransfersAsync();
                 }
             }
         }
@@ -94,7 +94,7 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
                     _selectedStatusIndex = value;
                     OnPropertyChanged();
                     CurrentPage = 1;
-                    _ = LoadMovementsAsync();
+                    _ = LoadTransfersAsync();
                 }
             }
         }
@@ -109,7 +109,7 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
                     _currentPage = value;
                     OnPropertyChanged();
                     UpdateDisplayPages();
-                    _ = LoadMovementsAsync();
+                    _ = LoadTransfersAsync();
                 }
             }
         }
@@ -124,7 +124,7 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
                     _pageSize = value;
                     OnPropertyChanged();
                     CurrentPage = 1;
-                    _ = LoadMovementsAsync();
+                    _ = LoadTransfersAsync();
                 }
             }
         }
@@ -159,18 +159,18 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
         public ICommand SelectPageCommand { get; }
         public ICommand ViewDetailCommand { get; }
 
-        public MovementViewModel(
-            IMovementService movementService,
+        public TransferViewModel(
+            ITransferService transferService,
             INotificationService notificationService,
             INavigationService navigationService,
             IMessengerService messengerService)
         {
-            _movementService = movementService ?? throw new ArgumentNullException(nameof(movementService));
+            _transferService = transferService ?? throw new ArgumentNullException(nameof(transferService));
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
             _messengerService = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
 
-            _movementList = new ObservableCollection<MovementResponseDTO>();
+            _transferList = new ObservableCollection<TransferResponseDTO>();
             _displayPages = new ObservableCollection<object>();
             _statuses = new ObservableCollection<StatusMasterResponseDTO>();
             _searchText = string.Empty;
@@ -180,16 +180,16 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
             _lastSearchText = string.Empty;
             _lastStatusIndex = 0;
 
-            SearchCommand = new RelayCommand(async _ => await SearchMovementsAsync());
-            RefreshCommand = new RelayCommand(async _ => await LoadMovementsAsync(true));
+            SearchCommand = new RelayCommand(async _ => await SearchTransfersAsync());
+            RefreshCommand = new RelayCommand(async _ => await LoadTransfersAsync(true));
             AddCommand = new RelayCommand(_ => OpenEditor(null!));
-            DeleteCommand = new RelayCommand(async movement => await DeleteMovementAsync((MovementResponseDTO)movement));
+            DeleteCommand = new RelayCommand(async transfer => await DeleteTransferAsync((TransferResponseDTO)transfer));
             PreviousPageCommand = new RelayCommand(_ => PreviousPage());
             NextPageCommand = new RelayCommand(_ => NextPage());
             SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
-            ViewDetailCommand = new RelayCommand(movement => OpenEditor((MovementResponseDTO)movement));
+            ViewDetailCommand = new RelayCommand(transfer => OpenEditor((TransferResponseDTO)transfer));
 
-            _ = messengerService.RegisterMessageAsync("ReloadMovementList", async _ => await LoadMovementsAsync(true));
+            _ = messengerService.RegisterMessageAsync("ReloadTransferList", async _ => await LoadTransfersAsync(true));
             List<string> warehousePermissions = new List<string>();
             var savedPermissions = Properties.Settings.Default.WarehousePermission;
             if (savedPermissions != null)
@@ -209,7 +209,7 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
                 {
                     _notificationService.ShowMessage("Không tải được trạng thái. Lọc theo trạng thái sẽ bị vô hiệu hóa.", "OK", isError: true);
                 }
-                await LoadMovementsAsync();
+                await LoadTransfersAsync();
             }
             catch (Exception ex)
             {
@@ -221,7 +221,7 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
         {
             try
             {
-                var result = await _movementService.GetListStatusMaster();
+                var result = await _transferService.GetListStatusMaster();
                 if (result.Success && result.Data != null)
                 {
                     Statuses.Clear();
@@ -243,7 +243,7 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
             }
         }
 
-        private async Task LoadMovementsAsync(bool forceRefresh = false)
+        private async Task LoadTransfersAsync(bool forceRefresh = false)
         {
             try
             {
@@ -253,22 +253,22 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
                 }
 
                 var warehouseCodes = ApplicableLocation.Split(',').Select(Uri.UnescapeDataString).ToArray();
-                ApiResult<PagedResponse<MovementResponseDTO>> result;
+                ApiResult<PagedResponse<TransferResponseDTO>> result;
                 if (SelectedStatusIndex > 0 && Statuses[SelectedStatusIndex].StatusId != 0)
                 {
-                    result = await _movementService.GetAllMovementsWithStatus(warehouseCodes, Statuses[SelectedStatusIndex].StatusId, CurrentPage, PageSize);
+                    result = await _transferService.GetAllTransfersWithStatus(warehouseCodes, Statuses[SelectedStatusIndex].StatusId, CurrentPage, PageSize);
                 }
                 else
                 {
-                    result = await _movementService.GetAllMovements(warehouseCodes, CurrentPage, PageSize);
+                    result = await _transferService.GetAllTransfers(warehouseCodes, CurrentPage, PageSize);
                 }
 
                 if (result.Success && result.Data != null)
                 {
-                    MovementList.Clear();
-                    foreach (var movement in result.Data.Data ?? Enumerable.Empty<MovementResponseDTO>())
+                    TransferList.Clear();
+                    foreach (var transfer in result.Data.Data ?? Enumerable.Empty<TransferResponseDTO>())
                     {
-                        MovementList.Add(movement);
+                        TransferList.Add(transfer);
                     }
                     TotalPages = result.Data.TotalPages;
                     _lastLoadedPage = CurrentPage;
@@ -277,33 +277,33 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
                 }
                 else
                 {
-                    _notificationService.ShowMessage(result.Message ?? "Không thể tải danh sách phiếu di chuyển.", "OK", isError: true);
+                    _notificationService.ShowMessage(result.Message ?? "Không thể tải danh sách phiếu chuyển kho.", "OK", isError: true);
                 }
             }
             catch (Exception ex)
             {
-                _notificationService.ShowMessage($"Lỗi khi tải phiếu di chuyển: {ex.Message}", "OK", isError: true);
+                _notificationService.ShowMessage($"Lỗi khi tải phiếu chuyển kho: {ex.Message}", "OK", isError: true);
             }
         }
 
-        private async Task SearchMovementsAsync()
+        private async Task SearchTransfersAsync()
         {
             try
             {
                 if (string.IsNullOrWhiteSpace(SearchText))
                 {
-                    await LoadMovementsAsync();
+                    await LoadTransfersAsync();
                     return;
                 }
 
                 var warehouseCodes = ApplicableLocation.Split(',').Select(Uri.UnescapeDataString).ToArray();
-                var result = await _movementService.SearchMovementAsync(warehouseCodes, SearchText, CurrentPage, PageSize);
+                var result = await _transferService.SearchTransfersAsync(warehouseCodes, SearchText, CurrentPage, PageSize);
                 if (result.Success && result.Data != null)
                 {
-                    MovementList.Clear();
-                    foreach (var movement in result.Data.Data ?? Enumerable.Empty<MovementResponseDTO>())
+                    TransferList.Clear();
+                    foreach (var transfer in result.Data.Data ?? Enumerable.Empty<TransferResponseDTO>())
                     {
-                        MovementList.Add(movement);
+                        TransferList.Add(transfer);
                     }
                     TotalPages = result.Data.TotalPages;
                     _lastLoadedPage = CurrentPage;
@@ -312,56 +312,56 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
                 }
                 else
                 {
-                    _notificationService.ShowMessage(result.Message ?? "Không thể tìm kiếm phiếu di chuyển.", "OK", isError: true);
+                    _notificationService.ShowMessage(result.Message ?? "Không thể tìm kiếm phiếu chuyển kho.", "OK", isError: true);
                 }
             }
             catch (Exception ex)
             {
-                _notificationService.ShowMessage($"Lỗi khi tìm kiếm phiếu di chuyển: {ex.Message}", "OK", isError: true);
+                _notificationService.ShowMessage($"Lỗi khi tìm kiếm phiếu chuyển kho: {ex.Message}", "OK", isError: true);
             }
         }
 
-        private async Task DeleteMovementAsync(MovementResponseDTO movement)
+        private async Task DeleteTransferAsync(TransferResponseDTO transfer)
         {
-            if (movement == null) return;
+            if (transfer == null) return;
 
-            var result = MessageBox.Show($"Bạn có chắc muốn xóa phiếu di chuyển {movement.MovementCode}?", "Xác nhận xóa", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            var result = MessageBox.Show($"Bạn có chắc muốn xóa phiếu chuyển kho {transfer.TransferCode}?", "Xác nhận xóa", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (result == MessageBoxResult.Yes)
             {
                 try
                 {
-                    var deleteResult = await _movementService.DeleteMovementAsync(movement.MovementCode);
+                    var deleteResult = await _transferService.DeleteTransferAsync(transfer.TransferCode);
                     if (deleteResult.Success)
                     {
-                        await LoadMovementsAsync(true);
-                        _notificationService.ShowMessage("Xóa phiếu di chuyển thành công.", "OK", isError: false);
-                        await _messengerService.SendMessageAsync("ReloadMovementList");
+                        await LoadTransfersAsync(true);
+                        _notificationService.ShowMessage("Xóa phiếu chuyển kho thành công.", "OK", isError: false);
+                        await _messengerService.SendMessageAsync("ReloadTransferList");
                     }
                     else
                     {
-                        _notificationService.ShowMessage(deleteResult.Message ?? "Không thể xóa phiếu di chuyển.", "OK", isError: true);
+                        _notificationService.ShowMessage(deleteResult.Message ?? "Không thể xóa phiếu chuyển kho.", "OK", isError: true);
                     }
                 }
                 catch (Exception ex)
                 {
-                    _notificationService.ShowMessage($"Lỗi khi xóa phiếu di chuyển: {ex.Message}", "OK", isError: true);
+                    _notificationService.ShowMessage($"Lỗi khi xóa phiếu chuyển kho: {ex.Message}", "OK", isError: true);
                 }
             }
         }
 
-        private void OpenEditor(MovementResponseDTO movement)
+        private void OpenEditor(TransferResponseDTO transfer)
         {
-            var movementDetail = App.ServiceProvider!.GetRequiredService<ucMovementDetail>();
-            var viewModel = new MovementDetailViewModel(
-                App.ServiceProvider!.GetRequiredService<IMovementService>(),
-                App.ServiceProvider!.GetRequiredService<IMovementDetailService>(),
+            var transferDetail = App.ServiceProvider!.GetRequiredService<ucTransferDetail>();
+            var viewModel = new TransferDetailViewModel(
+                App.ServiceProvider!.GetRequiredService<ITransferService>(),
+                App.ServiceProvider!.GetRequiredService<ITransferDetailService>(),
                 App.ServiceProvider!.GetRequiredService<INotificationService>(),
                 App.ServiceProvider!.GetRequiredService<INavigationService>(),
                 App.ServiceProvider!.GetRequiredService<IMessengerService>(),
-                movement);
+                transfer);
 
-            movementDetail.DataContext = viewModel;
-            _navigationService.NavigateTo(movementDetail);
+            transferDetail.DataContext = viewModel;
+            _navigationService.NavigateTo(transferDetail);
         }
 
         private void PreviousPage()

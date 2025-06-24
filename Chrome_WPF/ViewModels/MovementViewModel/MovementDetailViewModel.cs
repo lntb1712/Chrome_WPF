@@ -137,12 +137,12 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
             {
                 if (_movementRequestDTO != null)
                 {
-                    _movementRequestDTO.PropertyChanged -= OnMovementRequestDTOPropertyChanged;
+                    _movementRequestDTO.PropertyChanged -= OnMovementRequestDTOPropertyChanged!;
                 }
                 _movementRequestDTO = value;
                 if (_movementRequestDTO != null)
                 {
-                    _movementRequestDTO.PropertyChanged += OnMovementRequestDTOPropertyChanged;
+                    _movementRequestDTO.PropertyChanged += OnMovementRequestDTOPropertyChanged!;
                 }
                 OnPropertyChanged();
                 _ = LoadMovementDetailsAsync();
@@ -215,7 +215,7 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
             INotificationService notificationService,
             INavigationService navigationService,
             IMessengerService messengerService,
-            MovementResponseDTO movement = null)
+            MovementResponseDTO movement = null!)
         {
             _movementService = movementService ?? throw new ArgumentNullException(nameof(movementService));
             _movementDetailService = movementDetailService ?? throw new ArgumentNullException(nameof(movementDetailService));
@@ -257,7 +257,7 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
             SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
             ConfirmCommand = new RelayCommand(async _ => await ConfirmMovementAsync(), CanConfirm);
 
-            _movementRequestDTO.PropertyChanged += OnMovementRequestDTOPropertyChanged;
+            _movementRequestDTO.PropertyChanged += OnMovementRequestDTOPropertyChanged!;
             _ = InitializeAsync();
         }
 
@@ -722,7 +722,7 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
         {
             if (_movementRequestDTO != null)
             {
-                _movementRequestDTO.PropertyChanged -= OnMovementRequestDTOPropertyChanged;
+                _movementRequestDTO.PropertyChanged -= OnMovementRequestDTOPropertyChanged!;
             }
 
             var movementList = App.ServiceProvider!.GetRequiredService<ucMovement>();

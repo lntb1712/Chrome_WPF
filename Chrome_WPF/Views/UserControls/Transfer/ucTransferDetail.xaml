@@ -1,11 +1,11 @@
 ﻿<UserControl
-    x:Class="Chrome_WPF.Views.UserControls.Movement.ucMovementDetail"
+    x:Class="Chrome_WPF.Views.UserControls.Transfer.ucTransferDetail"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="clr-namespace:Chrome_WPF.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:helper="clr-namespace:Chrome_WPF.Helpers"
-    xmlns:local="clr-namespace:Chrome_WPF.Views.UserControls.Movement"
+    xmlns:local="clr-namespace:Chrome_WPF.Views.UserControls.Transfer"
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DesignHeight="700"
@@ -192,6 +192,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
                 <!--  Header  -->
@@ -199,7 +200,6 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
@@ -212,7 +212,7 @@
                             Command="{Binding BackCommand}"
                             Foreground="#2D3748"
                             Style="{StaticResource MaterialDesignFlatButton}"
-                            ToolTip="Quay lại danh sách di chuyển">
+                            ToolTip="Quay lại danh sách chuyển kho">
                             <StackPanel Orientation="Horizontal">
                                 <materialDesign:PackIcon
                                     Width="24"
@@ -224,12 +224,12 @@
                             Margin="10,0,0,0"
                             FontSize="24"
                             FontWeight="Bold"
-                            Text="Chi tiết phiếu di chuyển" />
+                            Text="Chi tiết phiếu chuyển kho" />
                         <TextBlock
                             Margin="10,0,0,0"
                             FontSize="24"
                             FontWeight="Bold"
-                            Text="{Binding MovementRequestDTO.MovementCode}" />
+                            Text="{Binding TransferRequestDTO.TransferCode}" />
                     </StackPanel>
                     <Button
                         x:Name="SaveButton"
@@ -272,13 +272,13 @@
                         <TextBlock
                             Width="120"
                             VerticalAlignment="Center"
-                            Text="Mã di chuyển" />
+                            Text="Mã chuyển kho" />
                         <TextBox
-                            x:Name="MovementCodeTextBox"
+                            x:Name="TransferCodeTextBox"
                             Width="200"
                             Margin="8,0,0,0"
                             Padding="12,8"
-                            materialDesign:HintAssist.Hint="Nhập mã di chuyển"
+                            materialDesign:HintAssist.Hint="Nhập mã chuyển kho"
                             materialDesign:HintAssist.IsFloating="True"
                             materialDesign:TextFieldAssist.HasLeadingIcon="True"
                             materialDesign:TextFieldAssist.LeadingIcon="CodeTags"
@@ -286,7 +286,7 @@
                             IsEnabled="{Binding IsAddingNew}">
                             <TextBox.Text>
                                 <Binding
-                                    Path="MovementRequestDTO.MovementCode"
+                                    Path="TransferRequestDTO.TransferCode"
                                     UpdateSourceTrigger="PropertyChanged"
                                     ValidatesOnDataErrors="True"
                                     ValidatesOnNotifyDataErrors="True" />
@@ -312,7 +312,7 @@
                             DisplayMemberPath="OrderTypeName"
                             FontSize="14"
                             ItemsSource="{Binding LstOrderTypes}"
-                            SelectedValue="{Binding MovementRequestDTO.OrderTypeCode, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True}"
+                            SelectedValue="{Binding TransferRequestDTO.OrderTypeCode, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True}"
                             SelectedValuePath="OrderTypeCode" />
                     </StackPanel>
                     <StackPanel
@@ -323,18 +323,18 @@
                         <TextBlock
                             Width="120"
                             VerticalAlignment="Center"
-                            Text="Kho" />
+                            Text="Kho xuất" />
                         <ComboBox
-                            x:Name="WarehouseComboBox"
+                            x:Name="FromWarehouseComboBox"
                             Width="200"
                             Margin="8,0,0,0"
                             Padding="12,8"
-                            materialDesign:HintAssist.Hint="Chọn kho"
+                            materialDesign:HintAssist.Hint="Chọn kho xuất"
                             materialDesign:HintAssist.IsFloating="True"
                             DisplayMemberPath="WarehouseName"
                             FontSize="14"
                             ItemsSource="{Binding LstWarehouses}"
-                            SelectedValue="{Binding MovementRequestDTO.WarehouseCode, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True}"
+                            SelectedValue="{Binding TransferRequestDTO.FromWarehouseCode, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True}"
                             SelectedValuePath="WarehouseCode" />
                     </StackPanel>
                     <StackPanel
@@ -345,62 +345,18 @@
                         <TextBlock
                             Width="120"
                             VerticalAlignment="Center"
-                            Text="Vị trí nguồn" />
+                            Text="Người xuất" />
                         <ComboBox
-                            x:Name="FromLocationComboBox"
+                            x:Name="FromResponsibleComboBox"
                             Width="200"
                             Margin="8,0,0,0"
                             Padding="12,8"
-                            materialDesign:HintAssist.Hint="Chọn vị trí nguồn"
-                            materialDesign:HintAssist.IsFloating="True"
-                            DisplayMemberPath="LocationName"
-                            FontSize="14"
-                            ItemsSource="{Binding LstFromLocations}"
-                            SelectedValue="{Binding MovementRequestDTO.FromLocation, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True}"
-                            SelectedValuePath="LocationCode" />
-                    </StackPanel>
-                    <StackPanel
-                        Grid.Row="0"
-                        Grid.Column="1"
-                        Margin="0,10,0,16"
-                        Orientation="Horizontal">
-                        <TextBlock
-                            Width="120"
-                            VerticalAlignment="Center"
-                            Text="Vị trí đích" />
-                        <ComboBox
-                            x:Name="ToLocationComboBox"
-                            Width="200"
-                            Margin="8,0,0,0"
-                            Padding="12,8"
-                            materialDesign:HintAssist.Hint="Chọn vị trí đích"
-                            materialDesign:HintAssist.IsFloating="True"
-                            DisplayMemberPath="LocationName"
-                            FontSize="14"
-                            ItemsSource="{Binding LstToLocations}"
-                            SelectedValue="{Binding MovementRequestDTO.ToLocation, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True}"
-                            SelectedValuePath="LocationCode" />
-                    </StackPanel>
-                    <StackPanel
-                        Grid.Row="1"
-                        Grid.Column="1"
-                        Margin="0,10,0,16"
-                        Orientation="Horizontal">
-                        <TextBlock
-                            Width="120"
-                            VerticalAlignment="Center"
-                            Text="Người phụ trách" />
-                        <ComboBox
-                            x:Name="ResponsiblePersonComboBox"
-                            Width="200"
-                            Margin="8,0,0,0"
-                            Padding="12,8"
-                            materialDesign:HintAssist.Hint="Chọn người phụ trách"
+                            materialDesign:HintAssist.Hint="Chọn người xuất"
                             materialDesign:HintAssist.IsFloating="True"
                             DisplayMemberPath="FullName"
                             FontSize="14"
-                            ItemsSource="{Binding LstResponsiblePersons}"
-                            SelectedValue="{Binding MovementRequestDTO.Responsible, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True}"
+                            ItemsSource="{Binding LstFromResponsiblePersons}"
+                            SelectedValue="{Binding TransferRequestDTO.FromResponsible, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True}"
                             SelectedValuePath="UserName" />
                     </StackPanel>
                     <StackPanel
@@ -411,16 +367,19 @@
                         <TextBlock
                             Width="120"
                             VerticalAlignment="Center"
-                            Text="Ngày di chuyển" />
-                        <DatePicker
-                            x:Name="MovementDatePicker"
+                            Text="Kho nhận" />
+                        <ComboBox
+                            x:Name="ToWarehouseComboBox"
                             Width="200"
                             Margin="8,0,0,0"
                             Padding="12,8"
-                            materialDesign:HintAssist.Hint="Chọn ngày di chuyển"
+                            materialDesign:HintAssist.Hint="Chọn kho nhận"
                             materialDesign:HintAssist.IsFloating="True"
+                            DisplayMemberPath="WarehouseName"
                             FontSize="14"
-                            SelectedDate="{Binding MovementRequestDTO.MovementDate, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True, Converter={StaticResource StringToDateTimeConverter}}" />
+                            ItemsSource="{Binding LstToWarehouses}"
+                            SelectedValue="{Binding TransferRequestDTO.ToWarehouseCode, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True}"
+                            SelectedValuePath="WarehouseCode" />
                     </StackPanel>
                     <StackPanel
                         Grid.Row="3"
@@ -430,27 +389,68 @@
                         <TextBlock
                             Width="120"
                             VerticalAlignment="Center"
+                            Text="Người nhận" />
+                        <ComboBox
+                            x:Name="ToResponsibleComboBox"
+                            Width="200"
+                            Margin="8,0,0,0"
+                            Padding="12,8"
+                            materialDesign:HintAssist.Hint="Chọn người nhận"
+                            materialDesign:HintAssist.IsFloating="True"
+                            DisplayMemberPath="FullName"
+                            FontSize="14"
+                            ItemsSource="{Binding LstToResponsiblePersons}"
+                            SelectedValue="{Binding TransferRequestDTO.ToResponsible, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True}"
+                            SelectedValuePath="UserName" />
+                    </StackPanel>
+                    <StackPanel
+                        Grid.Row="0"
+                        Grid.Column="1"
+                        Margin="0,10,0,16"
+                        Orientation="Horizontal">
+                        <TextBlock
+                            Width="120"
+                            VerticalAlignment="Center"
+                            Text="Ngày chuyển kho" />
+                        <DatePicker
+                            x:Name="TransferDatePicker"
+                            Width="200"
+                            Margin="8,0,0,0"
+                            Padding="12,8"
+                            materialDesign:HintAssist.Hint="Chọn ngày chuyển kho"
+                            materialDesign:HintAssist.IsFloating="True"
+                            FontSize="14"
+                            SelectedDate="{Binding TransferRequestDTO.TransferDate, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True, Converter={StaticResource StringToDateTimeConverter}}" />
+                    </StackPanel>
+                    <StackPanel
+                        Grid.Row="1"
+                        Grid.Column="1"
+                        Margin="0,10,0,16"
+                        Orientation="Horizontal">
+                        <TextBlock
+                            Width="120"
+                            VerticalAlignment="Center"
                             Text="Mô tả" />
                         <TextBox
-                            x:Name="MovementDescriptionTextBox"
+                            x:Name="TransferDescriptionTextBox"
                             Width="200"
                             Margin="8,0,0,0"
                             Padding="12,8"
                             materialDesign:HintAssist.Hint="Nhập mô tả"
                             materialDesign:HintAssist.IsFloating="True"
                             FontSize="14"
-                            Text="{Binding MovementRequestDTO.MovementDescription, UpdateSourceTrigger=PropertyChanged}" />
+                            Text="{Binding TransferRequestDTO.TransferDescription, UpdateSourceTrigger=PropertyChanged}" />
                     </StackPanel>
                 </Grid>
 
-                <!--  Movement Details Section with TabControl  -->
+                <!--  Transfer Details Section with TabControl  -->
                 <TabControl
                     Grid.Row="2"
                     Margin="0,0,0,-1"
                     Panel.ZIndex="0"
                     Background="Transparent"
                     ItemContainerStyle="{StaticResource CustomTabItemStyle}">
-                    <TabItem Header="Chi tiết di chuyển">
+                    <TabItem Header="Chi tiết chuyển kho">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
@@ -458,14 +458,14 @@
                                 <RowDefinition Height="*" />
                             </Grid.RowDefinitions>
                             <DataGrid
-                                x:Name="MovementDetailDataGrid"
+                                x:Name="TransferDetailDataGrid"
                                 Grid.Row="0"
                                 Margin="0,8,0,16"
                                 AutoGenerateColumns="False"
                                 CanUserAddRows="False"
                                 CanUserDeleteRows="True"
                                 IsReadOnly="False"
-                                ItemsSource="{Binding LstMovementDetails, UpdateSourceTrigger=PropertyChanged}"
+                                ItemsSource="{Binding LstTransferDetails, UpdateSourceTrigger=PropertyChanged}"
                                 Style="{StaticResource ModernDataGridStyle}">
                                 <DataGrid.Columns>
                                     <DataGridTemplateColumn Width="2*" Header="Sản phẩm">
@@ -483,6 +483,14 @@
                                         Width="*"
                                         Binding="{Binding Demand}"
                                         Header="Số lượng yêu cầu" />
+                                    <DataGridTextColumn
+                                        Width="*"
+                                        Binding="{Binding QuantityInBounded}"
+                                        Header="Số lượng đã chuyển" />
+                                    <DataGridTextColumn
+                                        Width="*"
+                                        Binding="{Binding QuantityOutBounded}"
+                                        Header="Số lượng đã nhận" />
                                     <DataGridTemplateColumn Width="80" IsReadOnly="True">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
@@ -511,7 +519,7 @@
                                 Command="{Binding AddDetailLineCommand}"
                                 Content="Thêm dòng"
                                 Style="{StaticResource MaterialDesignFlatButton}"
-                                ToolTip="Thêm chi tiết di chuyển mới" />
+                                ToolTip="Thêm chi tiết chuyển kho mới" />
                             <StackPanel
                                 Grid.Row="2"
                                 Margin="0,10,0,0"
@@ -557,7 +565,7 @@
 
                 <!--  Snackbar  -->
                 <materialDesign:Snackbar
-                    x:Name="MovementDetailSnackbar"
+                    x:Name="TransferDetailSnackbar"
                     Grid.Row="3"
                     Width="Auto"
                     Margin="16"

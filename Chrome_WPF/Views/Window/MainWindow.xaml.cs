@@ -15,6 +15,7 @@ using Chrome_WPF.Views.UserControls.Reservation;
 using Chrome_WPF.Views.UserControls.StockIn;
 using Chrome_WPF.Views.UserControls.StockOut;
 using Chrome_WPF.Views.UserControls.SupplierMaster;
+using Chrome_WPF.Views.UserControls.Transfer;
 using Chrome_WPF.Views.UserControls.WarehouseMaster;
 using MaterialDesignThemes.Wpf;
 using Microsoft.Extensions.DependencyInjection;
@@ -237,6 +238,9 @@ namespace Chrome_WPF.Views
                         break;
                     case "ucMovement":
                         _navigationService.NavigateTo<ucMovement>();
+                        break;
+                    case "ucTransfer":
+                        _navigationService.NavigateTo<ucTransfer>();
                         break;
 
                     default:
