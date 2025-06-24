@@ -351,6 +351,7 @@
                         <ListBoxItem.Visibility>
                             <MultiBinding Converter="{StaticResource AllFalseToVisibilityConverter}">
                                 <Binding Path="CanInventory" />
+                                <Binding Path="CanReservation" />
                                 <Binding Path="CanStockIn" />
                                 <Binding Path="CanStockOut" />
                                 <Binding Path="CanTransfer" />
