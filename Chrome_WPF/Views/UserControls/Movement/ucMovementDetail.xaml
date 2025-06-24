@@ -1,23 +1,23 @@
 ﻿<UserControl
-    x:Class="Chrome_WPF.Views.UserControls.StockOut.ucStockOutDetail"
+    x:Class="Chrome_WPF.Views.UserControls.Movement.ucMovementDetail"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="clr-namespace:Chrome_WPF.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:helper="clr-namespace:Chrome_WPF.Helpers"
-    xmlns:local="clr-namespace:Chrome_WPF.Views.UserControls.StockOut"
+    xmlns:local="clr-namespace:Chrome_WPF.Views.UserControls.Movement"
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DesignHeight="700"
     d:DesignWidth="800"
     mc:Ignorable="d">
     <UserControl.Resources>
-        <!--  Converters  -->
+        <!-- Converters -->
         <converters:PageEqualityConverter x:Key="PageEqualityConverter" />
         <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <converters:StringToDateTimeConverter x:Key="StringToDateTimeConverter" />
 
-        <!--  Styles  -->
+        <!-- Styles -->
         <SolidColorBrush x:Key="BorderNormalColor" Color="#E0E0E0" />
         <Style x:Key="ModernDataGridStyle" TargetType="{x:Type DataGrid}">
             <Setter Property="RowBackground" Value="White" />
@@ -195,16 +195,13 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <!--  Header  -->
+                <!-- Header -->
                 <Grid Grid.Row="0" Margin="0,0,0,24">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <!--  Thêm cột cho nút Tạo Picklist  -->
                     </Grid.ColumnDefinitions>
                     <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
                         <Button
@@ -216,7 +213,7 @@
                             Command="{Binding BackCommand}"
                             Foreground="#2D3748"
                             Style="{StaticResource MaterialDesignFlatButton}"
-                            ToolTip="Quay lại danh sách xuất kho">
+                            ToolTip="Quay lại danh sách di chuyển">
                             <StackPanel Orientation="Horizontal">
                                 <materialDesign:PackIcon
                                     Width="24"
@@ -228,52 +225,16 @@
                             Margin="10,0,0,0"
                             FontSize="24"
                             FontWeight="Bold"
-                            Text="Chi tiết phiếu xuất" />
+                            Text="Chi tiết phiếu di chuyển" />
                         <TextBlock
                             Margin="10,0,0,0"
                             FontSize="24"
                             FontWeight="Bold"
-                            Text="{Binding StockOutRequestDTO.StockOutCode}" />
+                            Text="{Binding MovementRequestDTO.MovementCode}" />
                     </StackPanel>
                     <Button
-                        x:Name="ReservationButton"
-                        Grid.Column="2"
-                        Margin="0,0,20,0"
-                        materialDesign:ButtonAssist.CornerRadius="8"
-                        Background="AliceBlue"
-                        Command="{Binding CreateReservationCommand}"
-                        Style="{StaticResource MaterialDesignFlatButton}"
-                        ToolTip="Tạo đặt chỗ">
-                        <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon
-                                Width="24"
-                                Height="24"
-                                Margin="0,0,10,0"
-                                Kind="BookmarkAdd" />
-                            <TextBlock VerticalAlignment="Center" Text="Đặt chỗ" />
-                        </StackPanel>
-                    </Button>
-                    <Button
-                        x:Name="PicklistButton"
-                        Grid.Column="3"
-                        Margin="0,0,20,0"
-                        materialDesign:ButtonAssist.CornerRadius="8"
-                        Background="AliceBlue"
-                        Command="{Binding CreatePicklistCommand}"
-                        Style="{StaticResource MaterialDesignFlatButton}"
-                        ToolTip="Tạo picklist">
-                        <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon
-                                Width="24"
-                                Height="24"
-                                Margin="0,0,10,0"
-                                Kind="ClipboardList" />
-                            <TextBlock VerticalAlignment="Center" Text="Tạo Picklist" />
-                        </StackPanel>
-                    </Button>
-                    <Button
                         x:Name="SaveButton"
-                        Grid.Column="4"
+                        Grid.Column="2"
                         Margin="0,0,20,0"
                         materialDesign:ButtonAssist.CornerRadius="8"
                         Background="AliceBlue"
@@ -291,10 +252,10 @@
                     </Button>
                     <Button
                         x:Name="ConfirmButton"
-                        Grid.Column="5"
+                        Grid.Column="3"
                         materialDesign:ButtonAssist.CornerRadius="8"
                         Background="AliceBlue"
-                        Command="{Binding ConfirmQuantityCommand}"
+                        Command="{Binding ConfirmCommand}"
                         Style="{StaticResource MaterialDesignFlatButton}"
                         ToolTip="Xác nhận hoàn thành">
                         <StackPanel Orientation="Horizontal">
@@ -308,13 +269,14 @@
                     </Button>
                 </Grid>
 
-                <!--  General Information  -->
+                <!-- General Information -->
                 <Grid Grid.Row="1" Margin="0,0,0,24">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
@@ -327,13 +289,13 @@
                         <TextBlock
                             Width="120"
                             VerticalAlignment="Center"
-                            Text="Mã xuất kho" />
+                            Text="Mã di chuyển" />
                         <TextBox
-                            x:Name="StockOutCodeTextBox"
+                            x:Name="MovementCodeTextBox"
                             Width="200"
                             Margin="8,0,0,0"
                             Padding="12,8"
-                            materialDesign:HintAssist.Hint="Nhập mã xuất kho"
+                            materialDesign:HintAssist.Hint="Nhập mã di chuyển"
                             materialDesign:HintAssist.IsFloating="True"
                             materialDesign:TextFieldAssist.HasLeadingIcon="True"
                             materialDesign:TextFieldAssist.LeadingIcon="CodeTags"
@@ -341,7 +303,7 @@
                             IsEnabled="{Binding IsAddingNew}">
                             <TextBox.Text>
                                 <Binding
-                                    Path="StockOutRequestDTO.StockOutCode"
+                                    Path="MovementRequestDTO.MovementCode"
                                     UpdateSourceTrigger="PropertyChanged"
                                     ValidatesOnDataErrors="True"
                                     ValidatesOnNotifyDataErrors="True" />
@@ -367,7 +329,7 @@
                             DisplayMemberPath="OrderTypeName"
                             FontSize="14"
                             ItemsSource="{Binding LstOrderTypes}"
-                            SelectedValue="{Binding StockOutRequestDTO.OrderTypeCode, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True}"
+                            SelectedValue="{Binding MovementRequestDTO.OrderTypeCode, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True}"
                             SelectedValuePath="OrderTypeCode" />
                     </StackPanel>
                     <StackPanel
@@ -389,8 +351,30 @@
                             DisplayMemberPath="WarehouseName"
                             FontSize="14"
                             ItemsSource="{Binding LstWarehouses}"
-                            SelectedValue="{Binding StockOutRequestDTO.WarehouseCode, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True}"
+                            SelectedValue="{Binding MovementRequestDTO.WarehouseCode, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True}"
                             SelectedValuePath="WarehouseCode" />
+                    </StackPanel>
+                    <StackPanel
+                        Grid.Row="3"
+                        Grid.Column="0"
+                        Margin="0,10,0,16"
+                        Orientation="Horizontal">
+                        <TextBlock
+                            Width="120"
+                            VerticalAlignment="Center"
+                            Text="Vị trí nguồn" />
+                        <ComboBox
+                            x:Name="FromLocationComboBox"
+                            Width="200"
+                            Margin="8,0,0,0"
+                            Padding="12,8"
+                            materialDesign:HintAssist.Hint="Chọn vị trí nguồn"
+                            materialDesign:HintAssist.IsFloating="True"
+                            DisplayMemberPath="LocationName"
+                            FontSize="14"
+                            ItemsSource="{Binding LstFromLocations}"
+                            SelectedValue="{Binding MovementRequestDTO.FromLocation, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True}"
+                            SelectedValuePath="LocationCode" />
                     </StackPanel>
                     <StackPanel
                         Grid.Row="0"
@@ -400,19 +384,19 @@
                         <TextBlock
                             Width="120"
                             VerticalAlignment="Center"
-                            Text="Khách hàng" />
+                            Text="Vị trí đích" />
                         <ComboBox
-                            x:Name="CustomerComboBox"
+                            x:Name="ToLocationComboBox"
                             Width="200"
                             Margin="8,0,0,0"
                             Padding="12,8"
-                            materialDesign:HintAssist.Hint="Chọn khách hàng"
+                            materialDesign:HintAssist.Hint="Chọn vị trí đích"
                             materialDesign:HintAssist.IsFloating="True"
-                            DisplayMemberPath="CustomerName"
+                            DisplayMemberPath="LocationName"
                             FontSize="14"
-                            ItemsSource="{Binding LstCustomers}"
-                            SelectedValue="{Binding StockOutRequestDTO.CustomerCode, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True}"
-                            SelectedValuePath="CustomerCode" />
+                            ItemsSource="{Binding LstToLocations}"
+                            SelectedValue="{Binding MovementRequestDTO.ToLocation, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True}"
+                            SelectedValuePath="LocationCode" />
                     </StackPanel>
                     <StackPanel
                         Grid.Row="1"
@@ -433,7 +417,7 @@
                             DisplayMemberPath="FullName"
                             FontSize="14"
                             ItemsSource="{Binding LstResponsiblePersons}"
-                            SelectedValue="{Binding StockOutRequestDTO.Responsible, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True}"
+                            SelectedValue="{Binding MovementRequestDTO.Responsible, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True}"
                             SelectedValuePath="UserName" />
                     </StackPanel>
                     <StackPanel
@@ -444,27 +428,46 @@
                         <TextBlock
                             Width="120"
                             VerticalAlignment="Center"
-                            Text="Hạn xuất hàng" />
+                            Text="Ngày di chuyển" />
                         <DatePicker
-                            x:Name="OrderDeadlineDatePicker"
+                            x:Name="MovementDatePicker"
                             Width="200"
                             Margin="8,0,0,0"
                             Padding="12,8"
-                            materialDesign:HintAssist.Hint="Chọn hạn xuất hàng"
+                            materialDesign:HintAssist.Hint="Chọn ngày di chuyển"
                             materialDesign:HintAssist.IsFloating="True"
                             FontSize="14"
-                            SelectedDate="{Binding StockOutRequestDTO.StockOutDate, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True, Converter={StaticResource StringToDateTimeConverter}}" />
+                            SelectedDate="{Binding MovementRequestDTO.MovementDate, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True, Converter={StaticResource StringToDateTimeConverter}}" />
+                    </StackPanel>
+                    <StackPanel
+                        Grid.Row="3"
+                        Grid.Column="1"
+                        Margin="0,10,0,16"
+                        Orientation="Horizontal">
+                        <TextBlock
+                            Width="120"
+                            VerticalAlignment="Center"
+                            Text="Mô tả" />
+                        <TextBox
+                            x:Name="MovementDescriptionTextBox"
+                            Width="200"
+                            Margin="8,0,0,0"
+                            Padding="12,8"
+                            materialDesign:HintAssist.Hint="Nhập mô tả"
+                            materialDesign:HintAssist.IsFloating="True"
+                            FontSize="14"
+                            Text="{Binding MovementRequestDTO.MovementDescription, UpdateSourceTrigger=PropertyChanged}" />
                     </StackPanel>
                 </Grid>
 
-                <!--  StockOut Details Section with TabControl  -->
+                <!-- Movement Details Section with TabControl -->
                 <TabControl
                     Grid.Row="2"
                     Margin="0,0,0,-1"
                     Panel.ZIndex="0"
                     Background="Transparent"
                     ItemContainerStyle="{StaticResource CustomTabItemStyle}">
-                    <TabItem Header="Chi tiết xuất kho">
+                    <TabItem Header="Chi tiết di chuyển">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
@@ -472,14 +475,14 @@
                                 <RowDefinition Height="*" />
                             </Grid.RowDefinitions>
                             <DataGrid
-                                x:Name="StockOutDetailDataGrid"
+                                x:Name="MovementDetailDataGrid"
                                 Grid.Row="0"
                                 Margin="0,8,0,16"
                                 AutoGenerateColumns="False"
                                 CanUserAddRows="False"
                                 CanUserDeleteRows="True"
                                 IsReadOnly="False"
-                                ItemsSource="{Binding LstStockOutDetails, UpdateSourceTrigger=PropertyChanged}"
+                                ItemsSource="{Binding LstMovementDetails, UpdateSourceTrigger=PropertyChanged}"
                                 Style="{StaticResource ModernDataGridStyle}">
                                 <DataGrid.Columns>
                                     <DataGridTemplateColumn Width="2*" Header="Sản phẩm">
@@ -497,10 +500,6 @@
                                         Width="*"
                                         Binding="{Binding Demand}"
                                         Header="Số lượng yêu cầu" />
-                                    <DataGridTextColumn
-                                        Width="*"
-                                        Binding="{Binding Quantity}"
-                                        Header="Số lượng thực xuất" />
                                     <DataGridTemplateColumn Width="80" IsReadOnly="True">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
@@ -529,7 +528,7 @@
                                 Command="{Binding AddDetailLineCommand}"
                                 Content="Thêm dòng"
                                 Style="{StaticResource MaterialDesignFlatButton}"
-                                ToolTip="Thêm chi tiết xuất kho mới" />
+                                ToolTip="Thêm chi tiết di chuyển mới" />
                             <StackPanel
                                 Grid.Row="2"
                                 Margin="0,10,0,0"
@@ -564,57 +563,18 @@
                                     Style="{StaticResource MaterialDesignIconButton}"
                                     ToolTip="Trang sau">
                                     <materialDesign:PackIcon
-                                        Width="20"
-                                        Height="20"
-                                        Kind="ArrowRight" />
+                                            Width="20"
+                                            Height="20"
+                                            Kind="ArrowRight" />
                                 </Button>
                             </StackPanel>
                         </Grid>
                     </TabItem>
-                    <TabItem Header="Đặt chỗ">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="*" />
-                            </Grid.RowDefinitions>
-                            <DataGrid
-                                x:Name="ReservationDataGrid"
-                                Grid.Row="0"
-                                Margin="0,8,0,16"
-                                AutoGenerateColumns="False"
-                                CanUserAddRows="False"
-                                IsReadOnly="True"
-                                ItemsSource="{Binding LstReservations, UpdateSourceTrigger=PropertyChanged}"
-                                Style="{StaticResource ModernDataGridStyle}">
-                                <DataGrid.Columns>
-                                    <DataGridTextColumn
-                                        Width="2*"
-                                        Binding="{Binding ReservationCode}"
-                                        Header="Mã đặt chỗ" />
-                                    <DataGridTextColumn
-                                        Width="*"
-                                        Binding="{Binding WarehouseCode}"
-                                        Header="Mã kho" />
-                                    <DataGridTextColumn
-                                        Width="*"
-                                        Binding="{Binding OrderTypeCode}"
-                                        Header="Mã loại lệnh" />
-                                    <DataGridTextColumn
-                                        Width="*"
-                                        Binding="{Binding StatusId}"
-                                        Header="Trạng thái" />
-                                    <DataGridTextColumn
-                                        Width="1.5*"
-                                        Binding="{Binding ReservationDate}"
-                                        Header="Ngày đặt chỗ" />
-                                </DataGrid.Columns>
-                            </DataGrid>
-                        </Grid>
-                    </TabItem>
                 </TabControl>
 
-                <!--  Snackbar  -->
+                <!-- Snackbar -->
                 <materialDesign:Snackbar
-                    x:Name="StockOutDetailSnackbar"
+                    x:Name="MovementDetailSnackbar"
                     Grid.Row="3"
                     Width="Auto"
                     Margin="16"

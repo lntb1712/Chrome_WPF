@@ -10,12 +10,20 @@ using Chrome_WPF.Services.InventoryService;
 using Chrome_WPF.Services.LocationMasterService;
 using Chrome_WPF.Services.LoginServices;
 using Chrome_WPF.Services.MessengerService;
+using Chrome_WPF.Services.MovementDetailService;
+using Chrome_WPF.Services.MovementService;
 using Chrome_WPF.Services.NavigationService;
 using Chrome_WPF.Services.NotificationService;
+using Chrome_WPF.Services.PickListDetailService;
+using Chrome_WPF.Services.PickListService;
 using Chrome_WPF.Services.ProductCustomerService;
 using Chrome_WPF.Services.ProductMasterService;
 using Chrome_WPF.Services.ProductSupplierService;
+using Chrome_WPF.Services.PutAwayDetailService;
 using Chrome_WPF.Services.PutAwayRulesService;
+using Chrome_WPF.Services.PutAwayService;
+using Chrome_WPF.Services.ReservationDetailService;
+using Chrome_WPF.Services.ReservationService;
 using Chrome_WPF.Services.StockInDetailService;
 using Chrome_WPF.Services.StockInService;
 using Chrome_WPF.Services.StockOutDetailService;
@@ -28,7 +36,11 @@ using Chrome_WPF.ViewModels.BOMMasterViewModel;
 using Chrome_WPF.ViewModels.CustomerMasterViewModel;
 using Chrome_WPF.ViewModels.GroupManagementViewModel;
 using Chrome_WPF.ViewModels.InventoryViewModel;
+using Chrome_WPF.ViewModels.MovementViewModel;
+using Chrome_WPF.ViewModels.PickListViewModel;
 using Chrome_WPF.ViewModels.ProductMasterViewModel;
+using Chrome_WPF.ViewModels.PutAwayViewModel;
+using Chrome_WPF.ViewModels.ReservationViewModel;
 using Chrome_WPF.ViewModels.StockInViewModel;
 using Chrome_WPF.ViewModels.StockOutViewModel;
 using Chrome_WPF.ViewModels.SupplierMasterViewModel;
@@ -40,7 +52,11 @@ using Chrome_WPF.Views.UserControls.BOMMaster;
 using Chrome_WPF.Views.UserControls.CustomerMaster;
 using Chrome_WPF.Views.UserControls.GroupManagement;
 using Chrome_WPF.Views.UserControls.Inventory;
+using Chrome_WPF.Views.UserControls.Movement;
+using Chrome_WPF.Views.UserControls.PickList;
 using Chrome_WPF.Views.UserControls.ProductMaster;
+using Chrome_WPF.Views.UserControls.PutAway;
+using Chrome_WPF.Views.UserControls.Reservation;
 using Chrome_WPF.Views.UserControls.StockIn;
 using Chrome_WPF.Views.UserControls.StockOut;
 using Chrome_WPF.Views.UserControls.SupplierMaster;
@@ -108,6 +124,14 @@ namespace Chrome_WPF
             services.AddSingleton<IStockInDetailService, StockInDetailService>();
             services.AddSingleton<IStockOutService, StockOutService>();
             services.AddSingleton<IStockOutDetailService, StockOutDetailService>();
+            services.AddSingleton<IReservationService, ReservationService>();
+            services.AddSingleton<IReservationDetailService,ReservationDetailService>();
+            services.AddSingleton<IPickListService, PickListService>();
+            services.AddSingleton<IPickListDetailService, PickListDetailService>();
+            services.AddSingleton<IPutAwayService, PutAwayService>();
+            services.AddSingleton<IPutAwayDetailService, PutAwayDetailService>();
+            services.AddSingleton<IMovementService, MovementService>();
+            services.AddSingleton<IMovementDetailService, MovementDetailService>();
 
             // Register IServiceProvider
             services.AddSingleton(sp => sp);
@@ -148,6 +172,14 @@ namespace Chrome_WPF
             services.AddTransient<StockOutViewModel>();
             services.AddTransient<StockOutDetailViewModel>();
             services.AddTransient<ViewModels.StockOutViewModel.BackOrderDialogViewModel>();
+            services.AddTransient<ReservationViewModel>();
+            services.AddTransient<ReservationDetailViewModel>();
+            services.AddTransient<PickListViewModel>();
+            services.AddTransient<PickListDetailViewModel>();
+            services.AddTransient<PutAwayViewModel>();
+            services.AddTransient<PutAwayDetailViewModel>();
+            services.AddTransient<MovementViewModel>();
+            services.AddTransient<MovementDetailViewModel>();
 
             // Register Views
             services.AddTransient<LoginWindow>(provider =>
@@ -282,6 +314,49 @@ namespace Chrome_WPF
             services.AddTransient<Views.UserControls.StockOut.BackOrderDialog>(provider =>
                 new Views.UserControls.StockOut.BackOrderDialog(
                     provider.GetRequiredService<ViewModels.StockOutViewModel.BackOrderDialogViewModel>()));
+
+            services.AddTransient<ucReservation>(provider =>
+                new ucReservation(
+                    provider.GetRequiredService<ReservationViewModel>(),
+                    provider.GetRequiredService<INotificationService>()));
+
+            services.AddTransient<ucReservationDetail>(provider =>
+                new ucReservationDetail(
+                    provider.GetRequiredService<ReservationDetailViewModel>(),
+                    provider.GetRequiredService<INotificationService>()));
+
+            services.AddTransient<ucPickList>(provider =>
+                new ucPickList(
+                    provider.GetRequiredService<PickListViewModel>(),
+                    provider.GetRequiredService<INotificationService>()));
+
+            services.AddTransient<ucPickListDetail>(provider =>
+                new ucPickListDetail(
+                    provider.GetRequiredService<PickListDetailViewModel>(),
+                    provider.GetRequiredService<INotificationService>()));
+
+            services.AddTransient<ucPutAway>(provider =>
+                new ucPutAway(
+                    provider.GetRequiredService<PutAwayViewModel>(),
+                    provider.GetRequiredService<INotificationService>()));
+
+            services.AddTransient<ucPutAwayDetail>(provider =>
+                 new ucPutAwayDetail(
+                     provider.GetRequiredService<PutAwayDetailViewModel>(),
+                     provider.GetRequiredService<INotificationService>()));
+
+            services.AddTransient<ucMovement>(provider =>
+                 new ucMovement(
+                     provider.GetRequiredService<MovementViewModel>(),
+                     provider.GetRequiredService<INotificationService>()));
+
+            services.AddTransient<ucMovementDetail>(provider =>
+                 new ucMovementDetail(
+                     provider.GetRequiredService<MovementDetailViewModel>(),
+                     provider.GetRequiredService<INotificationService>()));
+
+
+
         }
 
 

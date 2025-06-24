@@ -1,16 +1,14 @@
 ﻿using Chrome_WPF.Helpers;
 using Chrome_WPF.Models.APIResult;
+using Chrome_WPF.Models.MovementDTO;
 using Chrome_WPF.Models.PagedResponse;
 using Chrome_WPF.Models.StatusMasterDTO;
-using Chrome_WPF.Models.StockOutDTO;
 using Chrome_WPF.Services.MessengerService;
+using Chrome_WPF.Services.MovementDetailService;
+using Chrome_WPF.Services.MovementService;
 using Chrome_WPF.Services.NavigationService;
 using Chrome_WPF.Services.NotificationService;
-using Chrome_WPF.Services.PickListService;
-using Chrome_WPF.Services.ReservationService;
-using Chrome_WPF.Services.StockOutDetailService;
-using Chrome_WPF.Services.StockOutService;
-using Chrome_WPF.Views.UserControls.StockOut;
+using Chrome_WPF.Views.UserControls.Movement;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.ObjectModel;
@@ -19,16 +17,16 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 
-namespace Chrome_WPF.ViewModels.StockOutViewModel
+namespace Chrome_WPF.ViewModels.MovementViewModel
 {
-    public class StockOutViewModel : BaseViewModel
+    public class MovementViewModel : BaseViewModel
     {
-        private readonly IStockOutService _stockOutService;
+        private readonly IMovementService _movementService;
         private readonly INotificationService _notificationService;
         private readonly INavigationService _navigationService;
         private readonly IMessengerService _messengerService;
 
-        private ObservableCollection<StockOutResponseDTO> _stockOutList;
+        private ObservableCollection<MovementResponseDTO> _movementList;
         private ObservableCollection<object> _displayPages;
         private ObservableCollection<StatusMasterResponseDTO> _statuses;
         private string _searchText;
@@ -41,12 +39,12 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
         private int _lastStatusIndex;
         private string _applicableLocation;
 
-        public ObservableCollection<StockOutResponseDTO> StockOutList
+        public ObservableCollection<MovementResponseDTO> MovementList
         {
-            get => _stockOutList;
+            get => _movementList;
             set
             {
-                _stockOutList = value;
+                _movementList = value;
                 OnPropertyChanged();
             }
         }
@@ -81,7 +79,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                     _searchText = value;
                     OnPropertyChanged();
                     CurrentPage = 1;
-                    _ = LoadStockOutsAsync();
+                    _ = LoadMovementsAsync();
                 }
             }
         }
@@ -96,7 +94,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                     _selectedStatusIndex = value;
                     OnPropertyChanged();
                     CurrentPage = 1;
-                    _ = LoadStockOutsAsync();
+                    _ = LoadMovementsAsync();
                 }
             }
         }
@@ -111,7 +109,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                     _currentPage = value;
                     OnPropertyChanged();
                     UpdateDisplayPages();
-                    _ = LoadStockOutsAsync();
+                    _ = LoadMovementsAsync();
                 }
             }
         }
@@ -126,7 +124,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                     _pageSize = value;
                     OnPropertyChanged();
                     CurrentPage = 1;
-                    _ = LoadStockOutsAsync();
+                    _ = LoadMovementsAsync();
                 }
             }
         }
@@ -161,18 +159,18 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
         public ICommand SelectPageCommand { get; }
         public ICommand ViewDetailCommand { get; }
 
-        public StockOutViewModel(
-            IStockOutService stockOutService,
+        public MovementViewModel(
+            IMovementService movementService,
             INotificationService notificationService,
             INavigationService navigationService,
             IMessengerService messengerService)
         {
-            _stockOutService = stockOutService ?? throw new ArgumentNullException(nameof(stockOutService));
+            _movementService = movementService ?? throw new ArgumentNullException(nameof(movementService));
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
             _messengerService = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
 
-            _stockOutList = new ObservableCollection<StockOutResponseDTO>();
+            _movementList = new ObservableCollection<MovementResponseDTO>();
             _displayPages = new ObservableCollection<object>();
             _statuses = new ObservableCollection<StatusMasterResponseDTO>();
             _searchText = string.Empty;
@@ -182,16 +180,16 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             _lastSearchText = string.Empty;
             _lastStatusIndex = 0;
 
-            SearchCommand = new RelayCommand(async _ => await SearchStockOutsAsync());
-            RefreshCommand = new RelayCommand(async _ => await LoadStockOutsAsync(true));
-            AddCommand = new RelayCommand(_ => OpenEditor(null!));
-            DeleteCommand = new RelayCommand(async stockOut => await DeleteStockOutAsync((StockOutResponseDTO)stockOut));
+            SearchCommand = new RelayCommand(async _ => await SearchMovementsAsync());
+            RefreshCommand = new RelayCommand(async _ => await LoadMovementsAsync(true));
+            AddCommand = new RelayCommand(_ => OpenEditor(null));
+            DeleteCommand = new RelayCommand(async movement => await DeleteMovementAsync((MovementResponseDTO)movement));
             PreviousPageCommand = new RelayCommand(_ => PreviousPage());
             NextPageCommand = new RelayCommand(_ => NextPage());
             SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
-            ViewDetailCommand = new RelayCommand(stockOut => OpenEditor((StockOutResponseDTO)stockOut));
+            ViewDetailCommand = new RelayCommand(movement => OpenEditor((MovementResponseDTO)movement));
 
-            _ = messengerService.RegisterMessageAsync("ReloadStockOutList", async _ => await LoadStockOutsAsync(true));
+            _ = messengerService.RegisterMessageAsync("ReloadMovementList", async _ => await LoadMovementsAsync(true));
             List<string> warehousePermissions = new List<string>();
             var savedPermissions = Properties.Settings.Default.WarehousePermission;
             if (savedPermissions != null)
@@ -211,7 +209,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                 {
                     _notificationService.ShowMessage("Không tải được trạng thái. Lọc theo trạng thái sẽ bị vô hiệu hóa.", "OK", isError: true);
                 }
-                await LoadStockOutsAsync();
+                await LoadMovementsAsync();
             }
             catch (Exception ex)
             {
@@ -223,7 +221,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
         {
             try
             {
-                var result = await _stockOutService.GetListStatusMaster();
+                var result = await _movementService.GetListStatusMaster();
                 if (result.Success && result.Data != null)
                 {
                     Statuses.Clear();
@@ -245,7 +243,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             }
         }
 
-        private async Task LoadStockOutsAsync(bool forceRefresh = false)
+        private async Task LoadMovementsAsync(bool forceRefresh = false)
         {
             try
             {
@@ -254,22 +252,23 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                     return;
                 }
 
-                ApiResult<PagedResponse<StockOutResponseDTO>> result;
+                var warehouseCodes = ApplicableLocation.Split(',').Select(Uri.UnescapeDataString).ToArray();
+                ApiResult<PagedResponse<MovementResponseDTO>> result;
                 if (SelectedStatusIndex > 0 && Statuses[SelectedStatusIndex].StatusId != 0)
                 {
-                    result = await _stockOutService.GetAllStockOutsWithStatus(Statuses[SelectedStatusIndex].StatusId, CurrentPage, PageSize);
+                    result = await _movementService.GetAllMovementsWithStatus(warehouseCodes, Statuses[SelectedStatusIndex].StatusId, CurrentPage, PageSize);
                 }
                 else
                 {
-                    result = await _stockOutService.GetAllStockOuts(CurrentPage, PageSize);
+                    result = await _movementService.GetAllMovements(warehouseCodes, CurrentPage, PageSize);
                 }
 
                 if (result.Success && result.Data != null)
                 {
-                    StockOutList.Clear();
-                    foreach (var stockOut in result.Data.Data ?? Enumerable.Empty<StockOutResponseDTO>())
+                    MovementList.Clear();
+                    foreach (var movement in result.Data.Data ?? Enumerable.Empty<MovementResponseDTO>())
                     {
-                        StockOutList.Add(stockOut);
+                        MovementList.Add(movement);
                     }
                     TotalPages = result.Data.TotalPages;
                     _lastLoadedPage = CurrentPage;
@@ -278,32 +277,33 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                 }
                 else
                 {
-                    _notificationService.ShowMessage(result.Message ?? "Không thể tải danh sách phiếu xuất kho.", "OK", isError: true);
+                    _notificationService.ShowMessage(result.Message ?? "Không thể tải danh sách phiếu di chuyển.", "OK", isError: true);
                 }
             }
             catch (Exception ex)
             {
-                _notificationService.ShowMessage($"Lỗi khi tải phiếu xuất kho: {ex.Message}", "OK", isError: true);
+                _notificationService.ShowMessage($"Lỗi khi tải phiếu di chuyển: {ex.Message}", "OK", isError: true);
             }
         }
 
-        private async Task SearchStockOutsAsync()
+        private async Task SearchMovementsAsync()
         {
             try
             {
                 if (string.IsNullOrWhiteSpace(SearchText))
                 {
-                    await LoadStockOutsAsync();
+                    await LoadMovementsAsync();
                     return;
                 }
 
-                var result = await _stockOutService.SearchStockOutAsync(SearchText, CurrentPage, PageSize);
+                var warehouseCodes = ApplicableLocation.Split(',').Select(Uri.UnescapeDataString).ToArray();
+                var result = await _movementService.SearchMovementAsync(warehouseCodes, SearchText, CurrentPage, PageSize);
                 if (result.Success && result.Data != null)
                 {
-                    StockOutList.Clear();
-                    foreach (var stockOut in result.Data.Data ?? Enumerable.Empty<StockOutResponseDTO>())
+                    MovementList.Clear();
+                    foreach (var movement in result.Data.Data ?? Enumerable.Empty<MovementResponseDTO>())
                     {
-                        StockOutList.Add(stockOut);
+                        MovementList.Add(movement);
                     }
                     TotalPages = result.Data.TotalPages;
                     _lastLoadedPage = CurrentPage;
@@ -312,58 +312,56 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                 }
                 else
                 {
-                    _notificationService.ShowMessage(result.Message ?? "Không thể tìm kiếm phiếu xuất kho.", "OK", isError: true);
+                    _notificationService.ShowMessage(result.Message ?? "Không thể tìm kiếm phiếu di chuyển.", "OK", isError: true);
                 }
             }
             catch (Exception ex)
             {
-                _notificationService.ShowMessage($"Lỗi khi tìm kiếm phiếu xuất kho: {ex.Message}", "OK", isError: true);
+                _notificationService.ShowMessage($"Lỗi khi tìm kiếm phiếu di chuyển: {ex.Message}", "OK", isError: true);
             }
         }
 
-        private async Task DeleteStockOutAsync(StockOutResponseDTO stockOut)
+        private async Task DeleteMovementAsync(MovementResponseDTO movement)
         {
-            if (stockOut == null) return;
+            if (movement == null) return;
 
-            var result = MessageBox.Show($"Bạn có chắc muốn xóa phiếu xuất kho {stockOut.StockOutCode}?", "Xác nhận xóa", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            var result = MessageBox.Show($"Bạn có chắc muốn xóa phiếu di chuyển {movement.MovementCode}?", "Xác nhận xóa", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (result == MessageBoxResult.Yes)
             {
                 try
                 {
-                    var deleteResult = await _stockOutService.DeleteStockOutAsync(stockOut.StockOutCode);
+                    var deleteResult = await _movementService.DeleteMovementAsync(movement.MovementCode);
                     if (deleteResult.Success)
                     {
-                        await LoadStockOutsAsync(true);
-                        _notificationService.ShowMessage("Xóa phiếu xuất kho thành công.", "OK", isError: false);
-                        await _messengerService.SendMessageAsync("ReloadStockOutList");
+                        await LoadMovementsAsync(true);
+                        _notificationService.ShowMessage("Xóa phiếu di chuyển thành công.", "OK", isError: false);
+                        await _messengerService.SendMessageAsync("ReloadMovementList");
                     }
                     else
                     {
-                        _notificationService.ShowMessage(deleteResult.Message ?? "Không thể xóa phiếu xuất kho.", "OK", isError: true);
+                        _notificationService.ShowMessage(deleteResult.Message ?? "Không thể xóa phiếu di chuyển.", "OK", isError: true);
                     }
                 }
                 catch (Exception ex)
                 {
-                    _notificationService.ShowMessage($"Lỗi khi xóa phiếu xuất kho: {ex.Message}", "OK", isError: true);
+                    _notificationService.ShowMessage($"Lỗi khi xóa phiếu di chuyển: {ex.Message}", "OK", isError: true);
                 }
             }
         }
 
-        private void OpenEditor(StockOutResponseDTO stockOut)
+        private void OpenEditor(MovementResponseDTO movement)
         {
-            var stockOutDetail = App.ServiceProvider!.GetRequiredService<ucStockOutDetail>();
-            var viewModel = new StockOutDetailViewModel(
-                App.ServiceProvider!.GetRequiredService<IStockOutDetailService>(),
-                App.ServiceProvider!.GetRequiredService<IStockOutService>(),
-                App.ServiceProvider!.GetRequiredService<IReservationService>(),
-                App.ServiceProvider!.GetRequiredService<IPickListService>(),
+            var movementDetail = App.ServiceProvider!.GetRequiredService<ucMovementDetail>();
+            var viewModel = new MovementDetailViewModel(
+                App.ServiceProvider!.GetRequiredService<IMovementService>(),
+                App.ServiceProvider!.GetRequiredService<IMovementDetailService>(),
                 App.ServiceProvider!.GetRequiredService<INotificationService>(),
                 App.ServiceProvider!.GetRequiredService<INavigationService>(),
                 App.ServiceProvider!.GetRequiredService<IMessengerService>(),
-                stockOut);
+                movement);
 
-            stockOutDetail.DataContext = viewModel;
-            _navigationService.NavigateTo(stockOutDetail);
+            movementDetail.DataContext = viewModel;
+            _navigationService.NavigateTo(movementDetail);
         }
 
         private void PreviousPage()

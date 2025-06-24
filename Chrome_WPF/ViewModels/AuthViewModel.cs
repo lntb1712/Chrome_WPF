@@ -34,6 +34,7 @@ namespace Chrome_WPF.ViewModels
         private bool _canStockTake;
         private bool _canProductionOrder;
         private bool _canInventory;
+        private bool _canReservation;
         private string _currentDateTime;
         private readonly DispatcherTimer _timer;
 
@@ -92,6 +93,16 @@ namespace Chrome_WPF.ViewModels
             {
                 _canGroupManagement = value;
                 OnPropertyChanged(nameof(CanGroupManagement));
+            }
+        }
+
+        public bool CanReservation
+        {
+            get => _canReservation;
+            set
+            {
+                _canReservation = value;
+                OnPropertyChanged(nameof(CanReservation));
             }
         }
         public bool CanProductMaster
@@ -296,6 +307,7 @@ namespace Chrome_WPF.ViewModels
             CanStockTake = Permission.Contains("ucStockTake");
             CanProductionOrder = Permission.Contains("ucProductionOrder");
             CanInventory = Permission.Contains("ucInventory");
+            CanReservation = Permission.Contains("ucReservation");
         }
     }
 }

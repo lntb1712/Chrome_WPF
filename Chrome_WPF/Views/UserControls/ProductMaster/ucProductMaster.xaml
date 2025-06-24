@@ -382,7 +382,7 @@
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Border
-                                    Width="390"
+                                    Width="290"
                                     Margin="10"
                                     Padding="15"
                                     Background="White"

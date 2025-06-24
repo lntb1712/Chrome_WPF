@@ -375,6 +375,19 @@
                             <TextBlock Text="Tồn kho" />
                         </StackPanel>
                     </ListBoxItem>
+                    <ListBoxItem x:Name="ucReservation" Visibility="{Binding CanReservation, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <StackPanel
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            Orientation="Horizontal">
+                            <materialDesign:PackIcon
+                                Width="24"
+                                Height="24"
+                                Margin="10,0,10,0"
+                                Kind="BookMarker" />
+                            <TextBlock Text="Đặt chỗ" />
+                        </StackPanel>
+                    </ListBoxItem>
                     <ListBoxItem x:Name="ucStockIn" Visibility="{Binding CanStockIn, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <StackPanel
                             HorizontalAlignment="Left"

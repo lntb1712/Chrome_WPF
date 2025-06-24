@@ -15,6 +15,7 @@
     <UserControl.Resources>
         <converters:PageEqualityConverter x:Key="PageEqualityConverter" />
         <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <converters:BoolToStatusConverter x:Key="BoolToStatusConverter" />
 
         <!--  Location Templates  -->
         <DataTemplate x:Key="LocationStorageProductDisplayTemplate">
@@ -437,6 +438,10 @@
                                         Width="*"
                                         CellTemplateSelector="{StaticResource LocationStorageProductTemplateSelector}"
                                         Header="Sản phẩm lưu trữ" />
+                                    <DataGridTextColumn
+                                        Width="*"
+                                        Binding="{Binding IsEmpty, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BoolToStatusConverter}}"
+                                        Header="Còn trống/Hết chỗ" />
                                     <DataGridTemplateColumn Width="80" IsReadOnly="True">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>

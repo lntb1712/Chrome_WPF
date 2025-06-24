@@ -7,7 +7,11 @@ using Chrome_WPF.Views.UserControls.BOMMaster;
 using Chrome_WPF.Views.UserControls.CustomerMaster;
 using Chrome_WPF.Views.UserControls.GroupManagement;
 using Chrome_WPF.Views.UserControls.Inventory;
+using Chrome_WPF.Views.UserControls.Movement;
+using Chrome_WPF.Views.UserControls.PickList;
 using Chrome_WPF.Views.UserControls.ProductMaster;
+using Chrome_WPF.Views.UserControls.PutAway;
+using Chrome_WPF.Views.UserControls.Reservation;
 using Chrome_WPF.Views.UserControls.StockIn;
 using Chrome_WPF.Views.UserControls.StockOut;
 using Chrome_WPF.Views.UserControls.SupplierMaster;
@@ -222,6 +226,19 @@ namespace Chrome_WPF.Views
                     case "ucStockOut":
                         _navigationService.NavigateTo<ucStockOut>();
                         break;
+                    case "ucReservation":
+                        _navigationService.NavigateTo<ucReservation>();
+                        break;
+                    case "ucPickList":
+                        _navigationService.NavigateTo<ucPickList>();
+                        break;
+                    case "ucPutAway":
+                        _navigationService.NavigateTo<ucPutAway>();
+                        break;
+                    case "ucMovement":
+                        _navigationService.NavigateTo<ucMovement>();
+                        break;
+
                     default:
                         break;
                 }

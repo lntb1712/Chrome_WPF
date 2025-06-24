@@ -4,14 +4,18 @@ using Chrome_WPF.Models.APIResult;
 using Chrome_WPF.Models.CustomerMasterDTO;
 using Chrome_WPF.Models.OrderTypeDTO;
 using Chrome_WPF.Models.ProductMasterDTO;
+using Chrome_WPF.Models.ReservationDTO;
 using Chrome_WPF.Models.StockOutDetailDTO;
 using Chrome_WPF.Models.StockOutDTO;
 using Chrome_WPF.Models.WarehouseMasterDTO;
+using Chrome_WPF.Models.PickListDTO;
 using Chrome_WPF.Services.MessengerService;
 using Chrome_WPF.Services.NavigationService;
 using Chrome_WPF.Services.NotificationService;
+using Chrome_WPF.Services.ReservationService;
 using Chrome_WPF.Services.StockOutDetailService;
 using Chrome_WPF.Services.StockOutService;
+using Chrome_WPF.Services.PickListService;
 using Chrome_WPF.Views.UserControls.StockOut;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -28,6 +32,8 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
     {
         private readonly IStockOutDetailService _stockOutDetailService;
         private readonly IStockOutService _stockOutService;
+        private readonly IReservationService _reservationService;
+        private readonly IPickListService _pickListService;
         private readonly INotificationService _notificationService;
         private readonly INavigationService _navigationService;
         private readonly IMessengerService _messengerService;
@@ -38,6 +44,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
         private ObservableCollection<WarehouseMasterResponseDTO> _lstWarehouses;
         private ObservableCollection<CustomerMasterResponseDTO> _lstCustomers;
         private ObservableCollection<AccountManagementResponseDTO> _lstResponsiblePersons;
+        private ObservableCollection<ReservationResponseDTO> _lstReservations;
         private ObservableCollection<object> _displayPages;
         private StockOutRequestDTO _stockOutRequestDTO;
         private bool _isAddingNew;
@@ -46,6 +53,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
         private int _totalPages;
         private int _lastLoadedPage;
         private bool _isSaving;
+        private bool _hasPicklist; // New property to track picklist existence
 
         public ObservableCollection<StockOutDetailResponseDTO> LstStockOutDetails
         {
@@ -107,6 +115,16 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             }
         }
 
+        public ObservableCollection<ReservationResponseDTO> LstReservations
+        {
+            get => _lstReservations;
+            set
+            {
+                _lstReservations = value;
+                OnPropertyChanged();
+            }
+        }
+
         public ObservableCollection<object> DisplayPages
         {
             get => _displayPages;
@@ -124,15 +142,16 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             {
                 if (_stockOutRequestDTO != null)
                 {
-                    _stockOutRequestDTO.PropertyChanged -= OnPropertyChangedHandler;
+                    _stockOutRequestDTO.PropertyChanged -= OnPropertyChangedHandler!;
                 }
                 _stockOutRequestDTO = value;
                 if (_stockOutRequestDTO != null)
                 {
-                    _stockOutRequestDTO.PropertyChanged += OnPropertyChangedHandler;
+                    _stockOutRequestDTO.PropertyChanged += OnPropertyChangedHandler!;
                 }
                 OnPropertyChanged();
                 _ = LoadStockOutDetailsAsync();
+                _ = LoadReservationsAsync();
             }
         }
 
@@ -187,6 +206,18 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             }
         }
 
+        public bool HasPicklist
+        {
+            get => _hasPicklist;
+            set
+            {
+                _hasPicklist = value;
+                OnPropertyChanged();
+                ((RelayCommand)CreatePicklistCommand)?.RaiseCanExecuteChanged();
+                ((RelayCommand)ConfirmQuantityCommand)?.RaiseCanExecuteChanged();
+            }
+        }
+
         public ICommand SaveCommand { get; }
         public ICommand BackCommand { get; }
         public ICommand AddDetailLineCommand { get; }
@@ -195,10 +226,14 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
         public ICommand PreviousPageCommand { get; }
         public ICommand SelectPageCommand { get; }
         public ICommand ConfirmQuantityCommand { get; }
+        public ICommand CreateReservationCommand { get; }
+        public ICommand CreatePicklistCommand { get; }
 
         public StockOutDetailViewModel(
             IStockOutDetailService stockOutDetailService,
             IStockOutService stockOutService,
+            IReservationService reservationService,
+            IPickListService pickListService,
             INotificationService notificationService,
             INavigationService navigationService,
             IMessengerService messengerService,
@@ -206,6 +241,8 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
         {
             _stockOutDetailService = stockOutDetailService ?? throw new ArgumentNullException(nameof(stockOutDetailService));
             _stockOutService = stockOutService ?? throw new ArgumentNullException(nameof(stockOutService));
+            _reservationService = reservationService ?? throw new ArgumentNullException(nameof(reservationService));
+            _pickListService = pickListService ?? throw new ArgumentNullException(nameof(pickListService));
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
             _messengerService = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
@@ -216,11 +253,13 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             _lstWarehouses = new ObservableCollection<WarehouseMasterResponseDTO>();
             _lstCustomers = new ObservableCollection<CustomerMasterResponseDTO>();
             _lstResponsiblePersons = new ObservableCollection<AccountManagementResponseDTO>();
+            _lstReservations = new ObservableCollection<ReservationResponseDTO>();
             _displayPages = new ObservableCollection<object>();
             _isAddingNew = stockOut == null;
             _currentPage = 1;
             _lastLoadedPage = 0;
             _isSaving = false;
+            _hasPicklist = false;
             _stockOutRequestDTO = stockOut == null ? new StockOutRequestDTO() : new StockOutRequestDTO
             {
                 StockOutCode = stockOut.StockOutCode,
@@ -238,7 +277,9 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             PreviousPageCommand = new RelayCommand(_ => PreviousPage());
             NextPageCommand = new RelayCommand(_ => NextPage());
             SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
-            ConfirmQuantityCommand = new RelayCommand(async _ => await CheckQuantityAsync());
+            ConfirmQuantityCommand = new RelayCommand(async _ => await CheckQuantityAsync(), CanConfirmQuantity);
+            CreateReservationCommand = new RelayCommand(async _ => await CreateReservationAsync(), CanCreateReservation);
+            CreatePicklistCommand = new RelayCommand(async _ => await CreatePicklistAsync(), CanCreatePicklist);
 
             _stockOutRequestDTO.PropertyChanged += OnPropertyChangedHandler!;
             _ = InitializeAsync();
@@ -261,7 +302,8 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                     LoadOrderTypesAsync(),
                     LoadWarehousesAsync(),
                     LoadCustomersAsync(),
-                    LoadResponsiblePersonsAsync());
+                    LoadResponsiblePersonsAsync(),
+                    LoadReservationsAsync());
 
                 if (!IsAddingNew)
                 {
@@ -275,6 +317,171 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             }
         }
 
+        private async Task LoadReservationsAsync()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(StockOutRequestDTO.StockOutCode))
+                {
+                    LstReservations.Clear();
+                    HasPicklist = false;
+                    return;
+                }
+
+                var reservationResult = await _reservationService.GetReservationsByStockOutCodeAsync(StockOutRequestDTO.StockOutCode);
+                if (reservationResult.Success && reservationResult.Data != null)
+                {
+                    LstReservations.Clear();
+                    LstReservations.Add(reservationResult.Data);
+                    // Check for picklist existence
+                    await CheckPicklistExistenceAsync();
+                }
+                else
+                {
+                    LstReservations.Clear();
+                    HasPicklist = false;
+                    _notificationService.ShowMessage(reservationResult.Message ?? "Không thể tải danh sách đặt chỗ.", "OK", isError: true);
+                }
+                ((RelayCommand)CreateReservationCommand)?.RaiseCanExecuteChanged();
+                ((RelayCommand)CreatePicklistCommand)?.RaiseCanExecuteChanged();
+                ((RelayCommand)ConfirmQuantityCommand)?.RaiseCanExecuteChanged();
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi tải danh sách đặt chỗ: {ex.Message}", "OK", isError: true);
+            }
+        }
+
+        private async Task CheckPicklistExistenceAsync()
+        {
+            try
+            {
+                var picklistResult = await _pickListService.GetPickListByStockOutCodeAsync(StockOutRequestDTO.StockOutCode);
+                HasPicklist = picklistResult.Success && picklistResult.Data != null;
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi kiểm tra picklist: {ex.Message}", "OK", isError: true);
+                HasPicklist = false;
+            }
+        }
+
+        private async Task CreatePicklistAsync()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(StockOutRequestDTO.StockOutCode))
+                {
+                    _notificationService.ShowMessage("Vui lòng nhập mã phiếu xuất kho trước khi tạo picklist.", "OK", isError: true);
+                    return;
+                }
+
+                if (!LstReservations.Any())
+                {
+                    _notificationService.ShowMessage("Không có đặt chỗ nào để tạo picklist.", "OK", isError: true);
+                    return;
+                }
+
+                // Lưu phiếu xuất kho trước khi tạo picklist
+                await SaveStockOutAsync();
+                if (!string.IsNullOrEmpty(StockOutRequestDTO.Error))
+                {
+                    return;
+                }
+
+                var reservation = LstReservations.First();
+                var picklist = new PickListRequestDTO
+                {
+                    PickNo = $"PICK_{StockOutRequestDTO.StockOutCode}",
+                    PickDate = DateTime.Now.ToString("dd/MM/yyyy"),
+                    ReservationCode = reservation.ReservationCode,
+                    StatusId = 1,
+                    WarehouseCode = reservation.WarehouseCode,
+                };
+
+                var result = await _pickListService.AddPickList(picklist);
+                if (result.Success)
+                {
+                    _notificationService.ShowMessage($"Tạo picklist {picklist.PickNo} thành công!", "OK", isError: false);
+                    HasPicklist = true;
+                    await _messengerService.SendMessageAsync("ReloadPicklistList");
+                    ((RelayCommand)CreatePicklistCommand)?.RaiseCanExecuteChanged();
+                    ((RelayCommand)ConfirmQuantityCommand)?.RaiseCanExecuteChanged();
+                }
+                else
+                {
+                    _notificationService.ShowMessage(result.Message ?? "Không thể tạo picklist.", "OK", isError: true);
+                }
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi tạo picklist: {ex.Message}", "OK", isError: true);
+            }
+        }
+
+        private bool CanCreatePicklist(object parameter)
+        {
+            return !string.IsNullOrEmpty(StockOutRequestDTO?.StockOutCode) && LstReservations.Any() && !HasPicklist;
+        }
+
+        private bool CanCreateReservation(object parameter)
+        {
+            return !string.IsNullOrEmpty(StockOutRequestDTO?.StockOutCode) && !LstReservations.Any();
+        }
+
+        private async Task CreateReservationAsync()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(StockOutRequestDTO.StockOutCode))
+                {
+                    _notificationService.ShowMessage("Vui lòng nhập mã phiếu xuất kho trước khi tạo đặt chỗ.", "OK", isError: true);
+                    return;
+                }
+
+                if (!LstStockOutDetails.Any())
+                {
+                    _notificationService.ShowMessage("Danh sách chi tiết xuất kho rỗng. Vui lòng thêm chi tiết trước khi tạo đặt chỗ.", "OK", isError: true);
+                    return;
+                }
+
+                await SaveStockOutAsync();
+                if (string.IsNullOrEmpty(StockOutRequestDTO.Error))
+                {
+                    var reservation = new ReservationRequestDTO
+                    {
+                        ReservationCode = $"RES_{StockOutRequestDTO.StockOutCode}",
+                        WarehouseCode = StockOutRequestDTO.WarehouseCode,
+                        OrderTypeCode = StockOutRequestDTO.OrderTypeCode,
+                        OrderId = StockOutRequestDTO.StockOutCode,
+                        ReservationDate = StockOutRequestDTO.StockOutDate,
+                        StatusId = 1
+                    };
+
+                    var result = await _reservationService.AddReservation(reservation);
+                    if (result.Success)
+                    {
+                        _notificationService.ShowMessage("Tạo đặt chỗ thành công!", "OK");
+                        await _messengerService.SendMessageAsync("ReloadReservationList");
+                        await LoadReservationsAsync();
+                    }
+                    else
+                    {
+                        _notificationService.ShowMessage(result.Message ?? "Không thể tạo đặt chỗ.", "OK", isError: true);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi tạo đặt chỗ: {ex.Message}", "OK", isError: true);
+            }
+        }
+
+        private bool CanConfirmQuantity(object parameter)
+        {
+            return !string.IsNullOrEmpty(StockOutRequestDTO?.StockOutCode) && HasPicklist;
+        }
+
         private async Task CheckQuantityAsync()
         {
             try
@@ -284,6 +491,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                     _notificationService.ShowMessage("Danh sách chi tiết xuất kho rỗng.", "OK", isError: true);
                     return;
                 }
+
                 _ = SaveStockOutAsync();
                 bool hasShortage = LstStockOutDetails.Any(d => d.Quantity < d.Demand);
                 if (!hasShortage)
@@ -592,8 +800,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                 if (IsAddingNew)
                 {
                     StockOutRequestDTO.ClearValidation();
-                    StockOutRequestDTO = new StockOutRequestDTO();
-                    LstStockOutDetails.Clear();
+                    IsAddingNew = false;
                 }
                 await _messengerService.SendMessageAsync("ReloadStockOutList");
             }
@@ -647,7 +854,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
         {
             if (detail == null) return;
 
-            var result = MessageBox.Show($"Bạn có chắc muốn xóa chi tiết sản phẩm {detail.ProductName}?", "Xác nhận xóa", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            var result = MessageBox.Show($"Bạn có chắc muốn xóa chi tiết sản phẩm '{detail.ProductName}'?", "Xác nhận xóa", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (result == MessageBoxResult.Yes)
             {
                 try
@@ -750,6 +957,9 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             {
                 ((RelayCommand)SaveCommand)?.RaiseCanExecuteChanged();
                 ((RelayCommand)AddDetailLineCommand)?.RaiseCanExecuteChanged();
+                ((RelayCommand)CreateReservationCommand)?.RaiseCanExecuteChanged();
+                ((RelayCommand)CreatePicklistCommand)?.RaiseCanExecuteChanged();
+                ((RelayCommand)ConfirmQuantityCommand)?.RaiseCanExecuteChanged();
             }
         }
     }
