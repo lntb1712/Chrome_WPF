@@ -258,14 +258,17 @@
                                 <RowDefinition Height="*" />
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
-                            <TextBox
-                                Grid.Row="0"
-                                Margin="0,8,0,16"
-                                Padding="8"
-                                materialDesign:HintAssist.Hint="Tìm kiếm chi tiết phiếu cất hàng ..."
-                                Foreground="#A0AEC0"
-                                Style="{StaticResource MaterialDesignFloatingHintTextBox}"
-                                Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
+                            <StackPanel>
+                                <TextBox
+                                    Grid.Row="0"
+                                    Margin="0,8,0,16"
+                                    Padding="8"
+                                    materialDesign:HintAssist.Hint="Tìm kiếm chi tiết phiếu cất hàng ..."
+                                    Foreground="#A0AEC0"
+                                    Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                    Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+
                             <DataGrid
                                 x:Name="PutAwayDetailDataGrid"
                                 Grid.Row="1"

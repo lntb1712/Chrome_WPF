@@ -291,7 +291,7 @@
                             Text="Mã nhập kho" />
                         <TextBox
                             x:Name="StockInCodeTextBox"
-                            Width="200"
+                            Width="250"
                             Margin="8,0,0,0"
                             Padding="12,8"
                             materialDesign:HintAssist.Hint="Nhập mã nhập kho"
@@ -320,16 +320,25 @@
                             Text="Loại lệnh" />
                         <ComboBox
                             x:Name="OrderTypeComboBox"
-                            Width="200"
+                            Width="250"
                             Margin="8,0,0,0"
                             Padding="12,8"
                             materialDesign:HintAssist.Hint="Chọn loại lệnh"
                             materialDesign:HintAssist.IsFloating="True"
-                            DisplayMemberPath="OrderTypeName"
                             FontSize="14"
                             ItemsSource="{Binding LstOrderTypes}"
                             SelectedValue="{Binding StockInRequestDTO.OrderTypeCode, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True}"
-                            SelectedValuePath="OrderTypeCode" />
+                            SelectedValuePath="OrderTypeCode">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock>
+                                        <Run Text="{Binding OrderTypeCode}" />
+                                        <Run Text=" - " />
+                                        <Run Text="{Binding OrderTypeName}" />
+                                    </TextBlock>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
                     </StackPanel>
                     <StackPanel
                         Grid.Row="2"
@@ -342,16 +351,25 @@
                             Text="Kho" />
                         <ComboBox
                             x:Name="WarehouseComboBox"
-                            Width="200"
+                            Width="250"
                             Margin="8,0,0,0"
                             Padding="12,8"
                             materialDesign:HintAssist.Hint="Chọn kho"
                             materialDesign:HintAssist.IsFloating="True"
-                            DisplayMemberPath="WarehouseName"
                             FontSize="14"
                             ItemsSource="{Binding LstWarehouses}"
                             SelectedValue="{Binding StockInRequestDTO.WarehouseCode, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True}"
-                            SelectedValuePath="WarehouseCode" />
+                            SelectedValuePath="WarehouseCode">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock>
+                                        <Run Text="{Binding WarehouseCode}" />
+                                        <Run Text=" - " />
+                                        <Run Text="{Binding WarehouseName}" />
+                                    </TextBlock>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
                     </StackPanel>
                     <StackPanel
                         Grid.Row="0"
@@ -364,16 +382,25 @@
                             Text="Nhà cung cấp" />
                         <ComboBox
                             x:Name="SupplierComboBox"
-                            Width="200"
+                            Width="250"
                             Margin="8,0,0,0"
                             Padding="12,8"
                             materialDesign:HintAssist.Hint="Chọn nhà cung cấp"
                             materialDesign:HintAssist.IsFloating="True"
-                            DisplayMemberPath="SupplierName"
                             FontSize="14"
                             ItemsSource="{Binding LstSuppliers}"
                             SelectedValue="{Binding StockInRequestDTO.SupplierCode, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True}"
-                            SelectedValuePath="SupplierCode" />
+                            SelectedValuePath="SupplierCode">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock>
+                                        <Run Text="{Binding SupplierCode}" />
+                                        <Run Text=" - " />
+                                        <Run Text="{Binding SupplierName}" />
+                                    </TextBlock>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
                     </StackPanel>
                     <StackPanel
                         Grid.Row="1"
@@ -386,16 +413,25 @@
                             Text="Người phụ trách" />
                         <ComboBox
                             x:Name="ResponsiblePersonComboBox"
-                            Width="200"
+                            Width="250"
                             Margin="8,0,0,0"
                             Padding="12,8"
                             materialDesign:HintAssist.Hint="Chọn người phụ trách"
                             materialDesign:HintAssist.IsFloating="True"
-                            DisplayMemberPath="FullName"
                             FontSize="14"
                             ItemsSource="{Binding LstResponsiblePersons}"
                             SelectedValue="{Binding StockInRequestDTO.Responsible, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True}"
-                            SelectedValuePath="UserName" />
+                            SelectedValuePath="UserName">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock>
+                                        <Run Text="{Binding UserName}" />
+                                        <Run Text=" - " />
+                                        <Run Text="{Binding FullName}" />
+                                    </TextBlock>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
                     </StackPanel>
                     <StackPanel
                         Grid.Row="2"
@@ -408,7 +444,7 @@
                             Text="Hạn nhập hàng" />
                         <DatePicker
                             x:Name="OrderDeadlineDatePicker"
-                            Width="200"
+                            Width="250"
                             Margin="8,0,0,0"
                             Padding="12,8"
                             materialDesign:HintAssist.Hint="Chọn hạn nhập hàng"

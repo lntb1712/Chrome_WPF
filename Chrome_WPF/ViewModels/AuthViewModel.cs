@@ -305,7 +305,7 @@ namespace Chrome_WPF.ViewModels
             CanPickList = Permission.Contains("ucPickList");
             CanPutAway = Permission.Contains("ucPutAway");
             CanStockTake = Permission.Contains("ucStockTake");
-            CanProductionOrder = Permission.Contains("ucProductionOrder");
+            CanProductionOrder = Permission.Contains("ucManufacturingOrder");
             CanInventory = Permission.Contains("ucInventory");
             CanReservation = Permission.Contains("ucReservation");
         }

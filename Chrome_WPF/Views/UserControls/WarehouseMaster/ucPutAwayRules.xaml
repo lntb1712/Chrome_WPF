@@ -195,7 +195,17 @@
                                             ItemsSource="{Binding DataContext.AvailableWarehouses, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                             SelectedItem="{Binding SelectedWarehouse, UpdateSourceTrigger=PropertyChanged}"
                                             SelectedValue="{Binding WarehouseToApply, UpdateSourceTrigger=PropertyChanged}"
-                                            SelectedValuePath="WarehouseCode" />
+                                            SelectedValuePath="WarehouseCode">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock>
+                                                        <Run Text="{Binding WarehouseCode}" />
+                                                        <Run Text=" - " />
+                                                        <Run Text="{Binding WarehouseName}" />
+                                                    </TextBlock>
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
@@ -205,12 +215,21 @@
                                         <ComboBox
                                             Padding="1"
                                             VerticalContentAlignment="Center"
-                                            DisplayMemberPath="ProductName"
                                             IsEditable="False"
                                             ItemsSource="{Binding DataContext.AvailableProducts, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                             SelectedItem="{Binding SelectedProduct, UpdateSourceTrigger=PropertyChanged}"
                                             SelectedValue="{Binding ProductCode, UpdateSourceTrigger=PropertyChanged}"
-                                            SelectedValuePath="ProductCode" />
+                                            SelectedValuePath="ProductCode">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock>
+                                                        <Run Text="{Binding ProductCode}" />
+                                                        <Run Text=" - " />
+                                                        <Run Text="{Binding ProductName}" />
+                                                    </TextBlock>
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
@@ -220,12 +239,21 @@
                                         <ComboBox
                                             Padding="1"
                                             VerticalContentAlignment="Center"
-                                            DisplayMemberPath="LocationName"
                                             IsEditable="False"
                                             ItemsSource="{Binding AvailableLocations}"
                                             SelectedItem="{Binding SelectedLocation, UpdateSourceTrigger=PropertyChanged}"
                                             SelectedValue="{Binding LocationCode, UpdateSourceTrigger=PropertyChanged}"
-                                            SelectedValuePath="LocationCode" />
+                                            SelectedValuePath="LocationCode">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock>
+                                                        <Run Text="{Binding LocationCode}" />
+                                                        <Run Text=" - " />
+                                                        <Run Text="{Binding LocationName}" />
+                                                    </TextBlock>
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>

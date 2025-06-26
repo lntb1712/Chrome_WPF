@@ -247,7 +247,7 @@ namespace Chrome_WPF.Views
                     case "ucStockTake":
                         _navigationService.NavigateTo<ucStockTake>();
                         break;
-                    case "ucProductionOrder":
+                    case "ucManufacturingOrder":
                         _navigationService.NavigateTo<ucManufacturingOrder>();
                         break;
 

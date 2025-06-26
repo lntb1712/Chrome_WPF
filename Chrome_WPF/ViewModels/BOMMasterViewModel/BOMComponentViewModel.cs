@@ -406,12 +406,33 @@ namespace Chrome_WPF.ViewModels.BOMMasterViewModel
         private bool CanSave(object parameter)
         {
             var dto = BOMMasterRequestDTO;
-            return !string.IsNullOrEmpty(dto.BOMCode) && !string.IsNullOrEmpty(dto.BOMVersion) && !string.IsNullOrEmpty(dto.ProductCode);
+            var propertiesToValidate = new[] { nameof(dto.ProductCode), nameof(dto.BOMCode),nameof(dto.BOMVersion) };
+
+            foreach (var prop in propertiesToValidate)
+            {
+                if (!string.IsNullOrEmpty(dto[prop]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private bool CanAddComponentLine(object parameter)
         {
-            return !string.IsNullOrEmpty(BOMMasterRequestDTO.BOMCode) && !string.IsNullOrEmpty(BOMMasterRequestDTO.BOMVersion);
+            var dto = BOMMasterRequestDTO;
+            var propertiesToValidate = new[] { nameof(dto.ProductCode), nameof(dto.BOMCode), nameof(dto.BOMVersion) };
+
+            foreach (var prop in propertiesToValidate)
+            {
+                if (!string.IsNullOrEmpty(dto[prop]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private void AddComponentLine()

@@ -502,7 +502,7 @@
                         </ListBoxItem.Visibility>
                         Quản lí Sản xuất
                     </ListBoxItem>
-                    <ListBoxItem x:Name="ucProductionOrder" Visibility="{Binding CanProductionOrder, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <ListBoxItem x:Name="ucManufacturingOrder" Visibility="{Binding CanProductionOrder, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <StackPanel
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"

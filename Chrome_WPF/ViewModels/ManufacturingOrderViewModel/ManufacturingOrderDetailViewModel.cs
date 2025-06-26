@@ -465,7 +465,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
                     var result = await _reservationService.AddReservation(reservation);
                     if (result.Success)
                     {
-                        _notificationService.ShowMessage("Tạo đặt chỗ thành công!", "OK");
+                        _notificationService.ShowMessage("Tạo đặt chỗ thành công!", "OK",isError:false);
                         await _messengerService.SendMessageAsync("ReloadReservationList");
                         await LoadReservationsAsync();
                     }

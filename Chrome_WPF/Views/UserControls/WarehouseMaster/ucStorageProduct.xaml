@@ -236,12 +236,21 @@
                                         <ComboBox
                                             Padding="1"
                                             VerticalContentAlignment="Center"
-                                            DisplayMemberPath="ProductName"
                                             IsEditable="False"
                                             ItemsSource="{Binding DataContext.AvailableProducts, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                             SelectedItem="{Binding SelectedProduct, UpdateSourceTrigger=PropertyChanged}"
                                             SelectedValue="{Binding ProductCode, UpdateSourceTrigger=PropertyChanged}"
-                                            SelectedValuePath="ProductCode" />
+                                            SelectedValuePath="ProductCode">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock>
+                                                        <Run Text="{Binding ProductCode}" />
+                                                        <Run Text=" - " />
+                                                        <Run Text="{Binding ProductName}" />
+                                                    </TextBlock>
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
