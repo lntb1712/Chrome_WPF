@@ -531,5 +531,45 @@ namespace Chrome_WPF.Services.ReservationService
                     return new ApiResult<T>(errorMessage, false);
             }
         }
+
+        public async Task<ApiResult<ReservationResponseDTO>> GetReservationsByManufacturingCodeAsync(string manufacturingCode)
+        {
+            if (string.IsNullOrEmpty(manufacturingCode))
+            {
+                return new ApiResult<ReservationResponseDTO>("Mã lệnh sản xuất không được để trống", false);
+            }
+
+            try
+            {
+                var response = await _httpClient.GetAsync($"Reservation/GetReservationsByManufacturingCodeAsync?manufacturingCode={Uri.EscapeDataString(manufacturingCode)}").ConfigureAwait(false);
+                var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = JsonConvert.DeserializeObject<ApiResult<ReservationResponseDTO>>(jsonResponse);
+                    if (result == null || !result.Success)
+                    {
+                        return new ApiResult<ReservationResponseDTO>(result?.Message ?? "Không thể lấy đặt chỗ theo mã lệnh sản xuất", false);
+                    }
+                    return result;
+                }
+
+                var errorResult = JsonConvert.DeserializeObject<ApiResult<ReservationResponseDTO>>(jsonResponse);
+                var errorMessage = errorResult?.Message ?? "Không thể lấy đặt chỗ theo mã lệnh sản xuất";
+                return HandleErrorResponse<ReservationResponseDTO>(response.StatusCode, errorMessage);
+            }
+            catch (HttpRequestException ex)
+            {
+                return new ApiResult<ReservationResponseDTO>($"Lỗi mạng: {ex.Message}", false);
+            }
+            catch (JsonException ex)
+            {
+                return new ApiResult<ReservationResponseDTO>($"Lỗi phân tích phản hồi: {ex.Message}", false);
+            }
+            catch (Exception ex)
+            {
+                return new ApiResult<ReservationResponseDTO>($"Lỗi không xác định: {ex.Message}", false);
+            }
+        }
     }
 }

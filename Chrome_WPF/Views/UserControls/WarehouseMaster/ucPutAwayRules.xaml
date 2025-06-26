@@ -235,12 +235,21 @@
                                         <ComboBox
                                             Padding="1"
                                             VerticalContentAlignment="Center"
-                                            DisplayMemberPath="StorageProductName"
                                             IsEditable="False"
                                             ItemsSource="{Binding DataContext.AvailableStorageProducts, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                             SelectedItem="{Binding SelectedStorageProduct, UpdateSourceTrigger=PropertyChanged}"
                                             SelectedValue="{Binding StorageProductId, UpdateSourceTrigger=PropertyChanged}"
-                                            SelectedValuePath="StorageProductId" />
+                                            SelectedValuePath="StorageProductId">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock>
+                                                        <Run Text="{Binding StorageProductId}" />
+                                                        <Run Text=" - " />
+                                                        <Run Text="{Binding StorageProductName}" />
+                                                    </TextBlock>
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>

@@ -7,6 +7,7 @@ using Chrome_WPF.Views.UserControls.BOMMaster;
 using Chrome_WPF.Views.UserControls.CustomerMaster;
 using Chrome_WPF.Views.UserControls.GroupManagement;
 using Chrome_WPF.Views.UserControls.Inventory;
+using Chrome_WPF.Views.UserControls.ManufacturingOrder;
 using Chrome_WPF.Views.UserControls.Movement;
 using Chrome_WPF.Views.UserControls.PickList;
 using Chrome_WPF.Views.UserControls.ProductMaster;
@@ -245,6 +246,9 @@ namespace Chrome_WPF.Views
                         break;
                     case "ucStockTake":
                         _navigationService.NavigateTo<ucStockTake>();
+                        break;
+                    case "ucProductionOrder":
+                        _navigationService.NavigateTo<ucManufacturingOrder>();
                         break;
 
                     default:

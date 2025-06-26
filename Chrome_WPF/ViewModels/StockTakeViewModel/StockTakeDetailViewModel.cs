@@ -90,12 +90,12 @@ namespace Chrome_WPF.ViewModels.StockTakeViewModel
             {
                 if (_stockTakeRequestDTO != null)
                 {
-                    _stockTakeRequestDTO.PropertyChanged -= OnStockTakeRequestDTOPropertyChanged;
+                    _stockTakeRequestDTO.PropertyChanged -= OnStockTakeRequestDTOPropertyChanged!;
                 }
                 _stockTakeRequestDTO = value;
                 if (_stockTakeRequestDTO != null)
                 {
-                    _stockTakeRequestDTO.PropertyChanged += OnStockTakeRequestDTOPropertyChanged;
+                    _stockTakeRequestDTO.PropertyChanged += OnStockTakeRequestDTOPropertyChanged!;
                 }
                 OnPropertyChanged();
                 _ = LoadStockTakeDetailsAsync();
@@ -167,7 +167,7 @@ namespace Chrome_WPF.ViewModels.StockTakeViewModel
             INotificationService notificationService,
             INavigationService navigationService,
             IMessengerService messengerService,
-            StockTakeResponseDTO stockTake = null)
+            StockTakeResponseDTO stockTake = null!)
         {
             _stockTakeService = stockTakeService ?? throw new ArgumentNullException(nameof(stockTakeService));
             _stockTakeDetailService = stockTakeDetailService ?? throw new ArgumentNullException(nameof(stockTakeDetailService));
@@ -199,7 +199,7 @@ namespace Chrome_WPF.ViewModels.StockTakeViewModel
             SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
             ConfirmCommand = new RelayCommand(async _ => await ConfirmStockTakeAsync(), CanConfirm);
 
-            _stockTakeRequestDTO.PropertyChanged += OnStockTakeRequestDTOPropertyChanged;
+            _stockTakeRequestDTO.PropertyChanged += OnStockTakeRequestDTOPropertyChanged!;
             _ = InitializeAsync();
         }
 

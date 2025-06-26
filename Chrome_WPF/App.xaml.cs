@@ -1,4 +1,5 @@
-﻿using Chrome_WPF.Constants.API_Constant;
+﻿using Chrome.Services.ManufacturingOrderService;
+using Chrome_WPF.Constants.API_Constant;
 using Chrome_WPF.Services.AccountManagementService;
 using Chrome_WPF.Services.AuthServices;
 using Chrome_WPF.Services.BOMComponentService;
@@ -9,6 +10,8 @@ using Chrome_WPF.Services.GroupManagementService;
 using Chrome_WPF.Services.InventoryService;
 using Chrome_WPF.Services.LocationMasterService;
 using Chrome_WPF.Services.LoginServices;
+using Chrome_WPF.Services.ManufacturingOrderDetailService;
+using Chrome_WPF.Services.ManufacturingOrderService;
 using Chrome_WPF.Services.MessengerService;
 using Chrome_WPF.Services.MovementDetailService;
 using Chrome_WPF.Services.MovementService;
@@ -40,6 +43,7 @@ using Chrome_WPF.ViewModels.BOMMasterViewModel;
 using Chrome_WPF.ViewModels.CustomerMasterViewModel;
 using Chrome_WPF.ViewModels.GroupManagementViewModel;
 using Chrome_WPF.ViewModels.InventoryViewModel;
+using Chrome_WPF.ViewModels.ManufacturingOrderViewModel;
 using Chrome_WPF.ViewModels.MovementViewModel;
 using Chrome_WPF.ViewModels.PickListViewModel;
 using Chrome_WPF.ViewModels.ProductMasterViewModel;
@@ -58,6 +62,7 @@ using Chrome_WPF.Views.UserControls.BOMMaster;
 using Chrome_WPF.Views.UserControls.CustomerMaster;
 using Chrome_WPF.Views.UserControls.GroupManagement;
 using Chrome_WPF.Views.UserControls.Inventory;
+using Chrome_WPF.Views.UserControls.ManufacturingOrder;
 using Chrome_WPF.Views.UserControls.Movement;
 using Chrome_WPF.Views.UserControls.PickList;
 using Chrome_WPF.Views.UserControls.ProductMaster;
@@ -144,6 +149,8 @@ namespace Chrome_WPF
             services.AddSingleton<ITransferDetailService, TransferDetailService>();
             services.AddSingleton<IStockTakeService, StockTakeService>();
             services.AddSingleton<IStockTakeDetailService, StockTakeDetailService>();
+            services.AddSingleton<IManufacturingOrderService,ManufacturingOrderService>();
+            services.AddSingleton<IManufacturingOrderDetailService, ManufacturingOrderDetailService>();
 
             // Register IServiceProvider
             services.AddSingleton(sp => sp);
@@ -196,6 +203,9 @@ namespace Chrome_WPF
             services.AddTransient<TransferDetailViewModel>();
             services.AddTransient<StockTakeViewModel>();
             services.AddTransient<StockTakeDetailViewModel>();
+            services.AddTransient<ManufacturingOrderViewModel>();
+            services.AddTransient<ManufacturingOrderDetailViewModel>();
+            services.AddTransient<ViewModels.ManufacturingOrderViewModel.BackOrderDialogViewModel>();
 
             // Register Views
             services.AddTransient<LoginWindow>(provider =>
@@ -386,10 +396,21 @@ namespace Chrome_WPF
                     provider.GetRequiredService<StockTakeViewModel>(),
                     provider.GetRequiredService<INotificationService>()));
             
-            services.AddTransient<ucStockTakeDetail>(provider =>
-                new ucStockTakeDetail(
-                    provider.GetRequiredService<StockTakeDetailViewModel>(),
+            services.AddTransient<ucManufacturingOrder>(provider =>
+                new ucManufacturingOrder(
+                    provider.GetRequiredService<ManufacturingOrderViewModel>(),
                     provider.GetRequiredService<INotificationService>()));
+
+            services.AddTransient<ucManufacturingOrderDetail>(provider =>
+                new ucManufacturingOrderDetail(
+                    provider.GetRequiredService<ManufacturingOrderDetailViewModel>(),
+                    provider.GetRequiredService<INotificationService>()));
+
+            services.AddTransient<Views.UserControls.ManufacturingOrder.BackOrderDialog>(provider =>
+                new Views.UserControls.ManufacturingOrder.BackOrderDialog(
+                    provider.GetRequiredService<ViewModels.ManufacturingOrderViewModel.BackOrderDialogViewModel>()));
+
+
 
 
 

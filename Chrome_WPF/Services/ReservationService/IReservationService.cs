@@ -20,6 +20,7 @@ namespace Chrome_WPF.Services.ReservationService
         Task<ApiResult<ReservationResponseDTO>> GetReservationsByMovementCodeAsync(string movementCode);
         Task<ApiResult<ReservationResponseDTO>> GetReservationsByStockOutCodeAsync(string stockOutCode);
         Task<ApiResult<ReservationResponseDTO>> GetReservationsByTransferCodeAsync(string transferCode);
+        Task<ApiResult<ReservationResponseDTO>> GetReservationsByManufacturingCodeAsync(string manufacturingCode);
         Task<ApiResult<bool>> AddReservation(ReservationRequestDTO reservation);
         Task<ApiResult<bool>> DeleteReservationAsync(string reservationCode);
         Task<ApiResult<bool>> UpdateReservation(ReservationRequestDTO reservation);
