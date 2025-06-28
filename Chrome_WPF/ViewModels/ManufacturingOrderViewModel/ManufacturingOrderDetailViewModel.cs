@@ -8,7 +8,9 @@ using Chrome_WPF.Models.ManufacturingOrderDTO;
 using Chrome_WPF.Models.OrderTypeDTO;
 using Chrome_WPF.Models.PickListDTO;
 using Chrome_WPF.Models.ProductMasterDTO;
+using Chrome_WPF.Models.PutAwayDTO;
 using Chrome_WPF.Models.ReservationDTO;
+using Chrome_WPF.Models.TransferDTO;
 using Chrome_WPF.Models.WarehouseMasterDTO;
 using Chrome_WPF.Services.ManufacturingOrderDetailService;
 using Chrome_WPF.Services.ManufacturingOrderService;
@@ -16,6 +18,7 @@ using Chrome_WPF.Services.MessengerService;
 using Chrome_WPF.Services.NavigationService;
 using Chrome_WPF.Services.NotificationService;
 using Chrome_WPF.Services.PickListService;
+using Chrome_WPF.Services.PutAwayService;
 using Chrome_WPF.Services.ReservationService;
 using Chrome_WPF.Views.UserControls.ManufacturingOrder;
 using Microsoft.Extensions.DependencyInjection;
@@ -38,6 +41,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
         private readonly INotificationService _notificationService;
         private readonly INavigationService _navigationService;
         private readonly IMessengerService _messengerService;
+        private readonly IPutAwayService _putAwayService;
 
         private ObservableCollection<ManufacturingOrderDetailResponseDTO> _lstManufacturingOrderDetails;
         private ObservableCollection<ProductMasterResponseDTO> _lstProducts;
@@ -45,7 +49,10 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
         private ObservableCollection<OrderTypeResponseDTO> _lstOrderTypes;
         private ObservableCollection<WarehouseMasterResponseDTO> _lstWarehouses;
         private ObservableCollection<AccountManagementResponseDTO> _lstResponsiblePersons;
+        private ObservableCollection<PutAwayAndDetailResponseDTO> _lstPutAway;
         private ObservableCollection<ReservationAndDetailResponseDTO> _lstReservations;
+        private ObservableCollection<PickAndDetailResponseDTO> _lstPickList;
+        private ObservableCollection<ProductShortageDTO> _inventoryShortages;
         private ObservableCollection<object> _displayPages;
         private ManufacturingOrderRequestDTO _manufacturingOrderRequestDTO;
         private bool _isAddingNew;
@@ -54,7 +61,28 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
         private int _totalPages;
         private int _lastLoadedPage;
         private bool _isSaving;
+        private bool _hasPutAway;
         private bool _hasPicklist;
+        private bool _hasReservation;
+        public bool HasPutAway
+        {
+            get => _hasPutAway;
+            set
+            {
+                _hasPutAway = value;
+                OnPropertyChanged();
+            }
+        }
+        public bool HasReservation
+        {
+            get => _hasReservation;
+            set
+            {
+                _hasReservation = value;
+                OnPropertyChanged();
+            }
+        }
+   
 
         public ObservableCollection<ManufacturingOrderDetailResponseDTO> LstManufacturingOrderDetails
         {
@@ -105,6 +133,15 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
                 OnPropertyChanged();
             }
         }
+        public ObservableCollection<ProductShortageDTO> InventoryShortages
+        {
+            get => _inventoryShortages;
+            set
+            {
+                _inventoryShortages = value;
+                OnPropertyChanged();
+            }
+        }
 
         public ObservableCollection<AccountManagementResponseDTO> LstResponsiblePersons
         {
@@ -125,7 +162,24 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
                 OnPropertyChanged();
             }
         }
-
+        public ObservableCollection<PickAndDetailResponseDTO> LstPickList
+        {
+            get => _lstPickList;
+            set
+            {
+                _lstPickList = value;
+                OnPropertyChanged();
+            }
+        }
+        public ObservableCollection<PutAwayAndDetailResponseDTO> LstPutAway
+        {
+            get => _lstPutAway;
+            set
+            {
+                _lstPutAway = value;
+                OnPropertyChanged();
+            }
+        }
         public ObservableCollection<object> DisplayPages
         {
             get => _displayPages;
@@ -235,6 +289,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
             IManufacturingOrderService manufacturingOrderService,
             IReservationService reservationService,
             IPickListService pickListService,
+            IPutAwayService putAwayService,
             INotificationService notificationService,
             INavigationService navigationService,
             IMessengerService messengerService,
@@ -247,6 +302,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
             _messengerService = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
+            _putAwayService =putAwayService ?? throw new ArgumentNullException(nameof(putAwayService));
 
             _lstManufacturingOrderDetails = new ObservableCollection<ManufacturingOrderDetailResponseDTO>();
             _lstProducts = new ObservableCollection<ProductMasterResponseDTO>();
@@ -255,6 +311,9 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
             _lstWarehouses = new ObservableCollection<WarehouseMasterResponseDTO>();
             _lstResponsiblePersons = new ObservableCollection<AccountManagementResponseDTO>();
             _lstReservations = new ObservableCollection<ReservationAndDetailResponseDTO>();
+            _lstPickList = new ObservableCollection<PickAndDetailResponseDTO>();
+            _lstPutAway = new ObservableCollection<PutAwayAndDetailResponseDTO>();
+            _inventoryShortages = new ObservableCollection<ProductShortageDTO>();
             _displayPages = new ObservableCollection<object>();
             _isAddingNew = manufacturingOrder == null;
             _currentPage = 1;
@@ -309,11 +368,26 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
                     LoadOrderTypesAsync(),
                     LoadWarehousesAsync(),
                     LoadResponsiblePersonsAsync(),
-                    LoadReservationsAsync());
+                    CheckReservationExistenceAsync(),
+                    CheckPicklistExistenceAsync(),
+                    CheckPutAwayHasValue());
 
                 if (!IsAddingNew)
                 {
                     await LoadManufacturingOrderDetailsAsync();
+                    await LoadInventoryStorages();
+                }
+                if (HasReservation)
+                {
+                    await LoadReservationsAsync();
+                }
+                if (HasPicklist)
+                {
+                    await LoadPickListAsync();
+                }
+                if (HasPutAway)
+                {
+                    await LoadPutAway();
                 }
             }
             catch (Exception ex)
@@ -322,7 +396,25 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
                 NavigateBack();
             }
         }
+        private async Task CheckReservationExistenceAsync()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(ManufacturingOrderRequestDTO.ManufacturingOrderCode))
+                {
+                    HasReservation = false;
+                    return;
+                }
 
+                var reservationResult = await _reservationService.GetReservationsByManufacturingCodeAsync(ManufacturingOrderRequestDTO.ManufacturingOrderCode);
+                HasReservation = reservationResult.Success && reservationResult.Data != null;
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi kiểm tra đặt chỗ: {ex.Message}", "OK", isError: true);
+                HasReservation = false;
+            }
+        }
         private async Task LoadReservationsAsync()
         {
             try
@@ -370,7 +462,106 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
                 HasPicklist = false;
             }
         }
+        private async Task LoadPickListAsync()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(ManufacturingOrderRequestDTO.ManufacturingOrderCode))
+                {
+                    LstPickList.Clear();
+                    HasPicklist = false;
+                    return;
+                }
 
+                var pickListResult = await _pickListService.GetPickListContainCodeAsync(ManufacturingOrderRequestDTO.ManufacturingOrderCode);
+                if (pickListResult.Success && pickListResult.Data != null)
+                {
+                    LstPickList.Clear();
+                    LstPickList.Add(pickListResult.Data);
+                    // Check for picklist existence
+                    await CheckPicklistExistenceAsync();
+                }
+                else
+                {
+                    LstPickList.Clear();
+                    HasPicklist = false;
+                    _notificationService.ShowMessage(pickListResult.Message ?? "Không thể tải danh sách lấy hàng.", "OK", isError: true);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi tải danh sách đặt chỗ: {ex.Message}", "OK", isError: true);
+            }
+        }
+        private async Task CheckPutAwayHasValue()
+        {
+            try
+            {
+                var putAwayResult = await _putAwayService.GetPutAwayContainsCodeAsync(ManufacturingOrderRequestDTO.ManufacturingOrderCode);
+                HasPutAway = putAwayResult.Success && putAwayResult.Data != null;
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi kiểm tra picklist: {ex.Message}", "OK", isError: true);
+                HasPutAway = false;
+            }
+        }
+        private async Task LoadPutAway()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(ManufacturingOrderRequestDTO.ManufacturingOrderCode))
+                {
+                    LstPutAway.Clear();
+                    return;
+                }
+                var result = await _putAwayService.GetPutAwayContainsCodeAsync(ManufacturingOrderRequestDTO.ManufacturingOrderCode);
+                if (result.Success && result.Data != null)
+                {
+                    LstPutAway.Clear();
+                    LstPutAway.Add(result.Data);
+
+                }
+                else
+                {
+                    _notificationService.ShowMessage(result.Message ?? "Không thể tải danh sách cất hàng", "OK", isError: true);
+                }
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi tải danh sách cất hàng: {ex.Message}", "OK", isError: true);
+            }
+        }
+        private async Task LoadInventoryStorages ()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(ManufacturingOrderRequestDTO.ManufacturingOrderCode) && string.IsNullOrEmpty(ManufacturingOrderRequestDTO.WarehouseCode))
+                {
+                    InventoryShortages.Clear();
+                    return;
+                }
+                var result = await _manufacturingOrderService.CheckInventoryShortageForManufacturingOrderAsync(ManufacturingOrderRequestDTO.ManufacturingOrderCode,ManufacturingOrderRequestDTO.WarehouseCode!);
+                if (result.Success && result.Data != null)
+                {
+                    InventoryShortages.Clear();
+                    foreach (var item in result.Data)
+                    {
+                        InventoryShortages.Add(item);
+                    }
+
+                }
+                else
+                {
+                    _notificationService.ShowMessage(result.Message ?? "Không thể tải danh sách thiếu hàng", "OK", isError: true);
+                }
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi tải danh sách thiếu hàng: {ex.Message}", "OK", isError: true);
+            }
+        }
         private async Task CreatePicklistAsync()
         {
             try

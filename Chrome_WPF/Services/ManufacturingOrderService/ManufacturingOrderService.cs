@@ -931,5 +931,61 @@ namespace Chrome_WPF.Services.ManufacturingOrderService
                 return new ApiResult<List<ProductMasterResponseDTO>>($"Lỗi không xác định: {ex.Message}", false);
             }
         }
+
+        public async Task<ApiResult<List<ProductShortageDTO>>> CheckInventoryShortageForManufacturingOrderAsync(string manufacturingOrderCode, string warehouseCode)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync($"ManufacturingOrder/CheckInventoryShortageForManufacturingOrderAsync?manufacturingOrderCode={Uri.EscapeDataString(manufacturingOrderCode)}&warehouseCode={Uri.EscapeDataString(warehouseCode)}").ConfigureAwait(false);
+                var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = JsonConvert.DeserializeObject<ApiResult<List<ProductShortageDTO>>>(jsonResponse);
+                    if (result == null || !result.Success)
+                    {
+                        return new ApiResult<List<ProductShortageDTO>>(result?.Message ?? "Không thể phân tích phản hồi");
+                    }
+                    return result;
+                }
+                var errorResult = JsonConvert.DeserializeObject<ApiResult<List<ProductShortageDTO>>>(jsonResponse);
+                var errorMessage = errorResult?.Message ?? "Không thể lấy danh sách định mức";
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    return new ApiResult<List<ProductShortageDTO>>((string)errorMessage, false);
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    return new ApiResult<List<ProductShortageDTO>>((string)errorMessage, false);
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return new ApiResult<List<ProductShortageDTO>>((string)errorMessage, false);
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+                {
+                    return new ApiResult<List<ProductShortageDTO>>((string)errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Lỗi máy chủ nội bộ"
+                }
+                else
+                {
+                    return new ApiResult<List<ProductShortageDTO>>((string)errorMessage, false); // Trả về thông điệp lỗi chung
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                // Lỗi mạng
+                return new ApiResult<List<ProductShortageDTO>>($"Lỗi mạng: {ex.Message}", false);
+
+            }
+            catch (JsonException ex)
+            {
+                // Lỗi phân tích JSON
+                return new ApiResult<List<ProductShortageDTO>>($"Lỗi phân tích phản hồi: {ex.Message}", false);
+            }
+            catch (Exception ex)
+            {
+                // Lỗi không xác định
+                return new ApiResult<List<ProductShortageDTO>>($"Lỗi không xác định: {ex.Message}", false);
+            }
+        }
     }
 }
