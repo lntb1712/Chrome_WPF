@@ -8,6 +8,9 @@ using Chrome_WPF.Services.MovementDetailService;
 using Chrome_WPF.Services.MovementService;
 using Chrome_WPF.Services.NavigationService;
 using Chrome_WPF.Services.NotificationService;
+using Chrome_WPF.Services.PickListService;
+using Chrome_WPF.Services.PutAwayService;
+using Chrome_WPF.Services.ReservationService;
 using Chrome_WPF.Views.UserControls.Movement;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -358,6 +361,9 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
                 App.ServiceProvider!.GetRequiredService<INotificationService>(),
                 App.ServiceProvider!.GetRequiredService<INavigationService>(),
                 App.ServiceProvider!.GetRequiredService<IMessengerService>(),
+                App.ServiceProvider!.GetRequiredService<IPutAwayService>(),
+                App.ServiceProvider!.GetRequiredService<IPickListService>(),
+                App.ServiceProvider!.GetRequiredService<IReservationService>(),
                 movement);
 
             movementDetail.DataContext = viewModel;

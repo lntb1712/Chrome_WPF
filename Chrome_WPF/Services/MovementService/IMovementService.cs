@@ -29,7 +29,7 @@ namespace Chrome_WPF.Services.MovementService
         Task<ApiResult<List<StatusMasterResponseDTO>>> GetListStatusMaster();
         Task<ApiResult<List<WarehouseMasterResponseDTO>>> GetListWarehousePermission(string[] warehouseCodes);
         Task<ApiResult<List<LocationMasterResponseDTO>>> GetListFromLocation(string warehouseCode);
-        Task<ApiResult<List<LocationMasterResponseDTO>>> GetListToLocation(string warehouseCode);
+        Task<ApiResult<List<LocationMasterResponseDTO>>> GetListToLocation(string warehouseCode, string toLocation);
         Task<ApiResult<PutAwayResponseDTO>> GetPutAwayContainsMovement(string movementCode);
         Task<ApiResult<PickListResponseDTO>> GetPickListContainsMovement(string movementCode);
     }

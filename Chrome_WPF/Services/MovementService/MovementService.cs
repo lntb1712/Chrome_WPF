@@ -598,9 +598,9 @@ namespace Chrome_WPF.Services.MovementService
 
         public async Task<ApiResult<List<LocationMasterResponseDTO>>> GetListFromLocation(string warehouseCode)
         {
-            if (string.IsNullOrEmpty(warehouseCode))
+            if (string.IsNullOrEmpty(warehouseCode) )
             {
-                return new ApiResult<List<LocationMasterResponseDTO>>("Mã kho không được để trống", false);
+                return new ApiResult<List<LocationMasterResponseDTO>>("Mã kho  không được để trống", false);
             }
             try
             {
@@ -652,15 +652,15 @@ namespace Chrome_WPF.Services.MovementService
             }
         }
 
-        public async Task<ApiResult<List<LocationMasterResponseDTO>>> GetListToLocation(string warehouseCode)
+        public async Task<ApiResult<List<LocationMasterResponseDTO>>> GetListToLocation(string warehouseCode, string fromLocation)
         {
-            if (string.IsNullOrEmpty(warehouseCode))
+            if (string.IsNullOrEmpty(warehouseCode) && string.IsNullOrEmpty(fromLocation))
             {
-                return new ApiResult<List<LocationMasterResponseDTO>>("Mã kho không được để trống", false);
+                return new ApiResult<List<LocationMasterResponseDTO>>("Mã kho và vị trí đi không được để trống", false);
             }
             try
             {
-                var response = await _httpClient.GetAsync($"Movement/GetListToLocation?warehouseCode={Uri.EscapeDataString(warehouseCode)}").ConfigureAwait(false);
+                var response = await _httpClient.GetAsync($"Movement/GetListToLocation?warehouseCode={Uri.EscapeDataString(warehouseCode)}&fromLocation={Uri.EscapeDataString(fromLocation)}").ConfigureAwait(false);
                 var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 if (response.IsSuccessStatusCode)
                 {

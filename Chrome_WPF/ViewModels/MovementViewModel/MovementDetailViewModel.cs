@@ -6,13 +6,20 @@ using Chrome_WPF.Models.MovementDetailDTO;
 using Chrome_WPF.Models.MovementDTO;
 using Chrome_WPF.Models.OrderTypeDTO;
 using Chrome_WPF.Models.PagedResponse;
+using Chrome_WPF.Models.PickListDTO;
 using Chrome_WPF.Models.ProductMasterDTO;
+using Chrome_WPF.Models.PutAwayDTO;
+using Chrome_WPF.Models.ReservationDTO;
+using Chrome_WPF.Models.TransferDTO;
 using Chrome_WPF.Models.WarehouseMasterDTO;
 using Chrome_WPF.Services.MessengerService;
 using Chrome_WPF.Services.MovementDetailService;
 using Chrome_WPF.Services.MovementService;
 using Chrome_WPF.Services.NavigationService;
 using Chrome_WPF.Services.NotificationService;
+using Chrome_WPF.Services.PickListService;
+using Chrome_WPF.Services.PutAwayService;
+using Chrome_WPF.Services.ReservationService;
 using Chrome_WPF.Views.UserControls.Movement;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -33,6 +40,9 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
         private readonly INotificationService _notificationService;
         private readonly INavigationService _navigationService;
         private readonly IMessengerService _messengerService;
+        private readonly IPutAwayService _putAwayService;
+        private readonly IPickListService _pickListService;
+        private readonly IReservationService _reservationService;
 
         private ObservableCollection<MovementDetailResponseDTO> _lstMovementDetails;
         private ObservableCollection<ProductMasterResponseDTO> _lstProducts;
@@ -41,6 +51,9 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
         private ObservableCollection<LocationMasterResponseDTO> _lstFromLocations;
         private ObservableCollection<LocationMasterResponseDTO> _lstToLocations;
         private ObservableCollection<AccountManagementResponseDTO> _lstResponsiblePersons;
+        private ObservableCollection<PutAwayAndDetailResponseDTO> _lstPutAway;
+        private ObservableCollection<ReservationAndDetailResponseDTO> _lstReservations;
+        private ObservableCollection<PickAndDetailResponseDTO> _lstPickList;
         private ObservableCollection<object> _displayPages;
         private MovementRequestDTO _movementRequestDTO;
         private bool _isAddingNew;
@@ -49,7 +62,36 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
         private int _totalPages;
         private int _lastLoadedPage;
         private bool _isSaving;
-
+        private bool _hasPutAway;
+        private bool _hasPicklist;
+        private bool _hasReservation;
+        public bool HasPutAway
+        {
+            get => _hasPutAway;
+            set
+            {
+                _hasPutAway = value;
+                OnPropertyChanged();
+            }
+        }
+        public bool HasReservation
+        {
+            get => _hasReservation;
+            set
+            {
+                _hasReservation = value;
+                OnPropertyChanged();
+            }
+        }
+        public bool HasPicklist
+        {
+            get => _hasPicklist;
+            set
+            {
+                _hasPicklist = value;
+                OnPropertyChanged();
+            }
+        }
         public ObservableCollection<MovementDetailResponseDTO> LstMovementDetails
         {
             get => _lstMovementDetails;
@@ -76,6 +118,33 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
             set
             {
                 _lstOrderTypes = value;
+                OnPropertyChanged();
+            }
+        }
+        public ObservableCollection<ReservationAndDetailResponseDTO> LstReservations
+        {
+            get => _lstReservations;
+            set
+            {
+                _lstReservations = value;
+                OnPropertyChanged();
+            }
+        }
+        public ObservableCollection<PickAndDetailResponseDTO> LstPickList
+        {
+            get => _lstPickList;
+            set
+            {
+                _lstPickList = value;
+                OnPropertyChanged();
+            }
+        }
+        public ObservableCollection<PutAwayAndDetailResponseDTO> LstPutAway
+        {
+            get => _lstPutAway;
+            set
+            {
+                _lstPutAway = value;
                 OnPropertyChanged();
             }
         }
@@ -214,7 +283,10 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
             IMovementDetailService movementDetailService,
             INotificationService notificationService,
             INavigationService navigationService,
-            IMessengerService messengerService,
+            IMessengerService messengerService, 
+            IPutAwayService putAwayService,
+            IPickListService pickListService,
+            IReservationService reservationService,
             MovementResponseDTO movement = null!)
         {
             _movementService = movementService ?? throw new ArgumentNullException(nameof(movementService));
@@ -222,6 +294,9 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
             _messengerService = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
+            _putAwayService = putAwayService ?? throw new ArgumentNullException(nameof(putAwayService));
+            _pickListService = pickListService ?? throw new ArgumentNullException(nameof(pickListService));
+            _reservationService = reservationService ?? throw new ArgumentNullException(nameof(reservationService));
 
             _lstMovementDetails = new ObservableCollection<MovementDetailResponseDTO>();
             _lstProducts = new ObservableCollection<ProductMasterResponseDTO>();
@@ -230,7 +305,11 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
             _lstFromLocations = new ObservableCollection<LocationMasterResponseDTO>();
             _lstToLocations = new ObservableCollection<LocationMasterResponseDTO>();
             _lstResponsiblePersons = new ObservableCollection<AccountManagementResponseDTO>();
+            _lstReservations = new ObservableCollection<ReservationAndDetailResponseDTO>();
+            _lstPutAway = new ObservableCollection<PutAwayAndDetailResponseDTO>();
+            _lstPickList = new ObservableCollection<PickAndDetailResponseDTO>();
             _displayPages = new ObservableCollection<object>();
+
             _isAddingNew = movement == null;
             _currentPage = 1;
             _lastLoadedPage = 0;
@@ -275,7 +354,10 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
                 await Task.WhenAll(
                     LoadOrderTypesAsync(),
                     LoadWarehousesAsync(),
-                    LoadResponsiblePersonsAsync());
+                    LoadResponsiblePersonsAsync(),
+                    CheckReservationExistenceAsync(),
+                    CheckPicklistExistenceAsync(),
+                    CheckPutAwayHasValue());
 
                 if (!IsAddingNew)
                 {
@@ -284,6 +366,18 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
                     await LoadProductsAsync();
                     await LoadMovementDetailsAsync();
                 }
+                if (HasReservation)
+                {
+                    await LoadReservationsAsync();
+                }
+                if (HasPicklist)
+                {
+                    await LoadPickListAsync();
+                }
+                if (HasPutAway)
+                {
+                    await LoadPutAway();
+                }
             }
             catch (Exception ex)
             {
@@ -291,7 +385,141 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
                 NavigateBack();
             }
         }
+        private async Task CheckReservationExistenceAsync()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(MovementRequestDTO.MovementCode))
+                {
+                    HasReservation = false;
+                    return;
+                }
 
+                var reservationResult = await _reservationService.GetReservationsByMovementCodeAsync(MovementRequestDTO.MovementCode);
+                HasReservation = reservationResult.Success && reservationResult.Data != null;
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi kiểm tra đặt chỗ: {ex.Message}", "OK", isError: true);
+                HasReservation = false;
+            }
+        }
+        private async Task LoadReservationsAsync()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(MovementRequestDTO.MovementCode))
+                {
+                    LstReservations.Clear();
+                    HasPicklist = false;
+                    return;
+                }
+
+                var reservationResult = await _reservationService.GetReservationsByMovementCodeAsync(MovementRequestDTO.MovementCode);
+                if (reservationResult.Success && reservationResult.Data != null)
+                {
+                    LstReservations.Clear();
+                    LstReservations.Add(reservationResult.Data);
+                    // Check for picklist existence
+                    await CheckPicklistExistenceAsync();
+                }
+                else
+                {
+                    LstReservations.Clear();
+                    HasPicklist = false;
+                    _notificationService.ShowMessage(reservationResult.Message ?? "Không thể tải danh sách đặt chỗ.", "OK", isError: true);
+                }
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi tải danh sách đặt chỗ: {ex.Message}", "OK", isError: true);
+            }
+        }
+
+        private async Task CheckPicklistExistenceAsync()
+        {
+            try
+            {
+                var picklistResult = await _pickListService.GetPickListContainCodeAsync(MovementRequestDTO.MovementCode);
+                HasPicklist = picklistResult.Success && picklistResult.Data != null;
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi kiểm tra picklist: {ex.Message}", "OK", isError: true);
+                HasPicklist = false;
+            }
+        }
+        private async Task LoadPickListAsync()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(MovementRequestDTO.MovementCode))
+                {
+                    LstPickList.Clear();
+                    HasPicklist = false;
+                    return;
+                }
+
+                var pickListResult = await _pickListService.GetPickListContainCodeAsync(MovementRequestDTO.MovementCode);
+                if (pickListResult.Success && pickListResult.Data != null)
+                {
+                    LstPickList.Clear();
+                    LstPickList.Add(pickListResult.Data);
+                    // Check for picklist existence
+                    await CheckPicklistExistenceAsync();
+                }
+                else
+                {
+                    LstPickList.Clear();
+                    HasPicklist = false;
+                    _notificationService.ShowMessage(pickListResult.Message ?? "Không thể tải danh sách lấy hàng.", "OK", isError: true);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi tải danh sách đặt chỗ: {ex.Message}", "OK", isError: true);
+            }
+        }
+        private async Task CheckPutAwayHasValue()
+        {
+            try
+            {
+                var putAwayResult = await _putAwayService.GetPutAwayContainsCodeAsync(MovementRequestDTO.MovementCode);
+                HasPutAway = putAwayResult.Success && putAwayResult.Data != null;
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi kiểm tra picklist: {ex.Message}", "OK", isError: true);
+                HasPutAway = false;
+            }
+        }
+        private async Task LoadPutAway()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(MovementRequestDTO.MovementCode))
+                {
+                    LstPutAway.Clear();
+                    return;
+                }
+                var result = await _putAwayService.GetPutAwayContainsCodeAsync(MovementRequestDTO.MovementCode);
+                if (result.Success && result.Data != null)
+                {
+                    LstPutAway.Clear();
+                    LstPutAway.Add(result.Data);
+
+                }
+                else
+                {
+                    _notificationService.ShowMessage(result.Message ?? "Không thể tải danh sách cất hàng", "OK", isError: true);
+                }
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi tải danh sách cất hàng: {ex.Message}", "OK", isError: true);
+            }
+        }
         private async Task LoadMovementDetailsAsync()
         {
             try
@@ -448,7 +676,7 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
                     return;
                 }
 
-                var result = await _movementService.GetListToLocation(MovementRequestDTO.WarehouseCode);
+                var result = await _movementService.GetListToLocation(MovementRequestDTO.WarehouseCode,MovementRequestDTO.FromLocation!);
                 if (result.Success && result.Data != null)
                 {
                     LstToLocations.Clear();
@@ -795,13 +1023,15 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
 
                     // Load new locations
                     await LoadFromLocationsAsync();
-                    await LoadToLocationsAsync();
+                    
                 }
                 else if (e.PropertyName == nameof(MovementRequestDTO.FromLocation))
                 {
                     // Clear products when from location changes
                     LstProducts.Clear();
+                    await LoadToLocationsAsync();
                     await LoadProductsAsync();
+
                 }
             }
         }
