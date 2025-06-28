@@ -171,6 +171,7 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <TextBox
                         Grid.Column="0"
@@ -212,6 +213,20 @@
                                 VerticalAlignment="Center"
                                 Foreground="#2D3748"
                                 Text="Tìm kiếm" />
+                        </StackPanel>
+                    </Button>
+                    <Button
+                        Grid.Column="3"
+                        HorizontalAlignment="Right"
+                        Background="Transparent"
+                        Command="{Binding RefreshCommand}"
+                        Style="{StaticResource FilterButtonStyle}"
+                        ToolTip="Làm mới">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon
+                                VerticalAlignment="Center"
+                                Foreground="#4B5EAA"
+                                Kind="Refresh" />
                         </StackPanel>
                     </Button>
                 </Grid>

@@ -4,13 +4,21 @@ using Chrome_WPF.Models.APIResult;
 using Chrome_WPF.Models.InventoryDTO;
 using Chrome_WPF.Models.OrderTypeDTO;
 using Chrome_WPF.Models.PagedResponse;
+using Chrome_WPF.Models.PickListDTO;
 using Chrome_WPF.Models.ProductMasterDTO;
+using Chrome_WPF.Models.PutAwayDTO;
+using Chrome_WPF.Models.ReservationDTO;
+using Chrome_WPF.Models.StockInDTO;
+using Chrome_WPF.Models.StockOutDTO;
 using Chrome_WPF.Models.TransferDetailDTO;
 using Chrome_WPF.Models.TransferDTO;
 using Chrome_WPF.Models.WarehouseMasterDTO;
 using Chrome_WPF.Services.MessengerService;
 using Chrome_WPF.Services.NavigationService;
 using Chrome_WPF.Services.NotificationService;
+using Chrome_WPF.Services.PickListService;
+using Chrome_WPF.Services.PutAwayService;
+using Chrome_WPF.Services.ReservationService;
 using Chrome_WPF.Services.TransferDetailService;
 using Chrome_WPF.Services.TransferService;
 using Chrome_WPF.Views.UserControls.Transfer;
@@ -32,6 +40,9 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
         private readonly INotificationService _notificationService;
         private readonly INavigationService _navigationService;
         private readonly IMessengerService _messengerService;
+        private readonly IPutAwayService _putAwayService;
+        private readonly IPickListService _pickListService;
+        private readonly IReservationService _reservationService;
 
         private ObservableCollection<TransferDetailResponseDTO> _lstTransferDetails;
         private ObservableCollection<InventorySummaryDTO> _lstProducts;
@@ -40,6 +51,9 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
         private ObservableCollection<WarehouseMasterResponseDTO> _lstToWarehouses; // Thêm mới
         private ObservableCollection<AccountManagementResponseDTO> _lstFromResponsiblePersons;
         private ObservableCollection<AccountManagementResponseDTO> _lstToResponsiblePersons;
+        private ObservableCollection<PutAwayAndDetailResponseDTO> _lstPutAway;
+        private ObservableCollection<ReservationAndDetailResponseDTO> _lstReservations;
+        private ObservableCollection<PickAndDetailResponseDTO> _lstPickList;
         private ObservableCollection<object> _displayPages;
         private TransferRequestDTO _transferRequestDTO;
         private bool _isAddingNew;
@@ -47,8 +61,37 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
         private int _pageSize = 10;
         private int _totalPages;
         private int _lastLoadedPage;
-        private bool _isSaving;
-
+        private bool _isSaving; 
+        private bool _hasPutAway;
+        private bool _hasPicklist;
+        private bool _hasReservation;
+        public bool HasPutAway
+        {
+            get => _hasPutAway;
+            set
+            {
+                _hasPutAway = value;
+                OnPropertyChanged();
+            }
+        }
+        public bool HasReservation
+        {
+            get => _hasReservation;
+            set
+            {
+                _hasReservation = value;
+                OnPropertyChanged();
+            }
+        }
+        public bool HasPicklist
+        {
+            get => _hasPicklist;
+            set
+            {
+                _hasPicklist = value;
+                OnPropertyChanged();
+            }
+        }
         public ObservableCollection<TransferDetailResponseDTO> LstTransferDetails
         {
             get => _lstTransferDetails;
@@ -115,6 +158,33 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
             set
             {
                 _lstToResponsiblePersons = value;
+                OnPropertyChanged();
+            }
+        }
+        public ObservableCollection<ReservationAndDetailResponseDTO> LstReservations
+        {
+            get => _lstReservations;
+            set
+            {
+                _lstReservations = value;
+                OnPropertyChanged();
+            }
+        }
+        public ObservableCollection<PickAndDetailResponseDTO> LstPickList
+        {
+            get => _lstPickList;
+            set
+            {
+                _lstPickList = value;
+                OnPropertyChanged();
+            }
+        }
+        public ObservableCollection<PutAwayAndDetailResponseDTO> LstPutAway
+        {
+            get => _lstPutAway;
+            set
+            {
+                _lstPutAway = value;
                 OnPropertyChanged();
             }
         }
@@ -214,6 +284,9 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
             INotificationService notificationService,
             INavigationService navigationService,
             IMessengerService messengerService,
+            IPutAwayService putAwayService,
+            IPickListService pickListService,
+            IReservationService reservationService,
             TransferResponseDTO transfer = null!)
         {
             _transferService = transferService ?? throw new ArgumentNullException(nameof(transferService));
@@ -221,6 +294,9 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
             _messengerService = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
+            _putAwayService = putAwayService ?? throw new ArgumentNullException(nameof(putAwayService));
+            _pickListService = pickListService ?? throw new ArgumentNullException(nameof(pickListService));
+            _reservationService = reservationService ?? throw new ArgumentNullException(nameof(reservationService));
 
             _lstTransferDetails = new ObservableCollection<TransferDetailResponseDTO>();
             _lstProducts = new ObservableCollection<InventorySummaryDTO>();
@@ -229,11 +305,19 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
             _lstToWarehouses = new ObservableCollection<WarehouseMasterResponseDTO>(); // Khởi tạo mới
             _lstFromResponsiblePersons = new ObservableCollection<AccountManagementResponseDTO>();
             _lstToResponsiblePersons = new ObservableCollection<AccountManagementResponseDTO>();
+            _lstReservations = new ObservableCollection<ReservationAndDetailResponseDTO>();
+            _lstPutAway = new ObservableCollection<PutAwayAndDetailResponseDTO>();
+            _lstPickList = new ObservableCollection<PickAndDetailResponseDTO>();
             _displayPages = new ObservableCollection<object>();
+
             _isAddingNew = transfer == null;
             _currentPage = 1;
             _lastLoadedPage = 0;
             _isSaving = false;
+            _hasPicklist = false;
+            _hasReservation = false;
+            _hasPutAway = false;
+
             _transferRequestDTO = transfer == null ? new TransferRequestDTO() : new TransferRequestDTO
             {
                 TransferCode = transfer.TransferCode,
@@ -276,12 +360,27 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
                     LoadWarehousesAsync(),
                     LoadFromResponsiblePersonsAsync(),
                     LoadToResponsiblePersonsAsync(),
-                    LoadProductsAsync());
+                    LoadProductsAsync(),
+                    CheckReservationExistenceAsync(),
+                    CheckPicklistExistenceAsync(),
+                    CheckPutAwayHasValue());
 
                 if (!IsAddingNew)
                 {
                     await LoadTransferDetailsAsync();
                 }
+                if(HasReservation)
+                {
+                    await LoadReservationsAsync();
+                }    
+                if(HasPicklist)
+                {
+                    await LoadPickListAsync();
+                }    
+                if(HasPutAway)
+                {
+                    await LoadPutAway();
+                }    
 
                 
             }
@@ -291,7 +390,141 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
                 NavigateBack();
             }
         }
+        private async Task CheckReservationExistenceAsync()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TransferRequestDTO.TransferCode))
+                {
+                    HasReservation = false;
+                    return;
+                }
 
+                var reservationResult = await _reservationService.GetReservationsByTransferCodeAsync(TransferRequestDTO.TransferCode);
+                HasReservation = reservationResult.Success && reservationResult.Data != null;
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi kiểm tra đặt chỗ: {ex.Message}", "OK", isError: true);
+                HasReservation = false;
+            }
+        }
+        private async Task LoadReservationsAsync()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TransferRequestDTO.TransferCode))
+                {
+                    LstReservations.Clear();
+                    HasPicklist = false;
+                    return;
+                }
+
+                var reservationResult = await _reservationService.GetReservationsByTransferCodeAsync(TransferRequestDTO.TransferCode);
+                if (reservationResult.Success && reservationResult.Data != null)
+                {
+                    LstReservations.Clear();
+                    LstReservations.Add(reservationResult.Data);
+                    // Check for picklist existence
+                    await CheckPicklistExistenceAsync();
+                }
+                else
+                {
+                    LstReservations.Clear();
+                    HasPicklist = false;
+                    _notificationService.ShowMessage(reservationResult.Message ?? "Không thể tải danh sách đặt chỗ.", "OK", isError: true);
+                }
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi tải danh sách đặt chỗ: {ex.Message}", "OK", isError: true);
+            }
+        }
+
+        private async Task CheckPicklistExistenceAsync()
+        {
+            try
+            {
+                var picklistResult = await _pickListService.GetPickListContainCodeAsync(TransferRequestDTO.TransferCode);
+                HasPicklist = picklistResult.Success && picklistResult.Data != null;
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi kiểm tra picklist: {ex.Message}", "OK", isError: true);
+                HasPicklist = false;
+            }
+        }
+        private async Task LoadPickListAsync()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TransferRequestDTO.TransferCode))
+                {
+                    LstPickList.Clear();
+                    HasPicklist = false;
+                    return;
+                }
+
+                var pickListResult = await _pickListService.GetPickListContainCodeAsync(TransferRequestDTO.TransferCode);
+                if (pickListResult.Success && pickListResult.Data != null)
+                {
+                    LstPickList.Clear();
+                    LstPickList.Add(pickListResult.Data);
+                    // Check for picklist existence
+                    await CheckPicklistExistenceAsync();
+                }
+                else
+                {
+                    LstPickList.Clear();
+                    HasPicklist = false;
+                    _notificationService.ShowMessage(pickListResult.Message ?? "Không thể tải danh sách lấy hàng.", "OK", isError: true);
+                }
+             
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi tải danh sách đặt chỗ: {ex.Message}", "OK", isError: true);
+            }
+        }
+        private async Task CheckPutAwayHasValue()
+        {
+            try
+            {
+                var putAwayResult = await _putAwayService.GetPutAwayContainsCodeAsync(TransferRequestDTO.TransferCode);
+                HasPutAway = putAwayResult.Success && putAwayResult.Data != null;
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi kiểm tra picklist: {ex.Message}", "OK", isError: true);
+                HasPutAway = false;
+            }
+        }
+        private async Task LoadPutAway()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TransferRequestDTO.TransferCode))
+                {
+                    LstPutAway.Clear();
+                    return;
+                }
+                var result = await _putAwayService.GetPutAwayContainsCodeAsync(TransferRequestDTO.TransferCode);
+                if (result.Success && result.Data != null)
+                {
+                    LstPutAway.Clear();
+                    LstPutAway.Add(result.Data);
+
+                }
+                else
+                {
+                    _notificationService.ShowMessage(result.Message ?? "Không thể tải danh sách cất hàng", "OK", isError: true);
+                }
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi tải danh sách cất hàng: {ex.Message}", "OK", isError: true);
+            }
+        }
         private async Task LoadWarehousesAsync()
         {
             try

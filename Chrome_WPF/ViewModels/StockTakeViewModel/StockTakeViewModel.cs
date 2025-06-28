@@ -182,7 +182,7 @@ namespace Chrome_WPF.ViewModels.StockTakeViewModel
 
             SearchCommand = new RelayCommand(async _ => await SearchStockTakesAsync());
             RefreshCommand = new RelayCommand(async _ => await LoadStockTakesAsync(true));
-            AddCommand = new RelayCommand(_ => OpenEditor(null));
+            AddCommand = new RelayCommand(_ => OpenEditor(null!));
             DeleteCommand = new RelayCommand(async stockTake => await DeleteStockTakeAsync((StockTakeResponseDTO)stockTake));
             PreviousPageCommand = new RelayCommand(_ => PreviousPage());
             NextPageCommand = new RelayCommand(_ => NextPage());

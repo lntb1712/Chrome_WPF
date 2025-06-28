@@ -17,6 +17,7 @@
         <converters:PageEqualityConverter x:Key="PageEqualityConverter" />
         <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
         <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <converters:SubtractTenConverter x:Key="SubtractTenConverter" />
 
         <!--  PageItemTemplateSelector for pagination  -->
         <helper:PageItemTemplateSelector x:Key="PageItemTemplateSelector">
@@ -291,7 +292,7 @@
                     <DataTemplate>
                         <Border BorderBrush="#DDD" BorderThickness="1">
                             <DataGrid
-                                Width="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=ActualWidth}"
+                                Width="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=ActualWidth, Converter={StaticResource SubtractTenConverter}}"
                                 HorizontalAlignment="Stretch"
                                 AutoGenerateColumns="False"
                                 CanUserAddRows="False"

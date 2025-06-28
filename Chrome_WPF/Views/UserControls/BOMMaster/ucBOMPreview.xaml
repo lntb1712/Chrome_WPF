@@ -17,6 +17,7 @@
         <converters:TreeViewLevelConverter x:Key="TreeViewLevelConverter" />
         <converters:TreeViewIndentConverter x:Key="TreeViewIndentConverter" />
         <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <converters:SubtractBOMConverter x:Key="SubtractBOMConverter" />
 
         <!--  TreeViewItem Style  -->
         <Style TargetType="TreeViewItem">
@@ -62,11 +63,11 @@
         <Style x:Key="ColumnHeaderStyle" TargetType="TextBlock">
             <Setter Property="FontSize" Value="14" />
             <Setter Property="FontWeight" Value="Medium" />
-            <Setter Property="Foreground" Value="#FFFFFF" />
+            <Setter Property="Foreground" Value="Black" />
             <Setter Property="Padding" Value="12,8" />
             <Setter Property="TextAlignment" Value="Left" />
             <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="Background" Value="#0288D1" />
+            <Setter Property="Background" Value="LightGray" />
         </Style>
 
         <!--  Enhanced Back Button Style  -->
@@ -111,7 +112,6 @@
             <Setter Property="Width" Value="28" />
             <Setter Property="Height" Value="28" />
             <Setter Property="Margin" Value="4,0" />
-
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ToggleButton">
@@ -191,6 +191,7 @@
 
         <!--  TreeView  -->
         <materialDesign:Card
+            x:Name="card"
             Grid.Row="1"
             Margin="16"
             Background="White"
@@ -198,15 +199,18 @@
             UniformCornerRadius="8">
             <StackPanel>
                 <!--  Header Row  -->
-                <Grid x:Name="HeaderGrid" Background="#0288D1">
+                <Grid
+                    x:Name="HeaderGrid"
+                    Width="{Binding ElementName=card, Path=ActualWidth, Converter={StaticResource SubtractBOMConverter}}"
+                    HorizontalAlignment="Stretch"
+                    Background="LightGray"
+                    Grid.IsSharedSizeScope="True">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="28" />
-                        <!--  Matches ToggleButton width  -->
                         <ColumnDefinition Width="2*" />
                         <ColumnDefinition Width="2*" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="100" />
-                        <!--  Fixed width for better alignment  -->
                     </Grid.ColumnDefinitions>
 
                     <TextBlock
@@ -223,7 +227,6 @@
                         Text="Phiên bản" />
                     <TextBlock
                         Grid.Column="4"
-                        HorizontalAlignment="Center"
                         Style="{StaticResource ColumnHeaderStyle}"
                         Text="Số lượng" />
                 </Grid>
@@ -248,49 +251,48 @@
                                 BorderBrush="#E0E0E0"
                                 BorderThickness="0,0,0,1"
                                 CornerRadius="4">
-                                <Grid Width="{Binding ElementName=HeaderGrid, Path=ActualWidth}" HorizontalAlignment="Stretch">
+                                <Grid Width="{Binding ElementName=card, Path=ActualWidth, Converter={StaticResource SubtractBOMConverter}}" HorizontalAlignment="Stretch">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="28" />
-                                        <!--  Matches ToggleButton width  -->
                                         <ColumnDefinition Width="2*" />
                                         <ColumnDefinition Width="2*" />
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="100" />
-                                        <!--  Matches header  -->
                                     </Grid.ColumnDefinitions>
 
-                                    <!--  ToggleButton indented to align with ComponentCode  -->
+                                    <!--  ToggleButton  -->
                                     <ToggleButton
                                         Grid.Column="0"
                                         Margin="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Converter={StaticResource TreeViewIndentConverter}}"
+                                        HorizontalAlignment="Left"
                                         IsChecked="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=IsExpanded}"
                                         Style="{StaticResource ExpanderToggleStyle}"
                                         Visibility="{Binding Children, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=HasItems}" />
 
-                                    <!--  ComponentCode column: Indented with ToggleButton  -->
-                                    <Grid Grid.Column="1">
-                                        <TextBlock
-                                            Margin="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Converter={StaticResource TreeViewIndentConverter}}"
-                                            Padding="12,8"
-                                            VerticalAlignment="Center"
-                                            Text="{Binding Data.ComponentCode}" />
-                                    </Grid>
+                                    <!--  ComponentCode column with indentation  -->
+                                    <TextBlock
+                                        Grid.Column="1"
+                                        Padding="12,8"
+                                        VerticalAlignment="Center"
+                                        Text="{Binding Data.ComponentCode}" />
 
-                                    <!--  Other columns: No indentation, aligned with header  -->
+                                    <!--  Other columns without indentation  -->
                                     <TextBlock
                                         Grid.Column="2"
                                         Padding="12,8"
+                                        HorizontalAlignment="Left"
                                         VerticalAlignment="Center"
                                         Text="{Binding Data.ComponentName}" />
                                     <TextBlock
                                         Grid.Column="3"
                                         Padding="12,8"
+                                        HorizontalAlignment="Left"
                                         VerticalAlignment="Center"
                                         Text="{Binding Data.BOMVersion}" />
                                     <TextBlock
                                         Grid.Column="4"
                                         Padding="12,8"
-                                        HorizontalAlignment="Center"
+                                        HorizontalAlignment="Left"
                                         VerticalAlignment="Center"
                                         Text="{Binding Data.TotalQuantity}" />
                                 </Grid>

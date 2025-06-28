@@ -486,59 +486,59 @@ namespace Chrome_WPF.Services.PickListService
             }
         }
 
-        public async Task<ApiResult<PickListResponseDTO>> GetPickListByStockOutCodeAsync(string stockOutCode)
+        public async Task<ApiResult<PickAndDetailResponseDTO>> GetPickListContainCodeAsync(string orderCode)
         {
-            if (string.IsNullOrEmpty(stockOutCode))
+            if (string.IsNullOrEmpty(orderCode))
             {
-                return new ApiResult<PickListResponseDTO>("Mã phiếu lấy hàng không được để trống", false);
+                return new ApiResult<PickAndDetailResponseDTO>("Mã phiếu lấy hàng không được để trống", false);
             }
             try
             {
-                var response = await _httpClient.GetAsync($"PickList/GetPickListByStockOutCodeAsync?stockOutCode={Uri.EscapeDataString(stockOutCode)}").ConfigureAwait(false);
+                var response = await _httpClient.GetAsync($"PickList/GetPickListContainCodeAsync?orderCode={Uri.EscapeDataString(orderCode)}").ConfigureAwait(false);
                 var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 if (response.IsSuccessStatusCode)
                 {
-                    var result = JsonConvert.DeserializeObject<ApiResult<PickListResponseDTO>>(jsonResponse);
+                    var result = JsonConvert.DeserializeObject<ApiResult<PickAndDetailResponseDTO>>(jsonResponse);
                     if (result == null || !result.Success)
                     {
-                        return new ApiResult<PickListResponseDTO>(result?.Message ?? "Không thể lấy phiếu lấy hàng", false);
+                        return new ApiResult<PickAndDetailResponseDTO>(result?.Message ?? "Không thể lấy phiếu lấy hàng", false);
                     }
                     return result;
                 }
-                var errorResult = JsonConvert.DeserializeObject<ApiResult<PickListResponseDTO>>(jsonResponse);
+                var errorResult = JsonConvert.DeserializeObject<ApiResult<PickAndDetailResponseDTO>>(jsonResponse);
                 var errorMessage = errorResult?.Message ?? "Không thể lấy phiếu lấy hàng";
                 if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                 {
-                    return new ApiResult<PickListResponseDTO>((string)errorMessage, false);
+                    return new ApiResult<PickAndDetailResponseDTO>((string)errorMessage, false);
                 }
                 else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
                 {
-                    return new ApiResult<PickListResponseDTO>((string)errorMessage, false);
+                    return new ApiResult<PickAndDetailResponseDTO>((string)errorMessage, false);
                 }
                 else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
-                    return new ApiResult<PickListResponseDTO>((string)errorMessage, false);
+                    return new ApiResult<PickAndDetailResponseDTO>((string)errorMessage, false);
                 }
                 else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
                 {
-                    return new ApiResult<PickListResponseDTO>((string)errorMessage, false);
+                    return new ApiResult<PickAndDetailResponseDTO>((string)errorMessage, false);
                 }
                 else
                 {
-                    return new ApiResult<PickListResponseDTO>((string)errorMessage, false);
+                    return new ApiResult<PickAndDetailResponseDTO>((string)errorMessage, false);
                 }
             }
             catch (HttpRequestException ex)
             {
-                return new ApiResult<PickListResponseDTO>($"Lỗi mạng: {ex.Message}", false);
+                return new ApiResult<PickAndDetailResponseDTO>($"Lỗi mạng: {ex.Message}", false);
             }
             catch (JsonException ex)
             {
-                return new ApiResult<PickListResponseDTO>($"Lỗi phân tích phản hồi: {ex.Message}", false);
+                return new ApiResult<PickAndDetailResponseDTO>($"Lỗi phân tích phản hồi: {ex.Message}", false);
             }
             catch (Exception ex)
             {
-                return new ApiResult<PickListResponseDTO>($"Lỗi không xác định: {ex.Message}", false);
+                return new ApiResult<PickAndDetailResponseDTO>($"Lỗi không xác định: {ex.Message}", false);
             }
         }
     }

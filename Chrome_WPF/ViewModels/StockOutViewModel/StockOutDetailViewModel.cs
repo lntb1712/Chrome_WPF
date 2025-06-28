@@ -44,7 +44,8 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
         private ObservableCollection<WarehouseMasterResponseDTO> _lstWarehouses;
         private ObservableCollection<CustomerMasterResponseDTO> _lstCustomers;
         private ObservableCollection<AccountManagementResponseDTO> _lstResponsiblePersons;
-        private ObservableCollection<ReservationResponseDTO> _lstReservations;
+        private ObservableCollection<ReservationAndDetailResponseDTO> _lstReservations;
+        private ObservableCollection<PickAndDetailResponseDTO> _lstPickList;
         private ObservableCollection<object> _displayPages;
         private StockOutRequestDTO _stockOutRequestDTO;
         private bool _isAddingNew;
@@ -53,7 +54,21 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
         private int _totalPages;
         private int _lastLoadedPage;
         private bool _isSaving;
-        private bool _hasPicklist; // New property to track picklist existence
+        private bool _hasPicklist; 
+        private bool _hasReservation;
+
+        public bool HasReservation
+        {
+            get => _hasReservation;
+            set
+            {
+                _hasReservation = value;
+                OnPropertyChanged();
+                ((RelayCommand)CreateReservationCommand)?.RaiseCanExecuteChanged();
+                ((RelayCommand)CreatePicklistCommand)?.RaiseCanExecuteChanged();
+                ((RelayCommand)ConfirmQuantityCommand)?.RaiseCanExecuteChanged();
+            }
+        }
 
         public ObservableCollection<StockOutDetailResponseDTO> LstStockOutDetails
         {
@@ -71,6 +86,15 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             set
             {
                 _lstProducts = value;
+                OnPropertyChanged();
+            }
+        }
+        public ObservableCollection<PickAndDetailResponseDTO> LstPickList
+        {
+            get => _lstPickList;
+            set
+            {
+                _lstPickList = value;
                 OnPropertyChanged();
             }
         }
@@ -115,7 +139,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             }
         }
 
-        public ObservableCollection<ReservationResponseDTO> LstReservations
+        public ObservableCollection<ReservationAndDetailResponseDTO> LstReservations
         {
             get => _lstReservations;
             set
@@ -253,13 +277,15 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             _lstWarehouses = new ObservableCollection<WarehouseMasterResponseDTO>();
             _lstCustomers = new ObservableCollection<CustomerMasterResponseDTO>();
             _lstResponsiblePersons = new ObservableCollection<AccountManagementResponseDTO>();
-            _lstReservations = new ObservableCollection<ReservationResponseDTO>();
+            _lstReservations = new ObservableCollection<ReservationAndDetailResponseDTO>();
+            _lstPickList = new ObservableCollection<PickAndDetailResponseDTO>();
             _displayPages = new ObservableCollection<object>();
             _isAddingNew = stockOut == null;
             _currentPage = 1;
             _lastLoadedPage = 0;
             _isSaving = false;
             _hasPicklist = false;
+            _hasReservation = false;
             _stockOutRequestDTO = stockOut == null ? new StockOutRequestDTO() : new StockOutRequestDTO
             {
                 StockOutCode = stockOut.StockOutCode,
@@ -303,17 +329,78 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                     LoadWarehousesAsync(),
                     LoadCustomersAsync(),
                     LoadResponsiblePersonsAsync(),
-                    LoadReservationsAsync());
+                    CheckReservationExistenceAsync());
 
                 if (!IsAddingNew)
                 {
                     await LoadStockOutDetailsAsync();
                 }
+                if( HasReservation)
+                {
+                    await LoadReservationsAsync();
+                }    
+                if (HasPicklist)
+                {
+                    await LoadPickListAsync();
+                }    
             }
             catch (Exception ex)
             {
                 _notificationService.ShowMessage($"Khởi tạo thất bại: {ex.Message}", "OK", isError: true);
                 NavigateBack();
+            }
+        }
+        private async Task CheckReservationExistenceAsync()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(StockOutRequestDTO.StockOutCode))
+                {
+                    HasReservation = false;
+                    return;
+                }
+
+                var reservationResult = await _reservationService.GetReservationsByStockOutCodeAsync(StockOutRequestDTO.StockOutCode);
+                HasReservation = reservationResult.Success && reservationResult.Data != null;
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi kiểm tra đặt chỗ: {ex.Message}", "OK", isError: true);
+                HasReservation = false;
+            }
+        }
+        private async Task LoadPickListAsync()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(StockOutRequestDTO.StockOutCode))
+                {
+                    LstPickList.Clear();
+                    HasPicklist = false;
+                    return;
+                }
+
+                var pickListResult = await _pickListService.GetPickListContainCodeAsync(StockOutRequestDTO.StockOutCode);
+                if (pickListResult.Success && pickListResult.Data != null)
+                {
+                    LstPickList.Clear();
+                    LstPickList.Add(pickListResult.Data);
+                    // Check for picklist existence
+                    await CheckPicklistExistenceAsync();
+                }
+                else
+                {
+                    LstPickList.Clear();
+                    HasPicklist = false;
+                    _notificationService.ShowMessage(pickListResult.Message ?? "Không thể tải danh sách lấy hàng.", "OK", isError: true);
+                }
+               ((RelayCommand)CreateReservationCommand)?.RaiseCanExecuteChanged();
+                ((RelayCommand)CreatePicklistCommand)?.RaiseCanExecuteChanged();
+                ((RelayCommand)ConfirmQuantityCommand)?.RaiseCanExecuteChanged();
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi tải danh sách đặt chỗ: {ex.Message}", "OK", isError: true);
             }
         }
 
@@ -356,7 +443,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
         {
             try
             {
-                var picklistResult = await _pickListService.GetPickListByStockOutCodeAsync(StockOutRequestDTO.StockOutCode);
+                var picklistResult = await _pickListService.GetPickListContainCodeAsync(StockOutRequestDTO.StockOutCode);
                 HasPicklist = picklistResult.Success && picklistResult.Data != null;
             }
             catch (Exception ex)

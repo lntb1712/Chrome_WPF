@@ -16,7 +16,7 @@
         <converters:PageEqualityConverter x:Key="PageEqualityConverter" />
         <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <converters:StringToDateTimeConverter x:Key="StringToDateTimeConverter" />
-
+        <converters:SubtractTenConverter x:Key="SubtractTenConverter" />
         <!--  Styles  -->
         <SolidColorBrush x:Key="BorderNormalColor" Color="#E0E0E0" />
         <Style x:Key="ModernDataGridStyle" TargetType="{x:Type DataGrid}">
@@ -559,6 +559,357 @@
                                         Kind="ArrowRight" />
                                 </Button>
                             </StackPanel>
+                        </Grid>
+                    </TabItem>
+                    <TabItem Header="Đặt chỗ">
+                        <TabItem.Style>
+                            <Style BasedOn="{StaticResource CustomTabItemStyle}" TargetType="TabItem">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasReservation}" Value="true">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+
+                                </Style.Triggers>
+                            </Style>
+                        </TabItem.Style>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <DataGrid
+                                x:Name="ReservationDataGrid"
+                                Grid.Row="0"
+                                Margin="0,8,0,16"
+                                AutoGenerateColumns="False"
+                                CanUserAddRows="False"
+                                IsReadOnly="True"
+                                ItemsSource="{Binding LstReservations, UpdateSourceTrigger=PropertyChanged}"
+                                RowDetailsVisibilityMode="Visible"
+                                Style="{StaticResource ModernDataGridStyle}">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn
+                                        Width="1.5*"
+                                        Binding="{Binding ReservationCode}"
+                                        Header="Mã đặt chỗ" />
+                                    <DataGridTextColumn
+                                        Width="2*"
+                                        Binding="{Binding WarehouseCode}"
+                                        Header="Mã kho" />
+                                    <DataGridTextColumn
+                                        Width="2*"
+                                        Binding="{Binding OrderTypeCode}"
+                                        Header="Loại đơn hàng" />
+                                    <DataGridTextColumn
+                                        Width="2*"
+                                        Binding="{Binding OrderId}"
+                                        Header="Mã đơn hàng" />
+                                    <DataGridTextColumn
+                                        Width="1.5*"
+                                        Binding="{Binding ReservationDate}"
+                                        Header="Ngày đặt chỗ" />
+                                    <DataGridTextColumn
+                                        Width="1.5*"
+                                        Binding="{Binding StatusName}"
+                                        Header="Trạng thái">
+                                        <DataGridTextColumn.CellStyle>
+                                            <Style BasedOn="{StaticResource {x:Type DataGridCell}}" TargetType="DataGridCell">
+                                                <Setter Property="Padding" Value="8" />
+                                                <Setter Property="Foreground" Value="Black" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding StatusId}" Value="1">
+                                                        <Setter Property="Background" Value="#FF9999" />
+                                                        <Setter Property="Foreground" Value="White" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding StatusId}" Value="2">
+                                                        <Setter Property="Background" Value="#FFFF99" />
+                                                        <Setter Property="Foreground" Value="Black" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding StatusId}" Value="3">
+                                                        <Setter Property="Background" Value="#99FF99" />
+                                                        <Setter Property="Foreground" Value="Black" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </DataGridTextColumn.CellStyle>
+                                    </DataGridTextColumn>
+                                </DataGrid.Columns>
+                                <DataGrid.RowDetailsTemplate>
+                                    <DataTemplate>
+                                        <Border BorderBrush="#DDD" BorderThickness="1">
+                                            <DataGrid
+                                                Width="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=ActualWidth, Converter={StaticResource SubtractTenConverter}}"
+                                                HorizontalAlignment="Stretch"
+                                                AutoGenerateColumns="False"
+                                                CanUserAddRows="False"
+                                                ItemsSource="{Binding reservationDetailResponseDTOs}"
+                                                Style="{StaticResource ModernDataGridStyle}"
+                                                VirtualizingPanel.IsVirtualizing="True">
+                                                <DataGrid.Columns>
+
+                                                    <DataGridTextColumn
+                                                        Width="*"
+                                                        Binding="{Binding ProductCode}"
+                                                        Header="Mã sản phẩm" />
+                                                    <DataGridTextColumn
+                                                        Width="*"
+                                                        Binding="{Binding ProductName}"
+                                                        Header="Tên sản phẩm" />
+                                                    <DataGridTextColumn
+                                                        Width="*"
+                                                        Binding="{Binding LocationCode}"
+                                                        Header="Mã vị trí" />
+                                                    <DataGridTextColumn
+                                                        Width="*"
+                                                        Binding="{Binding LocationName}"
+                                                        Header="Tên vị trí" />
+                                                    <DataGridTextColumn
+                                                        Width="1.5*"
+                                                        Binding="{Binding Lotno}"
+                                                        Header="Số lot" />
+                                                    <DataGridTextColumn
+                                                        Width="*"
+                                                        Binding="{Binding QuantityReserved}"
+                                                        Header="Số lượng đặt chỗ" />
+                                                </DataGrid.Columns>
+                                            </DataGrid>
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGrid.RowDetailsTemplate>
+                            </DataGrid>
+
+                        </Grid>
+                    </TabItem>
+                    <TabItem Header="Lấy hàng">
+                        <TabItem.Style>
+                            <Style BasedOn="{StaticResource CustomTabItemStyle}" TargetType="TabItem">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasPicklist}" Value="true">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+
+                                </Style.Triggers>
+                            </Style>
+                        </TabItem.Style>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <DataGrid
+                                x:Name="PickListDataGrid"
+                                Grid.Row="0"
+                                Margin="0,8,0,16"
+                                AutoGenerateColumns="False"
+                                CanUserAddRows="False"
+                                IsReadOnly="True"
+                                ItemsSource="{Binding LstPickList, UpdateSourceTrigger=PropertyChanged}"
+                                RowDetailsVisibilityMode="Visible"
+                                Style="{StaticResource ModernDataGridStyle}">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn
+                                        Width="1.5*"
+                                        Binding="{Binding PickNo}"
+                                        Header="Mã phiếu lấy hàng" />
+                                    <DataGridTextColumn
+                                        Width="2*"
+                                        Binding="{Binding WarehouseCode}"
+                                        Header="Mã kho" />
+                                    <DataGridTextColumn
+                                        Width="2*"
+                                        Binding="{Binding ReservationCode}"
+                                        Header="Mã đặt chỗ" />
+                                    <DataGridTextColumn
+                                        Width="2*"
+                                        Binding="{Binding PickDate}"
+                                        Header="Ngày lấy hàng" />
+                                    <DataGridTextColumn
+                                        Width="1.5*"
+                                        Binding="{Binding StatusName}"
+                                        Header="Trạng thái">
+                                        <DataGridTextColumn.CellStyle>
+                                            <Style BasedOn="{StaticResource {x:Type DataGridCell}}" TargetType="DataGridCell">
+                                                <Setter Property="Padding" Value="8" />
+                                                <Setter Property="Foreground" Value="Black" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding StatusId}" Value="1">
+                                                        <Setter Property="Background" Value="#FF9999" />
+                                                        <Setter Property="Foreground" Value="White" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding StatusId}" Value="2">
+                                                        <Setter Property="Background" Value="#FFFF99" />
+                                                        <Setter Property="Foreground" Value="Black" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding StatusId}" Value="3">
+                                                        <Setter Property="Background" Value="#99FF99" />
+                                                        <Setter Property="Foreground" Value="Black" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </DataGridTextColumn.CellStyle>
+                                    </DataGridTextColumn>
+                                </DataGrid.Columns>
+                                <DataGrid.RowDetailsTemplate>
+                                    <DataTemplate>
+                                        <Border BorderBrush="#DDD" BorderThickness="1">
+                                            <DataGrid
+                                                Width="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=ActualWidth, Converter={StaticResource SubtractTenConverter}}"
+                                                HorizontalAlignment="Stretch"
+                                                AutoGenerateColumns="False"
+                                                CanUserAddRows="False"
+                                                ItemsSource="{Binding pickListDetailResponseDTOs}"
+                                                Style="{StaticResource ModernDataGridStyle}"
+                                                VirtualizingPanel.IsVirtualizing="True">
+                                                <DataGrid.Columns>
+                                                    <DataGridTextColumn
+                                                        Width="*"
+                                                        Binding="{Binding ProductCode}"
+                                                        Header="Mã sản phẩm" />
+                                                    <DataGridTextColumn
+                                                        Width="*"
+                                                        Binding="{Binding ProductName}"
+                                                        Header="Tên sản phẩm" />
+                                                    <DataGridTextColumn
+                                                        Width="*"
+                                                        Binding="{Binding LocationCode}"
+                                                        Header="Mã vị trí" />
+                                                    <DataGridTextColumn
+                                                        Width="*"
+                                                        Binding="{Binding LocationName}"
+                                                        Header="Tên vị trí" />
+                                                    <DataGridTextColumn
+                                                        Width="*"
+                                                        Binding="{Binding LotNo}"
+                                                        Header="Số lot" />
+                                                    <DataGridTextColumn
+                                                        Width="*"
+                                                        Binding="{Binding Demand}"
+                                                        Header="Số lượng yêu cầu" />
+                                                    <DataGridTextColumn
+                                                        Width="*"
+                                                        Binding="{Binding Quantity}"
+                                                        Header="Số lượng thực tế" />
+                                                </DataGrid.Columns>
+                                            </DataGrid>
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGrid.RowDetailsTemplate>
+                            </DataGrid>
+
+                        </Grid>
+                    </TabItem>
+                    <TabItem Header="Cất hàng">
+                        <TabItem.Style>
+                            <Style BasedOn="{StaticResource CustomTabItemStyle}" TargetType="TabItem">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasPutAway}" Value="true">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+
+                                </Style.Triggers>
+                            </Style>
+                        </TabItem.Style>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <!--  Parent DataGrid  -->
+                            <DataGrid
+                                x:Name="ParentDataGrid"
+                                Grid.Row="0"
+                                AutoGenerateColumns="False"
+                                CanUserAddRows="False"
+                                IsReadOnly="True"
+                                ItemsSource="{Binding LstPutAway, UpdateSourceTrigger=PropertyChanged}"
+                                RowDetailsVisibilityMode="Visible"
+                                SelectedItem="{Binding SelectedPutAway, UpdateSourceTrigger=PropertyChanged}"
+                                SelectionMode="Single"
+                                Style="{StaticResource ModernDataGridStyle}"
+                                VirtualizingPanel.IsVirtualizing="True"
+                                VirtualizingPanel.VirtualizationMode="Recycling">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn
+                                        Width="1.5*"
+                                        Binding="{Binding PutAwayCode}"
+                                        Header="Mã phiếu cất hàng" />
+                                    <DataGridTextColumn
+                                        Width="2*"
+                                        Binding="{Binding LocationCode}"
+                                        Header="Mã vị trí" />
+                                    <DataGridTextColumn
+                                        Width="2*"
+                                        Binding="{Binding OrderTypeCode}"
+                                        Header="Mã loại lệnh" />
+                                    <DataGridTextColumn
+                                        Width="2*"
+                                        Binding="{Binding PutAwayDate}"
+                                        Header="Ngày cất hàng" />
+                                    <DataGridTextColumn
+                                        Width="1.5*"
+                                        Binding="{Binding StatusName}"
+                                        Header="Trạng thái">
+                                        <DataGridTextColumn.CellStyle>
+                                            <Style BasedOn="{StaticResource {x:Type DataGridCell}}" TargetType="DataGridCell">
+                                                <Setter Property="Padding" Value="8" />
+                                                <Setter Property="Foreground" Value="Black" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding StatusId}" Value="1">
+                                                        <Setter Property="Background" Value="#FF9999" />
+                                                        <Setter Property="Foreground" Value="White" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding StatusId}" Value="2">
+                                                        <Setter Property="Background" Value="#FFFF99" />
+                                                        <Setter Property="Foreground" Value="Black" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding StatusId}" Value="3">
+                                                        <Setter Property="Background" Value="#99FF99" />
+                                                        <Setter Property="Foreground" Value="Black" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </DataGridTextColumn.CellStyle>
+                                    </DataGridTextColumn>
+                                </DataGrid.Columns>
+                                <DataGrid.RowDetailsTemplate>
+                                    <DataTemplate>
+                                        <Border BorderBrush="#DDD" BorderThickness="1">
+                                            <DataGrid
+                                                Width="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=ActualWidth, Converter={StaticResource SubtractTenConverter}}"
+                                                HorizontalAlignment="Stretch"
+                                                AutoGenerateColumns="False"
+                                                CanUserAddRows="False"
+                                                ItemsSource="{Binding putAwayDetailResponseDTOs}"
+                                                Style="{StaticResource ModernDataGridStyle}"
+                                                VirtualizingPanel.IsVirtualizing="True">
+                                                <DataGrid.Columns>
+
+                                                    <DataGridTextColumn
+                                                        Width="*"
+                                                        Binding="{Binding ProductCode}"
+                                                        Header="Mã sản phẩm" />
+                                                    <DataGridTextColumn
+                                                        Width="*"
+                                                        Binding="{Binding ProductName}"
+                                                        Header="Tên sản phẩm" />
+                                                    <DataGridTextColumn
+                                                        Width="1.5*"
+                                                        Binding="{Binding LotNo}"
+                                                        Header="Số lot" />
+                                                    <DataGridTextColumn
+                                                        Width="*"
+                                                        Binding="{Binding Demand}"
+                                                        Header="Số lượng yêu cầu" />
+                                                    <DataGridTextColumn
+                                                        Width="*"
+                                                        Binding="{Binding Quantity}"
+                                                        Header="Số lượng thực tế" />
+                                                </DataGrid.Columns>
+                                            </DataGrid>
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGrid.RowDetailsTemplate>
+                            </DataGrid>
                         </Grid>
                     </TabItem>
                 </TabControl>

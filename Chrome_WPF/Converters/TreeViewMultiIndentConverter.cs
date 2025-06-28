@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -11,7 +7,6 @@ using System.Windows.Media;
 
 namespace Chrome_WPF.Converters
 {
-    // Converter for Indentation by Level
     public class TreeViewIndentConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -19,8 +14,10 @@ namespace Chrome_WPF.Converters
             if (value is TreeViewItem treeViewItem)
             {
                 int level = GetTreeViewItemLevel(treeViewItem);
-                double indent = level * 20; // Mỗi cấp thụt 20px
-                return new Thickness(indent, 0, 0, 0); // Chỉ thụt bên trái
+                // Use parameter for indentation size, default to 20 if not provided
+                double indentSize = parameter != null && double.TryParse(parameter.ToString(), out double size) ? size : 20;
+                double indent = level * indentSize;
+                return new Thickness(indent, 0, 0, 0); // Only indent left
             }
             return new Thickness(0);
         }

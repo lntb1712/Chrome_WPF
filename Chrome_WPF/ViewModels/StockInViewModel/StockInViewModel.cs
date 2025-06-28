@@ -6,6 +6,7 @@ using Chrome_WPF.Models.StockInDTO;
 using Chrome_WPF.Services.MessengerService;
 using Chrome_WPF.Services.NavigationService;
 using Chrome_WPF.Services.NotificationService;
+using Chrome_WPF.Services.PutAwayService;
 using Chrome_WPF.Services.StockInDetailService;
 using Chrome_WPF.Services.StockInService;
 using Chrome_WPF.Views.UserControls.StockIn;
@@ -357,6 +358,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                 App.ServiceProvider!.GetRequiredService<INotificationService>(),
                 App.ServiceProvider!.GetRequiredService<INavigationService>(),
                 App.ServiceProvider!.GetRequiredService<IMessengerService>(),
+                App.ServiceProvider!.GetRequiredService<IPutAwayService>(),
                 stockIn);
 
             stockInDetail.DataContext = viewModel;

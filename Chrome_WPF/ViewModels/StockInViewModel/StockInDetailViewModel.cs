@@ -3,13 +3,16 @@ using Chrome_WPF.Models.AccountManagementDTO;
 using Chrome_WPF.Models.APIResult;
 using Chrome_WPF.Models.OrderTypeDTO;
 using Chrome_WPF.Models.ProductMasterDTO;
+using Chrome_WPF.Models.PutAwayDTO;
 using Chrome_WPF.Models.StockInDetailDTO;
 using Chrome_WPF.Models.StockInDTO;
+using Chrome_WPF.Models.StockOutDTO;
 using Chrome_WPF.Models.SupplierMasterDTO;
 using Chrome_WPF.Models.WarehouseMasterDTO;
 using Chrome_WPF.Services.MessengerService;
 using Chrome_WPF.Services.NavigationService;
 using Chrome_WPF.Services.NotificationService;
+using Chrome_WPF.Services.PutAwayService;
 using Chrome_WPF.Services.StockInDetailService;
 using Chrome_WPF.Services.StockInService;
 using Chrome_WPF.Views.UserControls.StockIn;
@@ -32,6 +35,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
         private readonly INotificationService _notificationService;
         private readonly INavigationService _navigationService;
         private readonly IMessengerService _messengerService;
+        private readonly IPutAwayService _putAwayService;
 
         private ObservableCollection<StockInDetailResponseDTO> _lstStockInDetails;
         private ObservableCollection<ProductMasterResponseDTO> _lstProducts;
@@ -39,13 +43,33 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
         private ObservableCollection<WarehouseMasterResponseDTO> _lstWarehouses;
         private ObservableCollection<SupplierMasterResponseDTO> _lstSuppliers;
         private ObservableCollection<AccountManagementResponseDTO> _lstResponsiblePersons;
+        private ObservableCollection<PutAwayAndDetailResponseDTO> _lstPutAway;
         private ObservableCollection<object> _displayPages;
         private StockInRequestDTO _stockInRequestDTO;
         private bool _isAddingNew;
         private int _currentPage;
         private int _pageSize = 10;
         private int _totalPages;
-        private int _lastLoadedPage;
+        private int _lastLoadedPage; 
+        private bool _hasPutAway;
+        public bool HasPutAway
+        {
+            get => _hasPutAway;
+            set
+            {
+                _hasPutAway = value;
+                OnPropertyChanged();
+            }
+        }
+        public ObservableCollection<PutAwayAndDetailResponseDTO> LstPutAway
+        {
+            get => _lstPutAway;
+            set
+            {
+                _lstPutAway = value;
+                OnPropertyChanged();
+            }
+        }
 
         public ObservableCollection<StockInDetailResponseDTO> LstStockInDetails
         {
@@ -202,6 +226,8 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
             INotificationService notificationService,
             INavigationService navigationService,
             IMessengerService messengerService,
+            IPutAwayService putAwayService,
+
             StockInResponseDTO stockIn = null!)
         {
             _stockInDetailService = stockInDetailService ?? throw new ArgumentNullException(nameof(stockInDetailService));
@@ -209,6 +235,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
             _messengerService = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
+            _putAwayService = putAwayService ?? throw new ArgumentNullException(nameof(putAwayService));
 
             _lstStockInDetails = new ObservableCollection<StockInDetailResponseDTO>();
             _lstProducts = new ObservableCollection<ProductMasterResponseDTO>();
@@ -216,10 +243,12 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
             _lstWarehouses = new ObservableCollection<WarehouseMasterResponseDTO>();
             _lstSuppliers = new ObservableCollection<SupplierMasterResponseDTO>();
             _lstResponsiblePersons = new ObservableCollection<AccountManagementResponseDTO>();
+            _lstPutAway = new ObservableCollection<PutAwayAndDetailResponseDTO>();
             _displayPages = new ObservableCollection<object>();
             _isAddingNew = stockIn == null;
             _currentPage = 1;
             _lastLoadedPage = 0;
+            _hasPutAway = false;
             _stockInRequestDTO = stockIn == null ? new StockInRequestDTO() : new StockInRequestDTO
             {
                 StockInCode = stockIn.StockInCode,
@@ -242,7 +271,19 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
             _stockInRequestDTO.PropertyChanged += OnPropertyChangedHandler!;
             _ = InitializeAsync();
         }
-
+        private async Task CheckPutAwayHasValue()
+        {
+            try
+            {
+                var putAwayResult  = await _putAwayService.GetPutAwayContainsCodeAsync(StockInRequestDTO.StockInCode);
+                HasPutAway = putAwayResult.Success && putAwayResult.Data != null;
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi kiểm tra picklist: {ex.Message}", "OK", isError: true);
+                HasPutAway = false;
+            }
+        }
         private async void CheckQuantity()
         {
             try
@@ -342,12 +383,18 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                     LoadOrderTypesAsync(),
                     LoadWarehousesAsync(),
                     LoadSuppliersAsync(),
-                    LoadResponsiblePersonsAsync());
+                    LoadResponsiblePersonsAsync(),
+                    CheckPutAwayHasValue());
 
                 if (!IsAddingNew)
                 {
                     await LoadStockInDetailsAsync();
                 }
+                if (HasPutAway)
+                {
+                    await LoadPutAway();
+                }
+                
             }
             catch (Exception ex)
             {
@@ -355,7 +402,32 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                 NavigateBack();
             }
         }
-
+        private async Task LoadPutAway()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(StockInRequestDTO.StockInCode))
+                {
+                    LstPutAway.Clear();
+                    return;
+                }
+                var result = await _putAwayService.GetPutAwayContainsCodeAsync(StockInRequestDTO.StockInCode);
+                if (result.Success && result.Data != null)
+                {
+                    LstPutAway.Clear();
+                    LstPutAway.Add(result.Data);
+                    
+                }
+                else
+                {
+                    _notificationService.ShowMessage(result.Message ?? "Không thể tải danh sách cất hàng", "OK", isError: true);
+                }
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi tải danh sách cất hàng: {ex.Message}", "OK", isError: true);
+            }
+        }
         private async Task LoadStockInDetailsAsync()
         {
             try

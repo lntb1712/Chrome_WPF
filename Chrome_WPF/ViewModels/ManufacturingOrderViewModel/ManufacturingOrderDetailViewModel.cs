@@ -45,7 +45,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
         private ObservableCollection<OrderTypeResponseDTO> _lstOrderTypes;
         private ObservableCollection<WarehouseMasterResponseDTO> _lstWarehouses;
         private ObservableCollection<AccountManagementResponseDTO> _lstResponsiblePersons;
-        private ObservableCollection<ReservationResponseDTO> _lstReservations;
+        private ObservableCollection<ReservationAndDetailResponseDTO> _lstReservations;
         private ObservableCollection<object> _displayPages;
         private ManufacturingOrderRequestDTO _manufacturingOrderRequestDTO;
         private bool _isAddingNew;
@@ -116,7 +116,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
             }
         }
 
-        public ObservableCollection<ReservationResponseDTO> LstReservations
+        public ObservableCollection<ReservationAndDetailResponseDTO> LstReservations
         {
             get => _lstReservations;
             set
@@ -254,7 +254,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
             _lstOrderTypes = new ObservableCollection<OrderTypeResponseDTO>();
             _lstWarehouses = new ObservableCollection<WarehouseMasterResponseDTO>();
             _lstResponsiblePersons = new ObservableCollection<AccountManagementResponseDTO>();
-            _lstReservations = new ObservableCollection<ReservationResponseDTO>();
+            _lstReservations = new ObservableCollection<ReservationAndDetailResponseDTO>();
             _displayPages = new ObservableCollection<object>();
             _isAddingNew = manufacturingOrder == null;
             _currentPage = 1;
@@ -280,7 +280,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
             SaveCommand = new RelayCommand(async _ => await SaveManufacturingOrderAsync(), CanSave);
             BackCommand = new RelayCommand(_ => NavigateBack());
             AddDetailLineCommand = new RelayCommand(_ => AddDetailLine(), CanAddDetailLine);
-            DeleteDetailLineCommand = new RelayCommand(async detail => await DeleteDetailLineAsync((ManufacturingOrderDetailResponseDTO)detail));
+            DeleteDetailLineCommand = new RelayCommand( detail =>  DeleteDetailLineAsync((ManufacturingOrderDetailResponseDTO)detail));
             PreviousPageCommand = new RelayCommand(_ => PreviousPage());
             NextPageCommand = new RelayCommand(_ => NextPage());
             SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
@@ -361,7 +361,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
         {
             try
             {
-                var picklistResult = await _pickListService.GetPickListByStockOutCodeAsync(ManufacturingOrderRequestDTO.ManufacturingOrderCode);
+                var picklistResult = await _pickListService.GetPickListContainCodeAsync(ManufacturingOrderRequestDTO.ManufacturingOrderCode);
                 HasPicklist = picklistResult.Success && picklistResult.Data != null;
             }
             catch (Exception ex)
@@ -788,7 +788,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
             LstManufacturingOrderDetails.Add(newDetail);
         }
 
-        private async Task DeleteDetailLineAsync(ManufacturingOrderDetailResponseDTO detail)
+        private  void  DeleteDetailLineAsync(ManufacturingOrderDetailResponseDTO detail)
         {
             if (detail == null) return;
 

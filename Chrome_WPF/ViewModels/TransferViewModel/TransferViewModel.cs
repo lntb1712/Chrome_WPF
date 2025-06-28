@@ -6,6 +6,9 @@ using Chrome_WPF.Models.TransferDTO;
 using Chrome_WPF.Services.MessengerService;
 using Chrome_WPF.Services.NavigationService;
 using Chrome_WPF.Services.NotificationService;
+using Chrome_WPF.Services.PickListService;
+using Chrome_WPF.Services.PutAwayService;
+using Chrome_WPF.Services.ReservationService;
 using Chrome_WPF.Services.TransferDetailService;
 using Chrome_WPF.Services.TransferService;
 using Chrome_WPF.Views.UserControls.Transfer;
@@ -358,6 +361,9 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
                 App.ServiceProvider!.GetRequiredService<INotificationService>(),
                 App.ServiceProvider!.GetRequiredService<INavigationService>(),
                 App.ServiceProvider!.GetRequiredService<IMessengerService>(),
+                App.ServiceProvider!.GetRequiredService<IPutAwayService>(),
+                App.ServiceProvider!.GetRequiredService<IPickListService>(),
+                App.ServiceProvider!.GetRequiredService<IReservationService>(),
                 transfer);
 
             transferDetail.DataContext = viewModel;

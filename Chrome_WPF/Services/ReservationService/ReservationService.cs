@@ -225,11 +225,12 @@ namespace Chrome_WPF.Services.ReservationService
                 return new ApiResult<List<StatusMasterResponseDTO>>($"Lỗi không xác định: {ex.Message}", false);
             }
         }
-        public async Task<ApiResult<ReservationResponseDTO>> GetReservationsByStockOutCodeAsync(string stockOutCode)
+
+        public async Task<ApiResult<ReservationAndDetailResponseDTO>> GetReservationsByStockOutCodeAsync(string stockOutCode)
         {
             if (string.IsNullOrEmpty(stockOutCode))
             {
-                return new ApiResult<ReservationResponseDTO>("Mã xuất kho không được để trống", false);
+                return new ApiResult<ReservationAndDetailResponseDTO>("Mã xuất kho không được để trống", false);
             }
 
             try
@@ -239,37 +240,37 @@ namespace Chrome_WPF.Services.ReservationService
 
                 if (response.IsSuccessStatusCode)
                 {
-                    var result = JsonConvert.DeserializeObject<ApiResult<ReservationResponseDTO>>(jsonResponse);
+                    var result = JsonConvert.DeserializeObject<ApiResult<ReservationAndDetailResponseDTO>>(jsonResponse);
                     if (result == null || !result.Success)
                     {
-                        return new ApiResult<ReservationResponseDTO>(result?.Message ?? "Không thể lấy đặt chỗ theo mã xuất kho", false);
+                        return new ApiResult<ReservationAndDetailResponseDTO>(result?.Message ?? "Không thể lấy đặt chỗ theo mã xuất kho", false);
                     }
                     return result;
                 }
 
-                var errorResult = JsonConvert.DeserializeObject<ApiResult<ReservationResponseDTO>>(jsonResponse);
+                var errorResult = JsonConvert.DeserializeObject<ApiResult<ReservationAndDetailResponseDTO>>(jsonResponse);
                 var errorMessage = errorResult?.Message ?? "Không thể lấy đặt chỗ theo mã xuất kho";
-                return HandleErrorResponse<ReservationResponseDTO>(response.StatusCode, errorMessage);
+                return HandleErrorResponse<ReservationAndDetailResponseDTO>(response.StatusCode, errorMessage);
             }
             catch (HttpRequestException ex)
             {
-                return new ApiResult<ReservationResponseDTO>($"Lỗi mạng: {ex.Message}", false);
+                return new ApiResult<ReservationAndDetailResponseDTO>($"Lỗi mạng: {ex.Message}", false);
             }
             catch (JsonException ex)
             {
-                return new ApiResult<ReservationResponseDTO>($"Lỗi phân tích phản hồi: {ex.Message}", false);
+                return new ApiResult<ReservationAndDetailResponseDTO>($"Lỗi phân tích phản hồi: {ex.Message}", false);
             }
             catch (Exception ex)
             {
-                return new ApiResult<ReservationResponseDTO>($"Lỗi không xác định: {ex.Message}", false);
+                return new ApiResult<ReservationAndDetailResponseDTO>($"Lỗi không xác định: {ex.Message}", false);
             }
         }
 
-        public async Task<ApiResult<ReservationResponseDTO>> GetReservationsByMovementCodeAsync(string movementCode)
+        public async Task<ApiResult<ReservationAndDetailResponseDTO>> GetReservationsByMovementCodeAsync(string movementCode)
         {
             if (string.IsNullOrEmpty(movementCode))
             {
-                return new ApiResult<ReservationResponseDTO>("Mã di chuyển không được để trống", false);
+                return new ApiResult<ReservationAndDetailResponseDTO>("Mã di chuyển không được để trống", false);
             }
 
             try
@@ -279,37 +280,37 @@ namespace Chrome_WPF.Services.ReservationService
 
                 if (response.IsSuccessStatusCode)
                 {
-                    var result = JsonConvert.DeserializeObject<ApiResult<ReservationResponseDTO>>(jsonResponse);
+                    var result = JsonConvert.DeserializeObject<ApiResult<ReservationAndDetailResponseDTO>>(jsonResponse);
                     if (result == null || !result.Success)
                     {
-                        return new ApiResult<ReservationResponseDTO>(result?.Message ?? "Không thể lấy đặt chỗ theo mã di chuyển", false);
+                        return new ApiResult<ReservationAndDetailResponseDTO>(result?.Message ?? "Không thể lấy đặt chỗ theo mã di chuyển", false);
                     }
                     return result;
                 }
 
-                var errorResult = JsonConvert.DeserializeObject<ApiResult<ReservationResponseDTO>>(jsonResponse);
+                var errorResult = JsonConvert.DeserializeObject<ApiResult<ReservationAndDetailResponseDTO>>(jsonResponse);
                 var errorMessage = errorResult?.Message ?? "Không thể lấy đặt chỗ theo mã di chuyển";
-                return HandleErrorResponse<ReservationResponseDTO>(response.StatusCode, errorMessage);
+                return HandleErrorResponse<ReservationAndDetailResponseDTO>(response.StatusCode, errorMessage);
             }
             catch (HttpRequestException ex)
             {
-                return new ApiResult<ReservationResponseDTO>($"Lỗi mạng: {ex.Message}", false);
+                return new ApiResult<ReservationAndDetailResponseDTO>($"Lỗi mạng: {ex.Message}", false);
             }
             catch (JsonException ex)
             {
-                return new ApiResult<ReservationResponseDTO>($"Lỗi phân tích phản hồi: {ex.Message}", false);
+                return new ApiResult<ReservationAndDetailResponseDTO>($"Lỗi phân tích phản hồi: {ex.Message}", false);
             }
             catch (Exception ex)
             {
-                return new ApiResult<ReservationResponseDTO>($"Lỗi không xác định: {ex.Message}", false);
+                return new ApiResult<ReservationAndDetailResponseDTO>($"Lỗi không xác định: {ex.Message}", false);
             }
         }
 
-        public async Task<ApiResult<ReservationResponseDTO>> GetReservationsByTransferCodeAsync(string transferCode)
+        public async Task<ApiResult<ReservationAndDetailResponseDTO>> GetReservationsByTransferCodeAsync(string transferCode)
         {
             if (string.IsNullOrEmpty(transferCode))
             {
-                return new ApiResult<ReservationResponseDTO>("Mã chuyển kho không được để trống", false);
+                return new ApiResult<ReservationAndDetailResponseDTO>("Mã chuyển kho không được để trống", false);
             }
 
             try
@@ -319,29 +320,29 @@ namespace Chrome_WPF.Services.ReservationService
 
                 if (response.IsSuccessStatusCode)
                 {
-                    var result = JsonConvert.DeserializeObject<ApiResult<ReservationResponseDTO>>(jsonResponse);
+                    var result = JsonConvert.DeserializeObject<ApiResult<ReservationAndDetailResponseDTO>>(jsonResponse);
                     if (result == null || !result.Success)
                     {
-                        return new ApiResult<ReservationResponseDTO>(result?.Message ?? "Không thể lấy đặt chỗ theo mã chuyển kho", false);
+                        return new ApiResult<ReservationAndDetailResponseDTO>(result?.Message ?? "Không thể lấy đặt chỗ theo mã chuyển kho", false);
                     }
                     return result;
                 }
 
-                var errorResult = JsonConvert.DeserializeObject<ApiResult<ReservationResponseDTO>>(jsonResponse);
+                var errorResult = JsonConvert.DeserializeObject<ApiResult<ReservationAndDetailResponseDTO>>(jsonResponse);
                 var errorMessage = errorResult?.Message ?? "Không thể lấy đặt chỗ theo mã chuyển kho";
-                return HandleErrorResponse<ReservationResponseDTO>(response.StatusCode, errorMessage);
+                return HandleErrorResponse<ReservationAndDetailResponseDTO>(response.StatusCode, errorMessage);
             }
             catch (HttpRequestException ex)
             {
-                return new ApiResult<ReservationResponseDTO>($"Lỗi mạng: {ex.Message}", false);
+                return new ApiResult<ReservationAndDetailResponseDTO>($"Lỗi mạng: {ex.Message}", false);
             }
             catch (JsonException ex)
             {
-                return new ApiResult<ReservationResponseDTO>($"Lỗi phân tích phản hồi: {ex.Message}", false);
+                return new ApiResult<ReservationAndDetailResponseDTO>($"Lỗi phân tích phản hồi: {ex.Message}", false);
             }
             catch (Exception ex)
             {
-                return new ApiResult<ReservationResponseDTO>($"Lỗi không xác định: {ex.Message}", false);
+                return new ApiResult<ReservationAndDetailResponseDTO>($"Lỗi không xác định: {ex.Message}", false);
             }
         }
         // Lấy danh sách quyền kho
@@ -532,11 +533,11 @@ namespace Chrome_WPF.Services.ReservationService
             }
         }
 
-        public async Task<ApiResult<ReservationResponseDTO>> GetReservationsByManufacturingCodeAsync(string manufacturingCode)
+        public async Task<ApiResult<ReservationAndDetailResponseDTO>> GetReservationsByManufacturingCodeAsync(string manufacturingCode)
         {
             if (string.IsNullOrEmpty(manufacturingCode))
             {
-                return new ApiResult<ReservationResponseDTO>("Mã lệnh sản xuất không được để trống", false);
+                return new ApiResult<ReservationAndDetailResponseDTO>("Mã lệnh sản xuất không được để trống", false);
             }
 
             try
@@ -546,29 +547,29 @@ namespace Chrome_WPF.Services.ReservationService
 
                 if (response.IsSuccessStatusCode)
                 {
-                    var result = JsonConvert.DeserializeObject<ApiResult<ReservationResponseDTO>>(jsonResponse);
+                    var result = JsonConvert.DeserializeObject<ApiResult<ReservationAndDetailResponseDTO>>(jsonResponse);
                     if (result == null || !result.Success)
                     {
-                        return new ApiResult<ReservationResponseDTO>(result?.Message ?? "Không thể lấy đặt chỗ theo mã lệnh sản xuất", false);
+                        return new ApiResult<ReservationAndDetailResponseDTO>(result?.Message ?? "Không thể lấy đặt chỗ theo mã lệnh sản xuất", false);
                     }
                     return result;
                 }
 
-                var errorResult = JsonConvert.DeserializeObject<ApiResult<ReservationResponseDTO>>(jsonResponse);
+                var errorResult = JsonConvert.DeserializeObject<ApiResult<ReservationAndDetailResponseDTO>>(jsonResponse);
                 var errorMessage = errorResult?.Message ?? "Không thể lấy đặt chỗ theo mã lệnh sản xuất";
-                return HandleErrorResponse<ReservationResponseDTO>(response.StatusCode, errorMessage);
+                return HandleErrorResponse<ReservationAndDetailResponseDTO>(response.StatusCode, errorMessage);
             }
             catch (HttpRequestException ex)
             {
-                return new ApiResult<ReservationResponseDTO>($"Lỗi mạng: {ex.Message}", false);
+                return new ApiResult<ReservationAndDetailResponseDTO>($"Lỗi mạng: {ex.Message}", false);
             }
             catch (JsonException ex)
             {
-                return new ApiResult<ReservationResponseDTO>($"Lỗi phân tích phản hồi: {ex.Message}", false);
+                return new ApiResult<ReservationAndDetailResponseDTO>($"Lỗi phân tích phản hồi: {ex.Message}", false);
             }
             catch (Exception ex)
             {
-                return new ApiResult<ReservationResponseDTO>($"Lỗi không xác định: {ex.Message}", false);
+                return new ApiResult<ReservationAndDetailResponseDTO>($"Lỗi không xác định: {ex.Message}", false);
             }
         }
     }

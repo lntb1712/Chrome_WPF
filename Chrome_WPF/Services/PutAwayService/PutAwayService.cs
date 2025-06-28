@@ -485,5 +485,61 @@ namespace Chrome_WPF.Services.PutAwayService
                 return new ApiResult<bool>($"Lỗi không xác định: {ex.Message}", false);
             }
         }
+
+        public async Task<ApiResult<PutAwayAndDetailResponseDTO>> GetPutAwayContainsCodeAsync(string orderCode)
+        {
+            if (string.IsNullOrEmpty(orderCode))
+            {
+                return new ApiResult<PutAwayAndDetailResponseDTO>("Mã lệnh để hàng không được để trống", false);
+            }
+            try
+            {
+                var response = await _httpClient.GetAsync($"PutAway/GetPutAwayContainsCodeAsync?orderCode={Uri.EscapeDataString(orderCode)}").ConfigureAwait(false);
+                var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = JsonConvert.DeserializeObject<ApiResult<PutAwayAndDetailResponseDTO>>(jsonResponse);
+                    if (result == null || !result.Success)
+                    {
+                        return new ApiResult<PutAwayAndDetailResponseDTO>(result?.Message ?? "Không thể lấy lệnh để hàng", false);
+                    }
+                    return result;
+                }
+                var errorResult = JsonConvert.DeserializeObject<ApiResult<PutAwayAndDetailResponseDTO>>(jsonResponse);
+                var errorMessage = errorResult?.Message ?? "Không thể lấy lệnh để hàng";
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    return new ApiResult<PutAwayAndDetailResponseDTO>((string)errorMessage, false);
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    return new ApiResult<PutAwayAndDetailResponseDTO>((string)errorMessage, false);
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return new ApiResult<PutAwayAndDetailResponseDTO>((string)errorMessage, false);
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+                {
+                    return new ApiResult<PutAwayAndDetailResponseDTO>((string)errorMessage, false);
+                }
+                else
+                {
+                    return new ApiResult<PutAwayAndDetailResponseDTO>((string)errorMessage, false);
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                return new ApiResult<PutAwayAndDetailResponseDTO>($"Lỗi mạng: {ex.Message}", false);
+            }
+            catch (JsonException ex)
+            {
+                return new ApiResult<PutAwayAndDetailResponseDTO>($"Lỗi phân tích phản hồi: {ex.Message}", false);
+            }
+            catch (Exception ex)
+            {
+                return new ApiResult<PutAwayAndDetailResponseDTO>($"Lỗi không xác định: {ex.Message}", false);
+            }
+        }
     }
 }

@@ -20,6 +20,6 @@ namespace Chrome_WPF.Services.PickListService
         Task<ApiResult<bool>> DeletePickList(string pickNo);
         Task<ApiResult<bool>> UpdatePickList(PickListRequestDTO pickList);
         Task<ApiResult<List<StatusMasterResponseDTO>>> GetListStatusMaster();
-        Task<ApiResult<PickListResponseDTO>> GetPickListByStockOutCodeAsync(string stockOutCode);
+        Task<ApiResult<PickAndDetailResponseDTO>> GetPickListContainCodeAsync(string orderCode);
     }
 }
