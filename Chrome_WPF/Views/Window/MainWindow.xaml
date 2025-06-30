@@ -17,6 +17,7 @@
     <Window.Resources>
         <convertert:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <convertert:AllFalseToVisibilityConverter x:Key="AllFalseToVisibilityConverter" />
+        <convertert:ApplicableLocationsConverter x:Key="LocationsConverter" />
         <!--  Style for Menu Items  -->
         <Style x:Key="MenuItemStyle" TargetType="ListBoxItem">
             <Setter Property="Background" Value="Transparent" />
@@ -613,10 +614,26 @@
                                     </Border>
                                     <StackPanel Margin="5,0,0,0">
                                         <TextBlock Foreground="Black" Text="{Binding UserInformationDTO.FullName}" />
-                                        <TextBlock
-                                            FontSize="10"
-                                            Foreground="Gray"
-                                            Text="{Binding UserInformationDTO.GroupName}" />
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock
+                                                FontSize="10"
+                                                Foreground="Gray"
+                                                Text="{Binding UserInformationDTO.GroupName}" />
+                                            <TextBlock
+                                                Margin="1,0,0,0"
+                                                FontSize="10"
+                                                Foreground="Gray"
+                                                Text="(" />
+                                            <TextBlock
+                                                FontSize="10"
+                                                Foreground="Gray"
+                                                Text="{Binding UserInformationDTO.ApplicableLocations, Converter={StaticResource LocationsConverter}}" />
+                                            <TextBlock
+                                                FontSize="10"
+                                                Foreground="Gray"
+                                                Text=")" />
+                                        </StackPanel>
+
                                     </StackPanel>
                                 </StackPanel>
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Chrome_WPF.Models.GroupFunctionDTO;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,5 +14,6 @@ namespace Chrome_WPF.Models.AccountManagementDTO
         public string GroupName { get; set; } = string.Empty;
         public string FullName { get; set; } = string.Empty;
         public string ImageInitial { get; set; } = string.Empty;
+        public List<ApplicableLocationResponseDTO> ApplicableLocations { get; set; } = new List<ApplicableLocationResponseDTO>();
     }
 }

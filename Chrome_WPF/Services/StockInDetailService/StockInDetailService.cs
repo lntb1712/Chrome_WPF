@@ -144,7 +144,62 @@ namespace Chrome_WPF.Services.StockInDetailService
             }
         }
 
+        public async Task<ApiResult<bool>> CreatePutAway(string stockInCode)
+        {
+            if (string.IsNullOrEmpty(stockInCode)) return new ApiResult<bool>("Dữ liệu nhận vào không hợp lệ", false);
+            try
+            {
+                var response = await _httpClient.PostAsync($"StockIn/{Uri.EscapeDataString(stockInCode)}/StockInDetail/CreatePutAway", new StringContent("")).ConfigureAwait(false);
+                var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = JsonConvert.DeserializeObject<ApiResult<bool>>(jsonResponse);
+                    if (result == null || !result.Success)
+                    {
+                        return new ApiResult<bool>(result?.Message ?? "Không thể phân tích phản hồi", false);
+                    }
+                    return result;
+                }
+                var errorResult = JsonConvert.DeserializeObject<ApiResult<bool>>(jsonResponse);
+                var errorMessage = errorResult?.Message ?? "Không thể xác nhận số lượng ";
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    return new ApiResult<bool>((string)errorMessage, false);
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    return new ApiResult<bool>((string)errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không có quyền truy cập"
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return new ApiResult<bool>((string)errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không tồn tại"
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+                {
+                    return new ApiResult<bool>((string)errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Lỗi máy chủ nội bộ"
+                }
+                else
+                {
+                    return new ApiResult<bool>((string)errorMessage, false); // Trả về thông điệp lỗi chung
+                }
 
+            }
+            catch (HttpRequestException ex)
+            {
+                // Lỗi mạng
+                return new ApiResult<bool>($"Lỗi mạng: {ex.Message}", false);
+            }
+            catch (JsonException ex)
+            {
+                // Lỗi phân tích JSON
+                return new ApiResult<bool>($"Lỗi phân tích phản hồi: {ex.Message}", false);
+            }
+            catch (Exception ex)
+            {
+                // Lỗi không xác định
+                return new ApiResult<bool>($"Lỗi không xác định: {ex.Message}", false);
+            }
+        }
         public async Task<ApiResult<bool>> ConfirmnStockIn(string stockInCode)
         {
             if (string.IsNullOrEmpty(stockInCode)) return new ApiResult<bool>("Dữ liệu nhận vào không hợp lệ", false);

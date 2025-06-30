@@ -10,7 +10,7 @@ namespace Chrome_WPF.Constants.API_Constant
     public class API_Constant
     {
         private readonly HttpClient _httpClient;
-        private const string ApiBaseUrl = "https://localhost:44345/api/";
+        private const string ApiBaseUrl = "https://localhost:7016/api/";
 
         public API_Constant()
         {

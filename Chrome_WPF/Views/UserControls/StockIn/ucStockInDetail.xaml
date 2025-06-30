@@ -9,7 +9,7 @@
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DesignHeight="700"
-    d:DesignWidth="800"
+    d:DesignWidth="1200"
     mc:Ignorable="d">
     <UserControl.Resources>
         <!--  Converters  -->
@@ -203,8 +203,12 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                    <StackPanel
+                        Grid.Column="0"
+                        VerticalAlignment="Center"
+                        Orientation="Horizontal">
                         <Button
                             x:Name="BackButton"
                             Height="36"
@@ -234,8 +238,26 @@
                             Text="{Binding StockInRequestDTO.StockInCode}" />
                     </StackPanel>
                     <Button
-                        x:Name="SaveButton"
+                        x:Name="CreatePutAwayButton"
                         Grid.Column="2"
+                        Margin="0,0,20,0"
+                        materialDesign:ButtonAssist.CornerRadius="8"
+                        Background="AliceBlue"
+                        Command="{Binding CreatePutAwayCommand}"
+                        Style="{StaticResource MaterialDesignFlatButton}"
+                        ToolTip="Lưu">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon
+                                Width="24"
+                                Height="24"
+                                Margin="0,0,10,0"
+                                Kind="Input" />
+                            <TextBlock VerticalAlignment="Center" Text="Tạo lệnh Cất hàng" />
+                        </StackPanel>
+                    </Button>
+                    <Button
+                        x:Name="SaveButton"
+                        Grid.Column="3"
                         Margin="0,0,20,0"
                         materialDesign:ButtonAssist.CornerRadius="8"
                         Background="AliceBlue"
@@ -253,12 +275,13 @@
                     </Button>
                     <Button
                         x:Name="ConfirmButton"
-                        Grid.Column="3"
+                        Grid.Column="4"
                         materialDesign:ButtonAssist.CornerRadius="8"
                         Background="AliceBlue"
                         Command="{Binding ConfirmQuantityCommand}"
+                        IsEnabled="{Binding HasPutAway}"
                         Style="{StaticResource MaterialDesignFlatButton}"
-                        ToolTip="Lưu">
+                        ToolTip="Xác nhận hoàn thành">
                         <StackPanel Orientation="Horizontal">
                             <materialDesign:PackIcon
                                 Width="24"

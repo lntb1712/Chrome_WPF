@@ -219,6 +219,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
         public ICommand PreviousPageCommand { get; }
         public ICommand SelectPageCommand { get; }
         public ICommand ConfirmQuantityCommand { get; }
+        public ICommand CreatePutAwayCommand { get; }
 
         public StockInDetailViewModel(
             IStockInDetailService stockInDetailService,
@@ -267,10 +268,39 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
             NextPageCommand = new RelayCommand(_ => NextPage());
             SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
             ConfirmQuantityCommand = new RelayCommand(_ => CheckQuantity());
+            CreatePutAwayCommand = new RelayCommand(async _ => await CreatePutAwayList());
 
             _stockInRequestDTO.PropertyChanged += OnPropertyChangedHandler!;
             _ = InitializeAsync();
         }
+
+        private async Task CreatePutAwayList()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(StockInRequestDTO.StockInCode))
+                {
+                    LstPutAway.Clear();
+                    return;
+                }
+                var result = await _stockInDetailService.CreatePutAway(StockInRequestDTO.StockInCode);
+                if (result.Success)
+                {
+                    _notificationService.ShowMessage("Tạo phiếu cất hàng và chi tiết cất hàng thành công", "OK", isError: false);
+                    await _messengerService.SendMessageAsync("ReloadStockInList");
+                }
+                else
+                {
+                    _notificationService.ShowMessage(result.Message ?? "Không thể tạo phiếu cất hàng", "OK", isError: true);
+                }
+            
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi : {ex.Message}", "OK", isError: true);
+            }
+        }
+
         private async Task CheckPutAwayHasValue()
         {
             try
