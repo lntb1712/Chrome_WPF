@@ -298,6 +298,7 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="0.7*" />
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -476,6 +477,45 @@
                             FontSize="14"
                             SelectedDate="{Binding StockInRequestDTO.OrderDeadLine, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True, Converter={StaticResource StringToDateTimeConverter}}" />
                     </StackPanel>
+                    <materialDesign:Card
+                        Grid.Row="0"
+                        Grid.RowSpan="3"
+                        Grid.Column="2"
+                        Margin="0,10,0,16"
+                        Padding="16"
+                        BorderBrush="Black"
+                        BorderThickness="2">
+                        <StackPanel Orientation="Vertical">
+                            <TextBlock
+                                Margin="0,0,0,8"
+                                FontSize="16"
+                                FontWeight="SemiBold"
+                                Text="Mô tả lệnh nhập kho" />
+
+                            <TextBox
+                                x:Name="StockInDescriptionTextBox"
+                                Width="Auto"
+                                Height="120"
+                                Padding="12,8"
+                                materialDesign:TextFieldAssist.DecorationVisibility="Visible"
+                                materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                                materialDesign:TextFieldAssist.IconVerticalAlignment="Top"
+                                materialDesign:TextFieldAssist.LeadingIcon="Text"
+                                AcceptsReturn="True"
+                                FontSize="14"
+                                TextWrapping="Wrap">
+                                <TextBox.Text>
+                                    <Binding
+                                        Path="StockInRequestDTO.StockInDescription"
+                                        UpdateSourceTrigger="PropertyChanged"
+                                        ValidatesOnDataErrors="True"
+                                        ValidatesOnNotifyDataErrors="True" />
+                                </TextBox.Text>
+                            </TextBox>
+                        </StackPanel>
+                    </materialDesign:Card>
+
+
                 </Grid>
 
                 <!--  StockIn Details Section with TabControl  -->

@@ -257,6 +257,7 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="0.7*" />
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -422,25 +423,35 @@
                             FontSize="14"
                             SelectedDate="{Binding MovementRequestDTO.MovementDate, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True, Converter={StaticResource StringToDateTimeConverter}}" />
                     </StackPanel>
-                    <StackPanel
-                        Grid.Row="3"
-                        Grid.Column="1"
+                    <materialDesign:Card
+                        Grid.Row="0"
+                        Grid.RowSpan="4"
+                        Grid.Column="2"
                         Margin="0,10,0,16"
-                        Orientation="Horizontal">
-                        <TextBlock
-                            Width="120"
-                            VerticalAlignment="Center"
-                            Text="Mô tả" />
-                        <TextBox
-                            x:Name="MovementDescriptionTextBox"
-                            Width="200"
-                            Margin="8,0,0,0"
-                            Padding="12,8"
-                            materialDesign:HintAssist.Hint="Nhập mô tả"
-                            materialDesign:HintAssist.IsFloating="True"
-                            FontSize="14"
-                            Text="{Binding MovementRequestDTO.MovementDescription, UpdateSourceTrigger=PropertyChanged}" />
-                    </StackPanel>
+                        Padding="16"
+                        BorderBrush="Black"
+                        BorderThickness="2">
+                        <StackPanel Orientation="Vertical">
+                            <TextBlock
+                                Margin="0,0,0,8"
+                                FontSize="16"
+                                FontWeight="SemiBold"
+                                Text="Mô tả lệnh chuyển kệ" />
+                            <TextBox
+                                x:Name="MovementDescriptionTextBox"
+                                Width="Auto"
+                                Height="150"
+                                Padding="12,8"
+                                materialDesign:TextFieldAssist.DecorationVisibility="Visible"
+                                materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                                materialDesign:TextFieldAssist.IconVerticalAlignment="Top"
+                                materialDesign:TextFieldAssist.LeadingIcon="Text"
+                                AcceptsReturn="True"
+                                FontSize="14"
+                                Text="{Binding MovementRequestDTO.MovementDescription, UpdateSourceTrigger=PropertyChanged}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </materialDesign:Card>
                 </Grid>
 
                 <!--  Movement Details Section with TabControl  -->
