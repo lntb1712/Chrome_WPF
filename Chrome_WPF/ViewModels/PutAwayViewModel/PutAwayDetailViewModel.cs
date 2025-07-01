@@ -29,7 +29,7 @@ namespace Chrome_WPF.ViewModels.PutAwayViewModel
         private int _currentPage;
         private int _pageSize = 10;
         private int _totalPages;
-        private static readonly Dictionary<string, List<PutAwayDetailResponseDTO>> _cache = new Dictionary<string, List<PutAwayDetailResponseDTO>>();
+       
 
         public ObservableCollection<PutAwayDetailResponseDTO> PutAwayDetails
         {
@@ -111,7 +111,7 @@ namespace Chrome_WPF.ViewModels.PutAwayViewModel
         public ICommand NextPageCommand { get; }
         public ICommand PreviousPageCommand { get; }
         public ICommand SelectPageCommand { get; }
-        public ICommand SaveCommand { get; }
+        public ICommand RefreshCommand { get; }
 
         public PutAwayDetailViewModel(
             IPutAwayDetailService putAwayDetailService,
@@ -133,7 +133,7 @@ namespace Chrome_WPF.ViewModels.PutAwayViewModel
             PreviousPageCommand = new RelayCommand(_ => PreviousPage());
             NextPageCommand = new RelayCommand(_ => NextPage());
             SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
-            SaveCommand = new RelayCommand(async _ => await SavePutAwayDetails());
+            RefreshCommand = new RelayCommand(async _ => await LoadPutAwayDetailsAsync());
 
             _ = LoadPutAwayDetailsAsync();
         }
@@ -142,17 +142,7 @@ namespace Chrome_WPF.ViewModels.PutAwayViewModel
         {
             try
             {
-                // Check cache first
-                if (_cache.ContainsKey(PutAwayCode) && string.IsNullOrWhiteSpace(SearchText))
-                {
-                    PutAwayDetails.Clear();
-                    foreach (var detail in _cache[PutAwayCode])
-                    {
-                        PutAwayDetails.Add(detail);
-                    }
-                    TotalPages = (int)Math.Ceiling((double)_cache[PutAwayCode].Count / PageSize);
-                    return;
-                }
+
 
                 ApiResult<PagedResponse<PutAwayDetailResponseDTO>> result;
                 if (string.IsNullOrWhiteSpace(SearchText))
@@ -173,11 +163,7 @@ namespace Chrome_WPF.ViewModels.PutAwayViewModel
                     }
                     TotalPages = result.Data.TotalPages;
 
-                    // Cache the results if not a search operation
-                    if (string.IsNullOrWhiteSpace(SearchText))
-                    {
-                        _cache[PutAwayCode] = PutAwayDetails.ToList();
-                    }
+    
                 }
                 else
                 {
@@ -242,58 +228,5 @@ namespace Chrome_WPF.ViewModels.PutAwayViewModel
                 DisplayPages.Add(TotalPages);
         }
 
-        private async Task SavePutAwayDetails()
-        {
-            try
-            {
-                if (!_putAwayDetails.Any())
-                {
-                    _notificationService.ShowMessage("Không có chi tiết phiếu nhập kho để lưu.", "OK", isError: true);
-                    return;
-                }
-
-                bool allSuccess = true;
-                string errorMessage = string.Empty;
-
-                foreach (var detail in _putAwayDetails)
-                {
-                    // Convert ResponseDTO to RequestDTO for update
-                    var requestDTO = new PutAwayDetailRequestDTO
-                    {
-                        PutAwayCode = detail.PutAwayCode,
-                        ProductCode = detail.ProductCode,
-                        LotNo = detail.LotNo,
-                        Demand = detail.Demand,
-                        Quantity = detail.Quantity
-                    };
-
-                    var result = await _putAwayDetailService.UpdatePutAwayDetail(requestDTO);
-                    if (!result.Success)
-                    {
-                        allSuccess = false;
-                        errorMessage = result.Message ?? "Lỗi khi cập nhật chi tiết phiếu nhập kho.";
-                        break;
-                    }
-                }
-
-                if (allSuccess)
-                {
-                    // Update cache
-                    _cache[PutAwayCode] = PutAwayDetails.ToList();
-                    _notificationService.ShowMessage("Lưu dữ liệu phiếu nhập kho thành công.", "OK", isError: false);
-
-                    // Refresh data to ensure consistency
-                    await LoadPutAwayDetailsAsync();
-                }
-                else
-                {
-                    _notificationService.ShowMessage(errorMessage, "OK", isError: true);
-                }
-            }
-            catch (Exception ex)
-            {
-                _notificationService.ShowMessage($"Lỗi: {ex.Message}", "OK", isError: true);
-            }
-        }
     }
 }

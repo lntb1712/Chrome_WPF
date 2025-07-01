@@ -11,6 +11,7 @@ namespace Chrome_WPF.Models.PickListDTO
         private string _pickNo = string.Empty;
         private string? _reservationCode;
         private string? _warehouseCode;
+        private string? _responsible;
         private string? _pickDate;
         private int? _statusId;
         private bool _isValidationRequested;
@@ -53,6 +54,16 @@ namespace Chrome_WPF.Models.PickListDTO
             {
                 _warehouseCode = value;
                 OnPropertyChanged(nameof(WarehouseCode));
+            }
+        }
+        [Required(ErrorMessage = "Nguo không được để trống")]
+        public string? Responsible
+        {
+            get => _responsible;
+            set
+            {
+                _warehouseCode = value;
+                OnPropertyChanged(nameof(_responsible));
             }
         }
 

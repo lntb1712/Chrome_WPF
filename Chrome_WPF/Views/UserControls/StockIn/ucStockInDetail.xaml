@@ -203,7 +203,7 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
+
                     </Grid.ColumnDefinitions>
                     <StackPanel
                         Grid.Column="0"
@@ -238,26 +238,8 @@
                             Text="{Binding StockInRequestDTO.StockInCode}" />
                     </StackPanel>
                     <Button
-                        x:Name="CreatePutAwayButton"
-                        Grid.Column="2"
-                        Margin="0,0,20,0"
-                        materialDesign:ButtonAssist.CornerRadius="8"
-                        Background="AliceBlue"
-                        Command="{Binding CreatePutAwayCommand}"
-                        Style="{StaticResource MaterialDesignFlatButton}"
-                        ToolTip="Lưu">
-                        <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon
-                                Width="24"
-                                Height="24"
-                                Margin="0,0,10,0"
-                                Kind="Input" />
-                            <TextBlock VerticalAlignment="Center" Text="Tạo lệnh Cất hàng" />
-                        </StackPanel>
-                    </Button>
-                    <Button
                         x:Name="SaveButton"
-                        Grid.Column="3"
+                        Grid.Column="2"
                         Margin="0,0,20,0"
                         materialDesign:ButtonAssist.CornerRadius="8"
                         Background="AliceBlue"
@@ -275,7 +257,7 @@
                     </Button>
                     <Button
                         x:Name="ConfirmButton"
-                        Grid.Column="4"
+                        Grid.Column="3"
                         materialDesign:ButtonAssist.CornerRadius="8"
                         Background="AliceBlue"
                         Command="{Binding ConfirmQuantityCommand}"

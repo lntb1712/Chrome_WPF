@@ -151,7 +151,7 @@
                 Style="{StaticResource MaterialDesignHeadline6TextBlock}">
                 <Run Text="Quản lý chuyển kho" />
                 <Run Text="(" />
-                <Run Text="{Binding ApplicableWarehouse}" />
+                <Run Text="{Binding ApplicableLocation}" />
                 <Run Text=")" />
             </TextBlock>
         </Grid>

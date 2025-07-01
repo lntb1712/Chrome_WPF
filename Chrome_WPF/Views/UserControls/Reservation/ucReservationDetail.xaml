@@ -274,11 +274,11 @@
                                     <DataGridTextColumn
                                         Width="*"
                                         Binding="{Binding LocationCode}"
-                                        Header="Vị trí" />
+                                        Header="Mã vị trí" />
                                     <DataGridTextColumn
                                         Width="*"
                                         Binding="{Binding LocationName}"
-                                        Header="Vị trí" />
+                                        Header="Tên vị trí" />
                                     <DataGridTextColumn
                                         Width="*"
                                         Binding="{Binding Lotno}"

@@ -262,6 +262,10 @@
                         Header="Mã loại lệnh" />
                     <DataGridTextColumn
                         Width="2*"
+                        Binding="{Binding FullNameResponsible}"
+                        Header="Người thực hiện" />
+                    <DataGridTextColumn
+                        Width="2*"
                         Binding="{Binding PutAwayDate}"
                         Header="Ngày cất hàng" />
                     <DataGridTextColumn

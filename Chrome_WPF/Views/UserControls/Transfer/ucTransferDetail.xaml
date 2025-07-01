@@ -732,6 +732,10 @@
                                         Header="Mã đặt chỗ" />
                                     <DataGridTextColumn
                                         Width="2*"
+                                        Binding="{Binding FullNameResponsible}"
+                                        Header="Người chịu trách nhiệm" />
+                                    <DataGridTextColumn
+                                        Width="2*"
                                         Binding="{Binding PickDate}"
                                         Header="Ngày lấy hàng" />
                                     <DataGridTextColumn

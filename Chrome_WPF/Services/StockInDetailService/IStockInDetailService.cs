@@ -19,7 +19,6 @@ namespace Chrome_WPF.Services.StockInDetailService
         Task<ApiResult<bool>> DeleteStockInDetail(string stockInCode, string productCode);
         Task<ApiResult<bool>> UpdateStockInDetail( StockInDetailRequestDTO stockInDetail);
         Task<ApiResult<bool>> ConfirmnStockIn(string stockInCode);
-        Task<ApiResult<bool>> CreatePutAway(string stockInCode);
         Task<ApiResult<bool>> CheckAndUpdateStockBackOrderStatus(string stockInCode);
     }
 }

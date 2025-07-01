@@ -590,6 +590,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
                     PickNo = $"PICK_{ManufacturingOrderRequestDTO.ManufacturingOrderCode}",
                     PickDate = DateTime.Now.ToString("dd/MM/yyyy"),
                     ReservationCode = reservation.ReservationCode,
+                    Responsible = ManufacturingOrderRequestDTO.Responsible,
                     StatusId = 1,
                     WarehouseCode = reservation.WarehouseCode,
                 };

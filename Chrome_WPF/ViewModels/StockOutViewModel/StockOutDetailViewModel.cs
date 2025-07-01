@@ -482,6 +482,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                     PickNo = $"PICK_{StockOutRequestDTO.StockOutCode}",
                     PickDate = DateTime.Now.ToString("dd/MM/yyyy"),
                     ReservationCode = reservation.ReservationCode,
+                    Responsible = StockOutRequestDTO.Responsible,
                     StatusId = 1,
                     WarehouseCode = reservation.WarehouseCode,
                 };
