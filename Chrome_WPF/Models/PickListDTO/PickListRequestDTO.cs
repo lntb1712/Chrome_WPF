@@ -62,8 +62,8 @@ namespace Chrome_WPF.Models.PickListDTO
             get => _responsible;
             set
             {
-                _warehouseCode = value;
-                OnPropertyChanged(nameof(_responsible));
+                _responsible = value;
+                OnPropertyChanged(nameof(Responsible));
             }
         }
 
@@ -118,6 +118,7 @@ namespace Chrome_WPF.Models.PickListDTO
             OnPropertyChanged(nameof(PickNo));
             OnPropertyChanged(nameof(ReservationCode));
             OnPropertyChanged(nameof(WarehouseCode));
+            OnPropertyChanged(nameof(Responsible));
             OnPropertyChanged(nameof(PickDate));
             OnPropertyChanged(nameof(StatusId));
         }
@@ -128,6 +129,7 @@ namespace Chrome_WPF.Models.PickListDTO
             OnPropertyChanged(nameof(PickNo));
             OnPropertyChanged(nameof(ReservationCode));
             OnPropertyChanged(nameof(WarehouseCode));
+            OnPropertyChanged(nameof(Responsible));
             OnPropertyChanged(nameof(PickDate));
             OnPropertyChanged(nameof(StatusId));
         }

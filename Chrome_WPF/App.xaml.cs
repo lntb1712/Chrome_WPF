@@ -395,7 +395,11 @@ namespace Chrome_WPF
                 new ucStockTake(
                     provider.GetRequiredService<StockTakeViewModel>(),
                     provider.GetRequiredService<INotificationService>()));
-            
+            services.AddTransient<ucStockTakeDetail>(provider =>
+               new ucStockTakeDetail(
+                   provider.GetRequiredService<StockTakeDetailViewModel>(),
+                   provider.GetRequiredService<INotificationService>()));
+
             services.AddTransient<ucManufacturingOrder>(provider =>
                 new ucManufacturingOrder(
                     provider.GetRequiredService<ManufacturingOrderViewModel>(),
