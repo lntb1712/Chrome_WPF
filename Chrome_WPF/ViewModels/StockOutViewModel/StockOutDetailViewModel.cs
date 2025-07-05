@@ -299,16 +299,16 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                 StockOutDate = stockOut.StockOutDate!
             };
 
-            SaveCommand = new RelayCommand(async _ => await SaveStockOutAsync(), CanSave);
+            SaveCommand = new RelayCommand(async parameter => await SaveStockOutAsync(parameter), CanSave);
             BackCommand = new RelayCommand(_ => NavigateBack());
             AddDetailLineCommand = new RelayCommand(_ => AddDetailLine(), CanAddDetailLine);
             DeleteDetailLineCommand = new RelayCommand(async detail => await DeleteDetailLineAsync((StockOutDetailResponseDTO)detail));
             PreviousPageCommand = new RelayCommand(_ => PreviousPage());
             NextPageCommand = new RelayCommand(_ => NextPage());
             SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
-            ConfirmQuantityCommand = new RelayCommand(async _ => await CheckQuantityAsync(), CanConfirmQuantity);
-            CreateReservationCommand = new RelayCommand(async _ => await CreateReservationAsync(), CanCreateReservation);
-            CreatePicklistCommand = new RelayCommand(async _ => await CreatePicklistAsync(), CanCreatePicklist);
+            ConfirmQuantityCommand = new RelayCommand(async parameter => await CheckQuantityAsync(parameter), CanConfirmQuantity);
+            CreateReservationCommand = new RelayCommand(async parameter => await CreateReservationAsync(parameter), CanCreateReservation);
+            CreatePicklistCommand = new RelayCommand(async parameter => await CreatePicklistAsync(parameter), CanCreatePicklist);
 
             _stockOutRequestDTO.PropertyChanged += OnPropertyChangedHandler!;
             _ = InitializeAsync();
@@ -455,7 +455,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             }
         }
 
-        private async Task CreatePicklistAsync()
+        private async Task CreatePicklistAsync(object parameter)
         {
             try
             {
@@ -472,7 +472,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                 }
 
                 // Lưu phiếu xuất kho trước khi tạo picklist
-                await SaveStockOutAsync();
+                await SaveStockOutAsync(parameter);
                 if (!string.IsNullOrEmpty(StockOutRequestDTO.Error))
                 {
                     return;
@@ -519,7 +519,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             return !string.IsNullOrEmpty(StockOutRequestDTO?.StockOutCode) && !LstReservations.Any();
         }
 
-        private async Task CreateReservationAsync()
+        private async Task CreateReservationAsync(object parameter)
         {
             try
             {
@@ -535,7 +535,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                     return;
                 }
 
-                await SaveStockOutAsync();
+                await SaveStockOutAsync(parameter);
                 if (string.IsNullOrEmpty(StockOutRequestDTO.Error))
                 {
                     var reservation = new ReservationRequestDTO
@@ -572,7 +572,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             return !string.IsNullOrEmpty(StockOutRequestDTO?.StockOutCode) && HasPicklist;
         }
 
-        private async Task CheckQuantityAsync()
+        private async Task CheckQuantityAsync(object parameter)
         {
             try
             {
@@ -582,7 +582,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                     return;
                 }
 
-                _ = SaveStockOutAsync();
+                _ = SaveStockOutAsync(parameter);
                 bool hasShortage = LstStockOutDetails.Any(d => d.Quantity < d.Demand);
                 if (!hasShortage)
                 {
@@ -812,7 +812,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             }
         }
 
-        private async Task SaveStockOutAsync()
+        private async Task SaveStockOutAsync(object parameter)
         {
             if (_isSaving) return;
 
@@ -821,12 +821,11 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                 _isSaving = true;
 
                 StockOutRequestDTO.RequestValidation();
-                if (!string.IsNullOrEmpty(StockOutRequestDTO.Error))
+                if (!CanSave(parameter))
                 {
-                    _notificationService.ShowMessage($"Lỗi dữ liệu: {StockOutRequestDTO.Error}", "OK", isError: true);
+                    _notificationService.ShowMessage("Vui lòng kiểm tra lại thông tin nhập vào.", "OK", isError: true);
                     return;
                 }
-
                 ApiResult<bool> stockOutResult;
                 if (IsAddingNew)
                 {

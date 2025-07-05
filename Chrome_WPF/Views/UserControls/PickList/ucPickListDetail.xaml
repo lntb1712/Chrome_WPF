@@ -231,15 +231,15 @@
                         Height="36"
                         materialDesign:ButtonAssist.CornerRadius="8"
                         Background="AliceBlue"
-                        Command="{Binding SaveCommand}"
+                        Command="{Binding RefreshCommand}"
                         Style="{StaticResource MaterialDesignFlatButton}"
-                        ToolTip="Lưu dữ liệu phiếu lấy hàng">
+                        ToolTip="Làm mới">
                         <StackPanel Orientation="Horizontal">
                             <materialDesign:PackIcon
                                 Width="24"
                                 Height="24"
-                                Kind="ContentSave" />
-                            <TextBlock Margin="8,0,0,0" Text="Lưu" />
+                                Kind="Refresh" />
+                            <TextBlock Margin="8,0,0,0" Text="Làm mới" />
                         </StackPanel>
                     </Button>
                 </Grid>

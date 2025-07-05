@@ -13,7 +13,7 @@ namespace Chrome_WPF.Services.PutAwayDetailService
     {
         Task<ApiResult<PagedResponse<PutAwayDetailResponseDTO>>> GetAllPutAwayDetailsAsync(string[] warehouseCodes, int page, int pageSize);
         Task<ApiResult<PagedResponse<PutAwayDetailResponseDTO>>> GetPutAwayDetailsByPutawayCodeAsync(string putAwayCode, int page, int pageSize);
-        Task<ApiResult<PagedResponse<PutAwayDetailResponseDTO>>> SearchPutAwayDetailsAsync(string[] warehouseCodes, string putAwayCode, string textToSearch, int page, int pageSize);
+        Task<ApiResult<PagedResponse<PutAwayDetailResponseDTO>>> SearchPutAwayDetailsAsync(string putAwayCode, string textToSearch, int page, int pageSize);
         Task<ApiResult<bool>> UpdatePutAwayDetail(PutAwayDetailRequestDTO putAwayDetail);
         Task<ApiResult<bool>> DeletePutAwayDetail(string putAwayCode, string productCode);
     }

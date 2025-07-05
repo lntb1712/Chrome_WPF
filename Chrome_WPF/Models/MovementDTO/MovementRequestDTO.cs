@@ -81,7 +81,7 @@ namespace Chrome_WPF.Models.MovementDTO
                 OnPropertyChanged(nameof(ToLocation));
             }
         }
-
+        [Required(ErrorMessage = "Tên nhân viên không được để trống")]
         public string? Responsible
         {
             get => _responsible;

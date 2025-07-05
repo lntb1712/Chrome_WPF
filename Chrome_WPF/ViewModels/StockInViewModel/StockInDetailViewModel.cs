@@ -259,14 +259,14 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                 OrderDeadLine = stockIn.OrderDeadline!
             };
 
-            SaveCommand = new RelayCommand(async _ => await SaveStockInAsync(), CanSave);
+            SaveCommand = new RelayCommand(async parameter => await SaveStockInAsync(parameter), CanSave);
             BackCommand = new RelayCommand(_ => NavigateBack());
             AddDetailLineCommand = new RelayCommand(_ => AddDetailLine(), CanAddDetailLine);
             DeleteDetailLineCommand = new RelayCommand(async detail => await DeleteDetailLineAsync((StockInDetailResponseDTO)detail));
             PreviousPageCommand = new RelayCommand(_ => PreviousPage());
             NextPageCommand = new RelayCommand(_ => NextPage());
             SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
-            ConfirmQuantityCommand = new RelayCommand(_ => CheckQuantity());
+            ConfirmQuantityCommand = new RelayCommand(parameter => CheckQuantity(parameter));
 
             _stockInRequestDTO.PropertyChanged += OnPropertyChangedHandler!;
             _ = InitializeAsync();
@@ -286,7 +286,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                 HasPutAway = false;
             }
         }
-        private async void CheckQuantity()
+        private async void CheckQuantity(object parameter)
         {
             try
             {
@@ -295,7 +295,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                     _notificationService.ShowMessage("Danh sách chi tiết nhập kho rỗng.", "OK", isError: true);
                     return;
                 }
-                _ = SaveStockInAsync();
+                _ = SaveStockInAsync(parameter);
                 // Kiểm tra xem có sản phẩm nào thiếu số lượng không
                 bool hasShortage = LstStockInDetails.Any(d => d.Quantity < d.Demand);
                 if (!hasShortage)
@@ -589,14 +589,14 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
             }
         }
 
-        private async Task SaveStockInAsync()
+        private async Task SaveStockInAsync(object parameter)
         {
             try
             {
                 StockInRequestDTO.RequestValidation();
-                if (!string.IsNullOrEmpty(StockInRequestDTO.Error))
+                if (!CanSave(parameter))
                 {
-                    _notificationService.ShowMessage($"Lỗi dữ liệu: {StockInRequestDTO.Error}", "OK", isError: true);
+                    _notificationService.ShowMessage("Vui lòng kiểm tra lại thông tin nhập vào.", "OK", isError: true);
                     return;
                 }
 

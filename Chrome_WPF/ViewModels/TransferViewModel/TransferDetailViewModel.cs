@@ -332,14 +332,14 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
                 TransferDescription = transfer.TransferDescription
             };
 
-            SaveCommand = new RelayCommand(async _ => await SaveTransferAsync(), CanSave);
+            SaveCommand = new RelayCommand(async parameter => await SaveTransferAsync(parameter), CanSave);
             BackCommand = new RelayCommand(_ => NavigateBack());
             AddDetailLineCommand = new RelayCommand(_ => AddDetailLine(), CanAddDetailLine);
             DeleteDetailLineCommand = new RelayCommand(async detail => await DeleteDetailLineAsync((TransferDetailResponseDTO)detail));
             PreviousPageCommand = new RelayCommand(_ => PreviousPage());
             NextPageCommand = new RelayCommand(_ => NextPage());
             SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
-            ConfirmCommand = new RelayCommand(async _ => await ConfirmTransferAsync(), CanConfirm);
+            ConfirmCommand = new RelayCommand(async parameter => await ConfirmTransferAsync(parameter), CanConfirm);
 
             _transferRequestDTO.PropertyChanged += OnTransferRequestDTOPropertyChanged!;
             _ = InitializeAsync();
@@ -748,7 +748,7 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
             }
         }
 
-        private async Task SaveTransferAsync()
+        private async Task SaveTransferAsync(object parameter)
         {
             if (_isSaving) return;
 
@@ -757,9 +757,9 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
                 _isSaving = true;
 
                 TransferRequestDTO.RequestValidation();
-                if (!string.IsNullOrEmpty(TransferRequestDTO.Error))
+                if (!CanSave(parameter))
                 {
-                    _notificationService.ShowMessage($"Lỗi dữ liệu: {TransferRequestDTO.Error}", "OK", isError: true);
+                    _notificationService.ShowMessage("Vui lòng kiểm tra lại thông tin nhập vào.", "OK", isError: true);
                     return;
                 }
 
@@ -850,7 +850,7 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
             }
         }
 
-        private async Task ConfirmTransferAsync()
+        private async Task ConfirmTransferAsync(object parameter)
         {
             try
             {
@@ -860,7 +860,7 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
                     return;
                 }
 
-                await SaveTransferAsync();
+                await SaveTransferAsync(parameter);
                 if (!string.IsNullOrEmpty(TransferRequestDTO.Error))
                 {
                     return;
@@ -964,7 +964,7 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
         private bool CanSave(object parameter)
         {
             var dto = TransferRequestDTO;
-            var propertiesToValidate = new[] { nameof(dto.TransferCode), nameof(dto.OrderTypeCode), nameof(dto.FromWarehouseCode), nameof(dto.ToWarehouseCode), nameof(dto.FromResponsible), nameof(dto.ToResponsible) };
+            var propertiesToValidate = new[] { nameof(dto.TransferCode), nameof(dto.OrderTypeCode), nameof(dto.FromWarehouseCode), nameof(dto.ToWarehouseCode), nameof(dto.FromResponsible), nameof(dto.ToResponsible),nameof(dto.TransferDate) };
 
             foreach (var prop in propertiesToValidate)
             {

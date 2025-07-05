@@ -141,7 +141,7 @@ namespace Chrome_WPF.Services.PutAwayDetailService
             }
         }
 
-        public async Task<ApiResult<PagedResponse<PutAwayDetailResponseDTO>>> SearchPutAwayDetailsAsync(string[] warehouseCodes, string putAwayCode, string textToSearch, int page, int pageSize)
+        public async Task<ApiResult<PagedResponse<PutAwayDetailResponseDTO>>> SearchPutAwayDetailsAsync(string putAwayCode, string textToSearch, int page, int pageSize)
         {
             if (string.IsNullOrEmpty(putAwayCode))
             {
@@ -157,7 +157,13 @@ namespace Chrome_WPF.Services.PutAwayDetailService
             }
             try
             {
-                var warehouseCodesQuery = string.Join("&warehouseCodes=", warehouseCodes.Select(Uri.EscapeDataString));
+                var warehousePermissions = new List<string>();
+                var savedPermissions = Properties.Settings.Default.WarehousePermission;
+                if (savedPermissions != null)
+                {
+                    warehousePermissions = savedPermissions.Cast<string>().ToList();
+                }
+                var warehouseCodesQuery = string.Join("&warehouseCodes=", warehousePermissions.Select(Uri.EscapeDataString));
                 var response = await _httpClient.GetAsync($"PutAway/{Uri.EscapeDataString(putAwayCode)}/PutAwayDetail/SearchPutAwayDetails?warehouseCodes={warehouseCodesQuery}&textToSearch={Uri.EscapeDataString(textToSearch)}&page={page}&pageSize={pageSize}").ConfigureAwait(false);
                 var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 if (response.IsSuccessStatusCode)

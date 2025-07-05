@@ -439,11 +439,11 @@ namespace Chrome_WPF.Services.MovementService
             }
         }
 
-        public async Task<ApiResult<List<AccountManagementResponseDTO>>> GetListResponsibleAsync()
+        public async Task<ApiResult<List<AccountManagementResponseDTO>>> GetListResponsibleAsync(string warehouseCode)
         {
             try
             {
-                var response = await _httpClient.GetAsync("Movement/GetListResponsible").ConfigureAwait(false);
+                var response = await _httpClient.GetAsync($"Movement/GetListResponsible?warehouseCode={warehouseCode}").ConfigureAwait(false);
                 var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 if (response.IsSuccessStatusCode)
                 {

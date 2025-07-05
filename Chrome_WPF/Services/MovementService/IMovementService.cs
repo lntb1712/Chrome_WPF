@@ -25,7 +25,7 @@ namespace Chrome_WPF.Services.MovementService
         Task<ApiResult<bool>> DeleteMovementAsync(string movementCode);
         Task<ApiResult<bool>> UpdateMovement(MovementRequestDTO movement);
         Task<ApiResult<List<OrderTypeResponseDTO>>> GetListOrderType(string prefix);
-        Task<ApiResult<List<AccountManagementResponseDTO>>> GetListResponsibleAsync();
+        Task<ApiResult<List<AccountManagementResponseDTO>>> GetListResponsibleAsync(string warehouseCode);
         Task<ApiResult<List<StatusMasterResponseDTO>>> GetListStatusMaster();
         Task<ApiResult<List<WarehouseMasterResponseDTO>>> GetListWarehousePermission(string[] warehouseCodes);
         Task<ApiResult<List<LocationMasterResponseDTO>>> GetListFromLocation(string warehouseCode);

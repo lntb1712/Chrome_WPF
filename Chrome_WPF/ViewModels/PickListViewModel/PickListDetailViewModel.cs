@@ -7,11 +7,7 @@ using Chrome_WPF.Services.NotificationService;
 using Chrome_WPF.Services.PickListDetailService;
 using Chrome_WPF.Views.UserControls.PickList;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace Chrome_WPF.ViewModels.PickListViewModel
@@ -29,7 +25,7 @@ namespace Chrome_WPF.ViewModels.PickListViewModel
         private int _currentPage;
         private int _pageSize = 10;
         private int _totalPages;
-        private static readonly Dictionary<string, List<PickListDetailResponseDTO>> _cache = new Dictionary<string, List<PickListDetailResponseDTO>>();
+
 
         public ObservableCollection<PickListDetailResponseDTO> PickListDetails
         {
@@ -111,7 +107,7 @@ namespace Chrome_WPF.ViewModels.PickListViewModel
         public ICommand NextPageCommand { get; }
         public ICommand PreviousPageCommand { get; }
         public ICommand SelectPageCommand { get; }
-        public ICommand SaveCommand { get; }
+        public ICommand RefreshCommand { get; }
 
         public PickListDetailViewModel(
             IPickListDetailService pickListDetailService,
@@ -133,8 +129,7 @@ namespace Chrome_WPF.ViewModels.PickListViewModel
             PreviousPageCommand = new RelayCommand(_ => PreviousPage());
             NextPageCommand = new RelayCommand(_ => NextPage());
             SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
-            SaveCommand = new RelayCommand(async _ => await SavePickListDetails());
-
+            RefreshCommand = new RelayCommand(async _ => await LoadPickListDetailsAsync());
             _ = LoadPickListDetailsAsync();
         }
 
@@ -142,17 +137,7 @@ namespace Chrome_WPF.ViewModels.PickListViewModel
         {
             try
             {
-                // Check cache first
-                if (_cache.ContainsKey(PickNo) && string.IsNullOrWhiteSpace(SearchText))
-                {
-                    PickListDetails.Clear();
-                    foreach (var detail in _cache[PickNo])
-                    {
-                        PickListDetails.Add(detail);
-                    }
-                    TotalPages = (int)Math.Ceiling((double)_cache[PickNo].Count / PageSize);
-                    return;
-                }
+
 
                 ApiResult<PagedResponse<PickListDetailResponseDTO>> result;
                 if (string.IsNullOrWhiteSpace(SearchText))
@@ -161,7 +146,8 @@ namespace Chrome_WPF.ViewModels.PickListViewModel
                 }
                 else
                 {
-                    result = await _pickListDetailService.SearchPickListDetailsAsync(new string[] { }, PickNo, SearchText, CurrentPage, PageSize);
+
+                    result = await _pickListDetailService.SearchPickListDetailsAsync( PickNo, SearchText, CurrentPage, PageSize);
                 }
 
                 if (result.Success && result.Data != null)
@@ -173,11 +159,7 @@ namespace Chrome_WPF.ViewModels.PickListViewModel
                     }
                     TotalPages = result.Data.TotalPages;
 
-                    // Cache the results if not a search operation
-                    if (string.IsNullOrWhiteSpace(SearchText))
-                    {
-                        _cache[PickNo] = PickListDetails.ToList();
-                    }
+
                 }
                 else
                 {
@@ -242,59 +224,6 @@ namespace Chrome_WPF.ViewModels.PickListViewModel
                 DisplayPages.Add(TotalPages);
         }
 
-        private async Task SavePickListDetails()
-        {
-            try
-            {
-                if (!_pickListDetails.Any())
-                {
-                    _notificationService.ShowMessage("Không có chi tiết phiếu lấy hàng để lưu.", "OK", isError: true);
-                    return;
-                }
 
-                bool allSuccess = true;
-                string errorMessage = string.Empty;
-
-                foreach (var detail in _pickListDetails)
-                {
-                    // Convert ResponseDTO to RequestDTO for update
-                    var requestDTO = new PickListDetailRequestDTO
-                    {
-                        PickNo = detail.PickNo,
-                        ProductCode = detail.ProductCode,
-                        LotNo = detail.LotNo,
-                        Demand = detail.Demand,
-                        Quantity = detail.Quantity,
-                        LocationCode = detail.LocationCode
-                    };
-
-                    var result = await _pickListDetailService.UpdatePickListDetail(requestDTO);
-                    if (!result.Success)
-                    {
-                        allSuccess = false;
-                        errorMessage = result.Message ?? "Lỗi khi cập nhật chi tiết phiếu lấy hàng.";
-                        break;
-                    }
-                }
-
-                if (allSuccess)
-                {
-                    // Update cache
-                    _cache[PickNo] = PickListDetails.ToList();
-                    _notificationService.ShowMessage("Lưu dữ liệu phiếu lấy hàng thành công.", "OK", isError: false);
-
-                    // Refresh data to ensure consistency
-                    await LoadPickListDetailsAsync();
-                }
-                else
-                {
-                    _notificationService.ShowMessage(errorMessage, "OK", isError: true);
-                }
-            }
-            catch (Exception ex)
-            {
-                _notificationService.ShowMessage($"Lỗi: {ex.Message}", "OK", isError: true);
-            }
-        }
     }
 }

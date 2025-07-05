@@ -141,7 +141,7 @@ namespace Chrome_WPF.Services.PickListDetailService
             }
         }
 
-        public async Task<ApiResult<PagedResponse<PickListDetailResponseDTO>>> SearchPickListDetailsAsync(string[] warehouseCodes, string pickNo, string textToSearch, int page, int pageSize)
+        public async Task<ApiResult<PagedResponse<PickListDetailResponseDTO>>> SearchPickListDetailsAsync( string pickNo, string textToSearch, int page, int pageSize)
         {
             if (string.IsNullOrEmpty(pickNo))
             {
@@ -157,7 +157,13 @@ namespace Chrome_WPF.Services.PickListDetailService
             }
             try
             {
-                var warehouseCodesQuery = string.Join("&warehouseCodes=", warehouseCodes.Select(Uri.EscapeDataString));
+                var warehousePermissions = new List<string>();
+                var savedPermissions = Properties.Settings.Default.WarehousePermission;
+                if (savedPermissions != null)
+                {
+                    warehousePermissions = savedPermissions.Cast<string>().ToList();
+                }
+                var warehouseCodesQuery = string.Join("&warehouseCodes=", warehousePermissions.Select(Uri.EscapeDataString));
                 var response = await _httpClient.GetAsync($"PickList/{Uri.EscapeDataString(pickNo)}/PickListDetail/SearchPickListDetails?warehouseCodes={warehouseCodesQuery}&textToSearch={Uri.EscapeDataString(textToSearch)}&page={page}&pageSize={pageSize}").ConfigureAwait(false);
                 var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 if (response.IsSuccessStatusCode)

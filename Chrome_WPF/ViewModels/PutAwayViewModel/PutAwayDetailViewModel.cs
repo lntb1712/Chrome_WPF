@@ -151,7 +151,7 @@ namespace Chrome_WPF.ViewModels.PutAwayViewModel
                 }
                 else
                 {
-                    result = await _putAwayDetailService.SearchPutAwayDetailsAsync(new string[] { }, PutAwayCode, SearchText, CurrentPage, PageSize);
+                    result = await _putAwayDetailService.SearchPutAwayDetailsAsync( PutAwayCode, SearchText, CurrentPage, PageSize);
                 }
 
                 if (result.Success && result.Data != null)

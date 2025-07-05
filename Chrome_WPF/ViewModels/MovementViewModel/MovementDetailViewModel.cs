@@ -5,12 +5,10 @@ using Chrome_WPF.Models.LocationMasterDTO;
 using Chrome_WPF.Models.MovementDetailDTO;
 using Chrome_WPF.Models.MovementDTO;
 using Chrome_WPF.Models.OrderTypeDTO;
-using Chrome_WPF.Models.PagedResponse;
 using Chrome_WPF.Models.PickListDTO;
 using Chrome_WPF.Models.ProductMasterDTO;
 using Chrome_WPF.Models.PutAwayDTO;
 using Chrome_WPF.Models.ReservationDTO;
-using Chrome_WPF.Models.TransferDTO;
 using Chrome_WPF.Models.WarehouseMasterDTO;
 using Chrome_WPF.Services.MessengerService;
 using Chrome_WPF.Services.MovementDetailService;
@@ -22,14 +20,10 @@ using Chrome_WPF.Services.PutAwayService;
 using Chrome_WPF.Services.ReservationService;
 using Chrome_WPF.Views.UserControls.Movement;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Navigation;
 
 namespace Chrome_WPF.ViewModels.MovementViewModel
 {
@@ -283,7 +277,7 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
             IMovementDetailService movementDetailService,
             INotificationService notificationService,
             INavigationService navigationService,
-            IMessengerService messengerService, 
+            IMessengerService messengerService,
             IPutAwayService putAwayService,
             IPickListService pickListService,
             IReservationService reservationService,
@@ -327,14 +321,14 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
                 MovementDescription = movement.MovementDescription
             };
 
-            SaveCommand = new RelayCommand(async _ => await SaveMovementAsync(), CanSave);
+            SaveCommand = new RelayCommand(async parameter => await SaveMovementAsync(parameter), CanSave);
             BackCommand = new RelayCommand(_ => NavigateBack());
             AddDetailLineCommand = new RelayCommand(_ => AddDetailLine(), CanAddDetailLine);
             DeleteDetailLineCommand = new RelayCommand(async detail => await DeleteDetailLineAsync((MovementDetailResponseDTO)detail));
             PreviousPageCommand = new RelayCommand(_ => PreviousPage());
             NextPageCommand = new RelayCommand(_ => NextPage());
             SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
-            ConfirmCommand = new RelayCommand(async _ => await ConfirmMovementAsync(), CanConfirm);
+            ConfirmCommand = new RelayCommand(async parameter => await ConfirmMovementAsync(parameter), CanConfirm);
 
             _movementRequestDTO.PropertyChanged += OnMovementRequestDTOPropertyChanged!;
             _ = InitializeAsync();
@@ -354,17 +348,19 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
                 await Task.WhenAll(
                     LoadOrderTypesAsync(),
                     LoadWarehousesAsync(),
-                    LoadResponsiblePersonsAsync(),
+
                     CheckReservationExistenceAsync(),
                     CheckPicklistExistenceAsync(),
                     CheckPutAwayHasValue());
 
                 if (!IsAddingNew)
                 {
-                    await LoadFromLocationsAsync();
-                    await LoadToLocationsAsync();
-                    await LoadProductsAsync();
-                    await LoadMovementDetailsAsync();
+                    await Task.WhenAll(
+                     LoadFromLocationsAsync(),
+                     LoadToLocationsAsync(),
+                     LoadProductsAsync(),
+                     LoadMovementDetailsAsync(),
+                     LoadResponsiblePersonsAsync());
                 }
                 if (HasReservation)
                 {
@@ -572,9 +568,9 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
                 var result = await _movementDetailService.GetProductByLocationCode(MovementRequestDTO.FromLocation);
                 if (result.Success && result.Data != null)
                 {
-                   
-                        LstProducts.Add(result.Data);
-                    
+
+                    LstProducts.Add(result.Data);
+
                 }
                 else
                 {
@@ -676,7 +672,7 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
                     return;
                 }
 
-                var result = await _movementService.GetListToLocation(MovementRequestDTO.WarehouseCode,MovementRequestDTO.FromLocation!);
+                var result = await _movementService.GetListToLocation(MovementRequestDTO.WarehouseCode, MovementRequestDTO.FromLocation!);
                 if (result.Success && result.Data != null)
                 {
                     LstToLocations.Clear();
@@ -700,7 +696,7 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
         {
             try
             {
-                var result = await _movementService.GetListResponsibleAsync();
+                var result = await _movementService.GetListResponsibleAsync(MovementRequestDTO.WarehouseCode!);
                 if (result.Success && result.Data != null)
                 {
                     LstResponsiblePersons.Clear();
@@ -720,7 +716,7 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
             }
         }
 
-        private async Task SaveMovementAsync()
+        private async Task SaveMovementAsync(object parameter)
         {
             if (_isSaving) return;
 
@@ -729,12 +725,11 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
                 _isSaving = true;
 
                 MovementRequestDTO.RequestValidation();
-                if (!string.IsNullOrEmpty(MovementRequestDTO.Error))
+                if (!CanSave(parameter))
                 {
-                    _notificationService.ShowMessage($"Lỗi dữ liệu: {MovementRequestDTO.Error}", "OK", isError: true);
+                    _notificationService.ShowMessage("Vui lòng kiểm tra lại thông tin nhập vào.", "OK", isError: true);
                     return;
                 }
-
                 ApiResult<bool> movementResult;
                 if (IsAddingNew)
                 {
@@ -793,13 +788,15 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
                     }
                 }
 
-                _notificationService.ShowMessage(IsAddingNew ? "Thêm phiếu di chuyển thành công!" : "Cập nhật phiếu di chuyển thành công!", "OK", isError: false);
+                _notificationService.QueueMessageForNextSnackbar(IsAddingNew ? "Thêm phiếu di chuyển thành công!" : "Cập nhật phiếu di chuyển thành công!", "OK", isError: false);
                 if (IsAddingNew)
                 {
                     MovementRequestDTO.ClearValidation();
                     IsAddingNew = false;
                 }
                 await _messengerService.SendMessageAsync("ReloadMovementList");
+                var ucMovementView = App.ServiceProvider!.GetRequiredService<ucMovement>();
+                _navigationService.NavigateTo(ucMovementView);
             }
             catch (Exception ex)
             {
@@ -811,7 +808,7 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
             }
         }
 
-        private async Task ConfirmMovementAsync()
+        private async Task ConfirmMovementAsync(object parameter)
         {
             try
             {
@@ -821,7 +818,7 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
                     return;
                 }
 
-                await SaveMovementAsync();
+                await SaveMovementAsync(parameter);
                 if (!string.IsNullOrEmpty(MovementRequestDTO.Error))
                 {
                     return;
@@ -923,7 +920,7 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
         private bool CanSave(object parameter)
         {
             var dto = MovementRequestDTO;
-            var propertiesToValidate = new[] { nameof(dto.MovementCode), nameof(dto.WarehouseCode), nameof(dto.OrderTypeCode), nameof(dto.FromLocation), nameof(dto.ToLocation),nameof(dto.Responsible) };
+            var propertiesToValidate = new[] { nameof(dto.MovementCode), nameof(dto.WarehouseCode), nameof(dto.OrderTypeCode), nameof(dto.FromLocation), nameof(dto.ToLocation), nameof(dto.Responsible),nameof(dto.MovementDate) };
 
             foreach (var prop in propertiesToValidate)
             {
@@ -1022,8 +1019,8 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
                     LstProducts.Clear();
 
                     // Load new locations
-                    await LoadFromLocationsAsync();
-                    
+                    await Task.WhenAll( LoadFromLocationsAsync(),LoadResponsiblePersonsAsync());
+
                 }
                 else if (e.PropertyName == nameof(MovementRequestDTO.FromLocation))
                 {

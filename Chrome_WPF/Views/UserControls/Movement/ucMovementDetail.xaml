@@ -460,7 +460,8 @@
                     Margin="0,0,0,-1"
                     Panel.ZIndex="0"
                     Background="Transparent"
-                    ItemContainerStyle="{StaticResource CustomTabItemStyle}">
+                    ItemContainerStyle="{StaticResource CustomTabItemStyle}"
+                    Visibility="{Binding IsAddingNew, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=Collapsed}">
                     <TabItem Header="Chi tiết di chuyển">
                         <Grid>
                             <Grid.RowDefinitions>
