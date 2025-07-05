@@ -21,6 +21,7 @@ using Chrome_WPF.Services.PutAwayService;
 using Chrome_WPF.Services.ReservationService;
 using Chrome_WPF.Services.TransferDetailService;
 using Chrome_WPF.Services.TransferService;
+using Chrome_WPF.Views.UserControls.StockIn;
 using Chrome_WPF.Views.UserControls.Transfer;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -409,6 +410,7 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
                 HasReservation = false;
             }
         }
+
         private async Task LoadReservationsAsync()
         {
             try
@@ -454,6 +456,7 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
                 HasPicklist = false;
             }
         }
+
         private async Task LoadPickListAsync()
         {
             try
@@ -486,6 +489,7 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
                 _notificationService.ShowMessage($"Lỗi khi tải danh sách đặt chỗ: {ex.Message}", "OK", isError: true);
             }
         }
+
         private async Task CheckPutAwayHasValue()
         {
             try
@@ -499,6 +503,7 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
                 HasPutAway = false;
             }
         }
+        
         private async Task LoadPutAway()
         {
             try
@@ -525,6 +530,7 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
                 _notificationService.ShowMessage($"Lỗi khi tải danh sách cất hàng: {ex.Message}", "OK", isError: true);
             }
         }
+
         private async Task LoadWarehousesAsync()
         {
             try
@@ -824,13 +830,15 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
                     }
                 }
 
-                _notificationService.ShowMessage(IsAddingNew ? "Thêm phiếu chuyển kho thành công!" : "Cập nhật phiếu chuyển kho thành công!", "OK", isError: false);
+                _notificationService.QueueMessageForNextSnackbar(IsAddingNew ? "Thêm phiếu chuyển kho thành công!" : "Cập nhật phiếu chuyển kho thành công!", "OK", isError: false);
                 if (IsAddingNew)
                 {
                     TransferRequestDTO.ClearValidation();
                     IsAddingNew = false;
                 }
                 await _messengerService.SendMessageAsync("ReloadTransferList");
+                var ucTransfer = App.ServiceProvider!.GetRequiredService<ucTransfer>();
+                _navigationService.NavigateTo(ucTransfer);
             }
             catch (Exception ex)
             {

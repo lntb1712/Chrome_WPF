@@ -3,19 +3,21 @@ using Chrome_WPF.Models.AccountManagementDTO;
 using Chrome_WPF.Models.APIResult;
 using Chrome_WPF.Models.CustomerMasterDTO;
 using Chrome_WPF.Models.OrderTypeDTO;
+using Chrome_WPF.Models.PickListDTO;
 using Chrome_WPF.Models.ProductMasterDTO;
 using Chrome_WPF.Models.ReservationDTO;
+using Chrome_WPF.Models.StockInDTO;
 using Chrome_WPF.Models.StockOutDetailDTO;
 using Chrome_WPF.Models.StockOutDTO;
 using Chrome_WPF.Models.WarehouseMasterDTO;
-using Chrome_WPF.Models.PickListDTO;
 using Chrome_WPF.Services.MessengerService;
 using Chrome_WPF.Services.NavigationService;
 using Chrome_WPF.Services.NotificationService;
+using Chrome_WPF.Services.PickListService;
 using Chrome_WPF.Services.ReservationService;
 using Chrome_WPF.Services.StockOutDetailService;
 using Chrome_WPF.Services.StockOutService;
-using Chrome_WPF.Services.PickListService;
+using Chrome_WPF.Views.UserControls.StockIn;
 using Chrome_WPF.Views.UserControls.StockOut;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -25,6 +27,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using BackOrderDialog = Chrome_WPF.Views.UserControls.StockOut.BackOrderDialog;
 
 namespace Chrome_WPF.ViewModels.StockOutViewModel
 {
@@ -328,7 +331,6 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                     LoadOrderTypesAsync(),
                     LoadWarehousesAsync(),
                     LoadCustomersAsync(),
-                    LoadResponsiblePersonsAsync(),
                     CheckReservationExistenceAsync());
 
                 if (!IsAddingNew)
@@ -790,7 +792,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
         {
             try
             {
-                var result = await _stockOutService.GetListResponsibleAsync();
+                var result = await _stockOutService.GetListResponsibleAsync(StockOutRequestDTO.WarehouseCode);
                 if (result.Success && result.Data != null)
                 {
                     LstResponsiblePersons.Clear();
@@ -884,13 +886,16 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                     }
                 }
 
-                _notificationService.ShowMessage(IsAddingNew ? "Thêm phiếu xuất kho thành công!" : "Cập nhật phiếu xuất kho thành công!", "OK", isError: false);
+                _notificationService.QueueMessageForNextSnackbar(IsAddingNew ? "Thêm phiếu xuất kho thành công!" : "Cập nhật phiếu xuất kho thành công!", "OK", isError: false);
                 if (IsAddingNew)
                 {
                     StockOutRequestDTO.ClearValidation();
                     IsAddingNew = false;
                 }
+             
                 await _messengerService.SendMessageAsync("ReloadStockOutList");
+                var ucStockOutView = App.ServiceProvider!.GetRequiredService<ucStockOut>();
+                _navigationService.NavigateTo(ucStockOutView);
             }
             catch (Exception ex)
             {
@@ -968,12 +973,16 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
 
         private bool CanSave(object parameter)
         {
-            if (_isSaving || StockOutRequestDTO == null) return false;
-
-            return !string.IsNullOrEmpty(StockOutRequestDTO.StockOutCode) &&
-                   !string.IsNullOrEmpty(StockOutRequestDTO.OrderTypeCode) &&
-                   !string.IsNullOrEmpty(StockOutRequestDTO.WarehouseCode) &&
-                   !string.IsNullOrEmpty(StockOutRequestDTO.CustomerCode);
+            var dto = StockOutRequestDTO;
+            var propertiesToValidate = new[] { nameof(dto.StockOutCode), nameof(dto.OrderTypeCode), nameof(dto.WarehouseCode), nameof(dto.CustomerCode), nameof(dto.Responsible), nameof(dto.StockOutDate) };
+            foreach (var prop in propertiesToValidate)
+            {
+                if (!string.IsNullOrEmpty(dto[prop]))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         private bool CanAddDetailLine(object parameter)
@@ -1048,6 +1057,10 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                 ((RelayCommand)CreateReservationCommand)?.RaiseCanExecuteChanged();
                 ((RelayCommand)CreatePicklistCommand)?.RaiseCanExecuteChanged();
                 ((RelayCommand)ConfirmQuantityCommand)?.RaiseCanExecuteChanged();
+                if (e.PropertyName == nameof(StockOutRequestDTO.WarehouseCode))
+                {
+                    _ = LoadResponsiblePersonsAsync();
+                }
             }
         }
     }

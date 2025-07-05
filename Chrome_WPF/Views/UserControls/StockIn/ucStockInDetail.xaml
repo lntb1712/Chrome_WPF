@@ -475,7 +475,7 @@
                             <TextBox
                                 x:Name="StockInDescriptionTextBox"
                                 Width="Auto"
-                                Height="120"
+                                Height="100"
                                 Padding="12,8"
                                 materialDesign:TextFieldAssist.DecorationVisibility="Visible"
                                 materialDesign:TextFieldAssist.HasLeadingIcon="True"
@@ -557,7 +557,7 @@
                                                     Style="{StaticResource MaterialDesignFlatButton}"
                                                     ToolTip="Xóa dòng">
                                                     <materialDesign:PackIcon
-                                                        Width="2024"
+                                                        Width="20"
                                                         Height="20"
                                                         Kind="Delete" />
                                                 </Button>

@@ -21,7 +21,7 @@ namespace Chrome_WPF.Services.StockOutService
         Task<ApiResult<PagedResponse<StockOutResponseDTO>>> SearchStockOutAsync(string textToSearch, int page, int pageSize);
         Task<ApiResult<List<OrderTypeResponseDTO>>> GetListOrderType(string prefix);
         Task<ApiResult<List<CustomerMasterResponseDTO>>> GetListCustomerMasterAsync();
-        Task<ApiResult<List<AccountManagementResponseDTO>>> GetListResponsibleAsync();
+        Task<ApiResult<List<AccountManagementResponseDTO>>> GetListResponsibleAsync(string warehouseCode);
         Task<ApiResult<List<StatusMasterResponseDTO>>> GetListStatusMaster();
         Task<ApiResult<List<WarehouseMasterResponseDTO>>> GetListWarehousePermission();
         Task<ApiResult<bool>> AddStockOut(StockOutRequestDTO stockOut);

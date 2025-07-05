@@ -322,11 +322,11 @@ namespace Chrome_WPF.Services.StockOutService
             }
         }
 
-        public async Task<ApiResult<List<AccountManagementResponseDTO>>> GetListResponsibleAsync()
+        public async Task<ApiResult<List<AccountManagementResponseDTO>>> GetListResponsibleAsync(string warehouseCode)
         {
             try
             {
-                var response = await _httpClient.GetAsync("StockOut/GetListResponsibleAsync").ConfigureAwait(false);
+                var response = await _httpClient.GetAsync($"StockOut/GetListResponsibleAsync?warehouseCode={warehouseCode}").ConfigureAwait(false);
                 var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 if (response.IsSuccessStatusCode)
                 {
