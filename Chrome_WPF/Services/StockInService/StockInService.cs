@@ -8,6 +8,7 @@ using Chrome_WPF.Models.StatusMasterDTO;
 using Chrome_WPF.Models.StockInDTO;
 using Chrome_WPF.Models.SupplierMasterDTO;
 using Chrome_WPF.Models.WarehouseMasterDTO;
+using DocumentFormat.OpenXml.Wordprocessing;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -336,11 +337,11 @@ namespace Chrome_WPF.Services.StockInService
             }
         }
 
-        public async Task<ApiResult<List<AccountManagementResponseDTO>>> GetListResponsibleAsync()
+        public async Task<ApiResult<List<AccountManagementResponseDTO>>> GetListResponsibleAsync(string warehouseCode)
         {
             try
             {
-                var response = await _httpClient.GetAsync("StockIn/GetListResponsibleAsync").ConfigureAwait(false);
+                var response = await _httpClient.GetAsync($"StockIn/GetListResponsibleAsync?warehouseCode={warehouseCode}").ConfigureAwait(false);
                 var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 if (response.IsSuccessStatusCode)
                 {
@@ -681,6 +682,66 @@ namespace Chrome_WPF.Services.StockInService
             {
                 // Lỗi không xác định
                 return new ApiResult<List<WarehouseMasterResponseDTO>>($"Lỗi không xác định: {ex.Message}", false);
+            }
+        }
+
+        public async Task<ApiResult<StockInResponseDTO>> GetStockInByCode(string stockInCode)
+        {
+            if (string.IsNullOrEmpty(stockInCode))
+            {
+                return new ApiResult<StockInResponseDTO>("Dữ liệu nhận vào không hợp lệ", false);
+            }
+            try
+            {
+               
+                var response = await _httpClient.GetAsync($"StockIn/GetStockInByCode?stockInCode={stockInCode}").ConfigureAwait(false);
+                var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = JsonConvert.DeserializeObject<ApiResult<StockInResponseDTO>>(jsonResponse);
+                    if (result == null || !result.Success)
+                    {
+                        return new ApiResult<StockInResponseDTO>(result?.Message ?? "Không thể phân tích phản hồi", false);
+                    }
+                    return result;
+                }
+                var errorResult = JsonConvert.DeserializeObject<ApiResult<PagedResponse<StockInResponseDTO>>>(jsonResponse);
+                var errorMessage = errorResult?.Message ?? "Không thể lấy danh sách phiếu nhập";
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    return new ApiResult<StockInResponseDTO>(errorMessage, false);
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    return new ApiResult<StockInResponseDTO>(errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không có quyền truy cập"
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return new ApiResult<StockInResponseDTO>(errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không tồn tại"
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+                {
+                    return new ApiResult<StockInResponseDTO>(errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Lỗi máy chủ nội bộ"
+                }
+                else
+                {
+                    return new ApiResult<StockInResponseDTO>(errorMessage, false); // Trả về thông điệp lỗi chung
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                // Lỗi mạng
+                return new ApiResult<StockInResponseDTO>($"Lỗi mạng: {ex.Message}", false);
+            }
+            catch (JsonException ex)
+            {
+                // Lỗi phân tích JSON
+                return new ApiResult<StockInResponseDTO>($"Lỗi phân tích phản hồi: {ex.Message}", false);
+            }
+            catch (Exception ex)
+            {
+                // Lỗi không xác định
+                return new ApiResult<StockInResponseDTO>($"Lỗi không xác định: {ex.Message}", false);
             }
         }
     }

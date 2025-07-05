@@ -203,7 +203,6 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
-
                     </Grid.ColumnDefinitions>
                     <StackPanel
                         Grid.Column="0"
@@ -427,7 +426,7 @@
                             materialDesign:HintAssist.IsFloating="True"
                             FontSize="14"
                             ItemsSource="{Binding LstResponsiblePersons}"
-                            SelectedValue="{Binding StockInRequestDTO.Responsible, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True}"
+                            SelectedValue="{Binding StockInRequestDTO.Responsible, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True}"
                             SelectedValuePath="UserName">
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>
@@ -473,7 +472,6 @@
                                 FontSize="16"
                                 FontWeight="SemiBold"
                                 Text="Mô tả lệnh nhập kho" />
-
                             <TextBox
                                 x:Name="StockInDescriptionTextBox"
                                 Width="Auto"
@@ -496,8 +494,6 @@
                             </TextBox>
                         </StackPanel>
                     </materialDesign:Card>
-
-
                 </Grid>
 
                 <!--  StockIn Details Section with TabControl  -->
@@ -506,7 +502,8 @@
                     Margin="0,0,0,-1"
                     Panel.ZIndex="0"
                     Background="Transparent"
-                    ItemContainerStyle="{StaticResource CustomTabItemStyle}">
+                    ItemContainerStyle="{StaticResource CustomTabItemStyle}"
+                    Visibility="{Binding IsAddingNew, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=Collapsed}">
                     <TabItem Header="Chi tiết nhập kho">
                         <Grid>
                             <Grid.RowDefinitions>
@@ -560,7 +557,7 @@
                                                     Style="{StaticResource MaterialDesignFlatButton}"
                                                     ToolTip="Xóa dòng">
                                                     <materialDesign:PackIcon
-                                                        Width="20"
+                                                        Width="2024"
                                                         Height="20"
                                                         Kind="Delete" />
                                                 </Button>
@@ -638,7 +635,6 @@
                                         </StackPanel>
                                     </materialDesign:DialogHost.DialogContent>
                                 </materialDesign:DialogHost>
-
                             </StackPanel>
                         </Grid>
                     </TabItem>
@@ -650,7 +646,6 @@
                                     <DataTrigger Binding="{Binding HasPutAway}" Value="true">
                                         <Setter Property="Visibility" Value="Visible" />
                                     </DataTrigger>
-
                                 </Style.Triggers>
                             </Style>
                         </TabItem.Style>
@@ -727,7 +722,6 @@
                                                 Style="{StaticResource ModernDataGridStyle}"
                                                 VirtualizingPanel.IsVirtualizing="True">
                                                 <DataGrid.Columns>
-
                                                     <DataGridTextColumn
                                                         Width="*"
                                                         Binding="{Binding ProductCode}"

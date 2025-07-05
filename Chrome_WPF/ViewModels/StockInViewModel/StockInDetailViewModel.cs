@@ -385,12 +385,12 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                     LoadOrderTypesAsync(),
                     LoadWarehousesAsync(),
                     LoadSuppliersAsync(),
-                    LoadResponsiblePersonsAsync(),
                     CheckPutAwayHasValue());
 
                 if (!IsAddingNew)
                 {
                     await LoadStockInDetailsAsync();
+                    await LoadResponsiblePersonsAsync();
                 }
                 if (HasPutAway)
                 {
@@ -569,7 +569,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
         {
             try
             {
-                var result = await _stockInService.GetListResponsibleAsync();
+                var result = await _stockInService.GetListResponsibleAsync(StockInRequestDTO.WarehouseCode);
                 if (result.Success && result.Data != null)
                 {
                     LstResponsiblePersons.Clear();
@@ -600,13 +600,15 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                     return;
                 }
 
+                var existingStockIn = await _stockInService.GetStockInByCode(StockInRequestDTO.StockInCode);
                 ApiResult<bool> stockInResult;
-                if (IsAddingNew)
+                if (!existingStockIn.Success)
                 {
                     stockInResult = await _stockInService.AddStockIn(StockInRequestDTO);
                 }
                 else
-                {
+                {   
+              
                     stockInResult = await _stockInService.UpdateStockIn(StockInRequestDTO);
                 }
 
@@ -655,16 +657,13 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                         return;
                     }
                 }
-
-                _notificationService.ShowMessage(IsAddingNew ? "Thêm phiếu nhập kho thành công!" : "Cập nhật phiếu nhập kho thành công!", "OK", isError: false);
-                if (IsAddingNew)
-                {
-                    StockInRequestDTO.ClearValidation();
-                    StockInRequestDTO = new StockInRequestDTO();
-                    LstStockInDetails.Clear();
-                }
-                await _messengerService.SendMessageAsync("ReloadStockInList");
                
+                _notificationService.QueueMessageForNextSnackbar(IsAddingNew ? "Thêm phiếu nhập kho thành công!" : "Cập nhật phiếu nhập kho thành công!", "OK", isError: false);
+               
+                await _messengerService.SendMessageAsync("ReloadStockInList");
+                var ucStockInView = App.ServiceProvider!.GetRequiredService<ucStockIn>();
+                _navigationService.NavigateTo(ucStockInView);
+
             }
             catch (Exception ex)
             {
@@ -675,7 +674,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
         private bool CanSave(object parameter)
         {
             var dto = StockInRequestDTO;
-            var propertiesToValidate = new[] { nameof(dto.StockInCode), nameof(dto.OrderTypeCode), nameof(dto.WarehouseCode), nameof(dto.SupplierCode) };
+            var propertiesToValidate = new[] { nameof(dto.StockInCode), nameof(dto.OrderTypeCode), nameof(dto.WarehouseCode), nameof(dto.SupplierCode),nameof(dto.Responsible), nameof(dto.OrderDeadLine) };
             foreach (var prop in propertiesToValidate)
             {
                 if (!string.IsNullOrEmpty(dto[prop]))
@@ -807,10 +806,15 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                 DisplayPages.Add(TotalPages);
         }
 
-        private void OnPropertyChangedHandler(object sender, PropertyChangedEventArgs e)
+        private  void OnPropertyChangedHandler(object sender, PropertyChangedEventArgs e)
         {
             ((RelayCommand)SaveCommand)?.RaiseCanExecuteChanged();
             ((RelayCommand)AddDetailLineCommand)?.RaiseCanExecuteChanged();
+
+            if(e.PropertyName==nameof(StockInRequestDTO.WarehouseCode))
+            {
+                _= LoadResponsiblePersonsAsync();
+            }    
         }
     }
 }

@@ -17,11 +17,12 @@ namespace Chrome_WPF.Services.StockInService
     public interface IStockInService
     {
         Task<ApiResult<PagedResponse<StockInResponseDTO>>> GetAllStockIns( int page, int pageSize);
+        Task<ApiResult<StockInResponseDTO>> GetStockInByCode(string stockInCode);
         Task<ApiResult<PagedResponse<StockInResponseDTO>>> GetAllStockInsWithStatus( int statusId, int page, int pageSize);
         Task<ApiResult<PagedResponse<StockInResponseDTO>>> SearchStockInAsync(string textToSearch, int page, int pageSize);
         Task<ApiResult<List<OrderTypeResponseDTO>>> GetListOrderType(string prefix);
         Task<ApiResult<List<SupplierMasterResponseDTO>>> GetListSupplierMasterAsync();
-        Task<ApiResult<List<AccountManagementResponseDTO>>> GetListResponsibleAsync();
+        Task<ApiResult<List<AccountManagementResponseDTO>>> GetListResponsibleAsync(string warehouseCode);
         Task<ApiResult<List<StatusMasterResponseDTO>>> GetListStatusMaster();
         Task<ApiResult<List<WarehouseMasterResponseDTO>>> GetListWarehousePermission();
         Task<ApiResult<bool>> AddStockIn(StockInRequestDTO stockIn);

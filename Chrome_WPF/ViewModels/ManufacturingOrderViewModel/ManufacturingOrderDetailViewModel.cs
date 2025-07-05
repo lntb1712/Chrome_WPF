@@ -869,7 +869,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
 
                 if (!manufacturingOrderResult.Success)
                 {
-                    _notificationService.ShowMessage(manufacturingOrderResult.Message ?? "Không thể lưu thông tin lệnh sản xuất.", "OK", isError: true);
+                    MessageBox.Show(manufacturingOrderResult.Message ?? "Không thể lưu thông tin lệnh sản xuất.", "Cảnh báo",MessageBoxButton.OK,MessageBoxImage.Warning);
                     return;
                 }
 

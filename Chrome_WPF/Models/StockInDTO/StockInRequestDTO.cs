@@ -67,6 +67,7 @@ namespace Chrome_WPF.Models.StockInDTO
                 OnPropertyChanged(nameof(SupplierCode));
             }
         }
+
         [Required(ErrorMessage = "Tên nhân viên chịu trách nhiệm không được để trống")]
         public string Responsible
         {

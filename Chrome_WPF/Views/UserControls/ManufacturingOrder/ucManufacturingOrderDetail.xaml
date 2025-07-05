@@ -235,42 +235,7 @@
                             FontWeight="Bold"
                             Text="{Binding ManufacturingOrderRequestDTO.ManufacturingOrderCode}" />
                     </StackPanel>
-                    <Button
-                        x:Name="CreateReservationButton"
-                        Grid.Column="2"
-                        Margin="0,0,20,0"
-                        materialDesign:ButtonAssist.CornerRadius="8"
-                        Background="AliceBlue"
-                        Command="{Binding CreateReservationCommand}"
-                        Style="{StaticResource MaterialDesignFlatButton}"
-                        ToolTip="Tạo đặt chỗ">
-                        <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon
-                                Width="24"
-                                Height="24"
-                                Margin="0,0,10,0"
-                                Kind="CalendarPlus" />
-                            <TextBlock VerticalAlignment="Center" Text="Tạo đặt chỗ" />
-                        </StackPanel>
-                    </Button>
-                    <Button
-                        x:Name="CreatePicklistButton"
-                        Grid.Column="3"
-                        Margin="0,0,20,0"
-                        materialDesign:ButtonAssist.CornerRadius="8"
-                        Background="AliceBlue"
-                        Command="{Binding CreatePicklistCommand}"
-                        Style="{StaticResource MaterialDesignFlatButton}"
-                        ToolTip="Tạo picklist">
-                        <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon
-                                Width="24"
-                                Height="24"
-                                Margin="0,0,10,0"
-                                Kind="PlaylistPlus" />
-                            <TextBlock VerticalAlignment="Center" Text="Tạo picklist" />
-                        </StackPanel>
-                    </Button>
+
                     <Button
                         x:Name="SaveButton"
                         Grid.Column="4"
@@ -563,7 +528,7 @@
                             </TextBox.Text>
                         </TextBox>
                     </StackPanel>
-                    <TabControl
+                    <!--<TabControl
                         Grid.Row="2"
                         Grid.RowSpan="2"
                         Grid.Column="2"
@@ -604,7 +569,7 @@
                                 </DataGrid.Columns>
                             </DataGrid>
                         </TabItem>
-                    </TabControl>
+                    </TabControl>-->
                 </Grid>
 
                 <TabControl
@@ -647,24 +612,7 @@
                                         Width="*"
                                         Binding="{Binding ScraptRate}"
                                         Header="Tỷ lệ phế phẩm" />
-                                    <DataGridTemplateColumn Width="80" IsReadOnly="True">
-                                        <DataGridTemplateColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <Button
-                                                    HorizontalAlignment="Center"
-                                                    VerticalAlignment="Center"
-                                                    Command="{Binding DataContext.DeleteDetailLineCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                                    CommandParameter="{Binding}"
-                                                    Style="{StaticResource MaterialDesignFlatButton}"
-                                                    ToolTip="Xóa dòng">
-                                                    <materialDesign:PackIcon
-                                                        Width="20"
-                                                        Height="20"
-                                                        Kind="Delete" />
-                                                </Button>
-                                            </DataTemplate>
-                                        </DataGridTemplateColumn.CellTemplate>
-                                    </DataGridTemplateColumn>
+
                                 </DataGrid.Columns>
                             </DataGrid>
                             <StackPanel
