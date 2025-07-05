@@ -268,7 +268,6 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
             {
                 _hasPicklist = value;
                 OnPropertyChanged();
-                ((RelayCommand)CreatePicklistCommand)?.RaiseCanExecuteChanged();
                 ((RelayCommand)ConfirmQuantityCommand)?.RaiseCanExecuteChanged();
             }
         }
@@ -281,8 +280,6 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
         public ICommand PreviousPageCommand { get; }
         public ICommand SelectPageCommand { get; }
         public ICommand ConfirmQuantityCommand { get; }
-        public ICommand CreateReservationCommand { get; }
-        public ICommand CreatePicklistCommand { get; }
 
         public ManufacturingOrderDetailViewModel(
             IManufacturingOrderDetailService manufacturingOrderDetailService,
@@ -336,16 +333,14 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
                 WarehouseCode = manufacturingOrder.WarehouseCode ?? string.Empty
             };
 
-            SaveCommand = new RelayCommand(async _ => await SaveManufacturingOrderAsync(), CanSave);
+            SaveCommand = new RelayCommand(async parameter => await SaveManufacturingOrderAsync(parameter), CanSave);
             BackCommand = new RelayCommand(_ => NavigateBack());
             AddDetailLineCommand = new RelayCommand(_ => AddDetailLine(), CanAddDetailLine);
             DeleteDetailLineCommand = new RelayCommand( detail =>  DeleteDetailLineAsync((ManufacturingOrderDetailResponseDTO)detail));
             PreviousPageCommand = new RelayCommand(_ => PreviousPage());
             NextPageCommand = new RelayCommand(_ => NextPage());
             SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
-            ConfirmQuantityCommand = new RelayCommand(async _ => await ConfirmQuantityAsync(), CanConfirmQuantity);
-            CreateReservationCommand = new RelayCommand(async _ => await CreateReservationAsync(), CanCreateReservation);
-            CreatePicklistCommand = new RelayCommand(async _ => await CreatePicklistAsync(), CanCreatePicklist);
+            ConfirmQuantityCommand = new RelayCommand(async parameter => await ConfirmQuantityAsync(parameter), CanConfirmQuantity);
 
             _manufacturingOrderRequestDTO.PropertyChanged += OnManufacturingOrderPropertyChanged!;
             _ = InitializeAsync();
@@ -367,7 +362,6 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
                     LoadBomMastersAsync(ManufacturingOrderRequestDTO!.ProductCode),
                     LoadOrderTypesAsync(),
                     LoadWarehousesAsync(),
-                    LoadResponsiblePersonsAsync(),
                     CheckReservationExistenceAsync(),
                     CheckPicklistExistenceAsync(),
                     CheckPutAwayHasValue());
@@ -376,6 +370,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
                 {
                     await LoadManufacturingOrderDetailsAsync();
                     await LoadInventoryStorages();
+                    await LoadResponsiblePersonsAsync();
                 }
                 if (HasReservation)
                 {
@@ -439,8 +434,6 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
                     HasPicklist = false;
                     _notificationService.ShowMessage(reservationResult.Message ?? "Không thể tải danh sách đặt chỗ.", "OK", isError: true);
                 }
-                ((RelayCommand)CreateReservationCommand)?.RaiseCanExecuteChanged();
-                ((RelayCommand)CreatePicklistCommand)?.RaiseCanExecuteChanged();
                 ((RelayCommand)ConfirmQuantityCommand)?.RaiseCanExecuteChanged();
             }
             catch (Exception ex)
@@ -562,116 +555,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
                 _notificationService.ShowMessage($"Lỗi khi tải danh sách thiếu hàng: {ex.Message}", "OK", isError: true);
             }
         }
-        private async Task CreatePicklistAsync()
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(ManufacturingOrderRequestDTO.ManufacturingOrderCode))
-                {
-                    _notificationService.ShowMessage("Vui lòng nhập mã lệnh sản xuất trước khi tạo picklist.", "OK", isError: true);
-                    return;
-                }
 
-                if (!LstReservations.Any())
-                {
-                    _notificationService.ShowMessage("Không có đặt chỗ nào để tạo picklist.", "OK", isError: true);
-                    return;
-                }
-
-                await SaveManufacturingOrderAsync();
-                if (!string.IsNullOrEmpty(ManufacturingOrderRequestDTO.Error))
-                {
-                    return;
-                }
-
-                var reservation = LstReservations.First();
-                var picklist = new PickListRequestDTO
-                {
-                    PickNo = $"PICK_{ManufacturingOrderRequestDTO.ManufacturingOrderCode}",
-                    PickDate = DateTime.Now.ToString("dd/MM/yyyy"),
-                    ReservationCode = reservation.ReservationCode,
-                    Responsible = ManufacturingOrderRequestDTO.Responsible,
-                    StatusId = 1,
-                    WarehouseCode = reservation.WarehouseCode,
-                };
-
-                var result = await _pickListService.AddPickList(picklist);
-                if (result.Success)
-                {
-                    _notificationService.ShowMessage($"Tạo picklist {picklist.PickNo} thành công!", "OK", isError: false);
-                    HasPicklist = true;
-                    await _messengerService.SendMessageAsync("ReloadPicklistList");
-                    ((RelayCommand)CreatePicklistCommand)?.RaiseCanExecuteChanged();
-                    ((RelayCommand)ConfirmQuantityCommand)?.RaiseCanExecuteChanged();
-                }
-                else
-                {
-                    _notificationService.ShowMessage(result.Message ?? "Không thể tạo picklist.", "OK", isError: true);
-                }
-            }
-            catch (Exception ex)
-            {
-                _notificationService.ShowMessage($"Lỗi khi tạo picklist: {ex.Message}", "OK", isError: true);
-            }
-        }
-
-        private bool CanCreatePicklist(object parameter)
-        {
-            return !string.IsNullOrEmpty(ManufacturingOrderRequestDTO?.ManufacturingOrderCode) && LstReservations.Any() && !HasPicklist;
-        }
-
-        private bool CanCreateReservation(object parameter)
-        {
-            return !string.IsNullOrEmpty(ManufacturingOrderRequestDTO?.ManufacturingOrderCode) && !LstReservations.Any();
-        }
-
-        private async Task CreateReservationAsync()
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(ManufacturingOrderRequestDTO.ManufacturingOrderCode))
-                {
-                    _notificationService.ShowMessage("Vui lòng nhập mã lệnh sản xuất trước khi tạo đặt chỗ.", "OK", isError: true);
-                    return;
-                }
-
-                if (!LstManufacturingOrderDetails.Any())
-                {
-                    _notificationService.ShowMessage("Danh sách chi tiết lệnh sản xuất rỗng. Vui lòng thêm chi tiết trước khi tạo đặt chỗ.", "OK", isError: true);
-                    return;
-                }
-
-                await SaveManufacturingOrderAsync();
-                if (string.IsNullOrEmpty(ManufacturingOrderRequestDTO.Error))
-                {
-                    var reservation = new ReservationRequestDTO
-                    {
-                        ReservationCode = $"RES_{ManufacturingOrderRequestDTO.ManufacturingOrderCode}",
-                        WarehouseCode = ManufacturingOrderRequestDTO.WarehouseCode,
-                        OrderTypeCode = ManufacturingOrderRequestDTO.OrderTypeCode,
-                        OrderId = ManufacturingOrderRequestDTO.ManufacturingOrderCode,
-                        ReservationDate = ManufacturingOrderRequestDTO.ScheduleDate,
-                        StatusId = 1
-                    };
-
-                    var result = await _reservationService.AddReservation(reservation);
-                    if (result.Success)
-                    {
-                        _notificationService.ShowMessage("Tạo đặt chỗ thành công!", "OK",isError:false);
-                        await _messengerService.SendMessageAsync("ReloadReservationList");
-                        await LoadReservationsAsync();
-                    }
-                    else
-                    {
-                        _notificationService.ShowMessage(result.Message ?? "Không thể tạo đặt chỗ.", "OK", isError: true);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _notificationService.ShowMessage($"Lỗi khi tạo đặt chỗ: {ex.Message}", "OK", isError: true);
-            }
-        }
 
         private async Task LoadManufacturingOrderDetailsAsync()
         {
@@ -822,7 +706,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
         {
             try
             {
-                var result = await _manufacturingOrderService.GetListResponsibleAsync();
+                var result = await _manufacturingOrderService.GetListResponsibleAsync(ManufacturingOrderRequestDTO.WarehouseCode!);
                 if (result.Success && result.Data != null)
                 {
                     LstResponsiblePersons.Clear();
@@ -842,7 +726,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
             }
         }
 
-        private async Task SaveManufacturingOrderAsync()
+        private async Task SaveManufacturingOrderAsync(object parameter)
         {
             if (_isSaving) return;
 
@@ -851,9 +735,9 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
                 _isSaving = true;
 
                 ManufacturingOrderRequestDTO.RequestValidation();
-                if (!string.IsNullOrEmpty(ManufacturingOrderRequestDTO.Error))
+                if (!CanSave(parameter))
                 {
-                    _notificationService.ShowMessage($"Lỗi dữ liệu: {ManufacturingOrderRequestDTO.Error}", "OK", isError: true);
+                    _notificationService.ShowMessage("Vui lòng kiểm tra lại thông tin nhập vào.", "OK", isError: true);
                     return;
                 }
 
@@ -873,14 +757,17 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
                     return;
                 }
 
-                _notificationService.ShowMessage(IsAddingNew ? "Thêm lệnh sản xuất thành công!" : "Cập nhật lệnh sản xuất thành công!", "OK", isError: false);
+                _notificationService.QueueMessageForNextSnackbar(IsAddingNew ? "Thêm lệnh sản xuất thành công!" : "Cập nhật lệnh sản xuất thành công!", "OK", isError: false);
                 if (IsAddingNew)
                 {
                     ManufacturingOrderRequestDTO.ClearValidation();
                     IsAddingNew = false;
                 }
-
+                
                 await _messengerService.SendMessageAsync("ReloadManufacturingOrderList");
+
+                var manufacturing = App.ServiceProvider!.GetRequiredService<ucManufacturingOrder>();
+                _navigationService.NavigateTo(manufacturing);
             }
             catch (Exception ex)
             {
@@ -892,7 +779,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
             }
         }
 
-        private async Task ConfirmQuantityAsync()
+        private async Task ConfirmQuantityAsync(object parameter)
         {
             try
             {
@@ -902,7 +789,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
                     return;
                 }
 
-                await SaveManufacturingOrderAsync();
+                await SaveManufacturingOrderAsync(parameter);
                 bool hasShortage = ManufacturingOrderRequestDTO.QuantityProduced < ManufacturingOrderRequestDTO.Quantity;
                 if (!hasShortage)
                 {

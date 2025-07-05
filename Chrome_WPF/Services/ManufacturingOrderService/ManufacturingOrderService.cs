@@ -663,11 +663,11 @@ namespace Chrome_WPF.Services.ManufacturingOrderService
             }
         }
 
-        public async Task<ApiResult<List<AccountManagementResponseDTO>>> GetListResponsibleAsync()
+        public async Task<ApiResult<List<AccountManagementResponseDTO>>> GetListResponsibleAsync(string warehouseCode)
         {
             try
             {
-                var response = await _httpClient.GetAsync("ManufacturingOrder/GetListResponsible").ConfigureAwait(false);
+                var response = await _httpClient.GetAsync($"ManufacturingOrder/GetListResponsible?warehouseCode={warehouseCode}").ConfigureAwait(false);
                 var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 if (response.IsSuccessStatusCode)
                 {
