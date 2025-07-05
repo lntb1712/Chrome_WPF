@@ -206,6 +206,7 @@ namespace Chrome_WPF
             services.AddTransient<ManufacturingOrderViewModel>();
             services.AddTransient<ManufacturingOrderDetailViewModel>();
             services.AddTransient<ViewModels.ManufacturingOrderViewModel.BackOrderDialogViewModel>();
+            services.AddTransient<ForecastTooltipViewModel>();
 
             // Register Views
             services.AddTransient<LoginWindow>(provider =>
@@ -414,11 +415,8 @@ namespace Chrome_WPF
                 new Views.UserControls.ManufacturingOrder.BackOrderDialog(
                     provider.GetRequiredService<ViewModels.ManufacturingOrderViewModel.BackOrderDialogViewModel>()));
 
-
-
-
-
-
+            services.AddTransient<ucForecastTooltip>(provider =>
+                new ucForecastTooltip(provider.GetRequiredService<ForecastTooltipViewModel>()));
 
         }
 

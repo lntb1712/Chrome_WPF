@@ -1,36 +1,86 @@
 ﻿using Chrome_WPF.Models.ProductMasterDTO;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Chrome_WPF.Models.StockOutDetailDTO
 {
-    public class StockOutDetailResponseDTO: INotifyPropertyChanged
+    public class StockOutDetailResponseDTO : INotifyPropertyChanged
     {
-        public string StockOutCode { get; set; } = null!;
-
-        public string ProductCode { get; set; } = null!;
-        public string ProductName { get; set; } = null!;
-
-        public double? Demand { get; set; }
-
-        public double? Quantity { get; set; }
+        private ProductMasterResponseDTO? _selectedProduct;
+        private string? _productCode;
+        private string? _productName;
+        private decimal _demand;
+        private decimal _quantity;
         private bool _isNewRow;
 
         public event PropertyChangedEventHandler? PropertyChanged;
-        protected void OnPropertyChanged(string propertyName)
+
+        public ProductMasterResponseDTO SelectedProduct
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            get => _selectedProduct!;
+            set
+            {
+                _selectedProduct = value;
+                ProductCode = value?.ProductCode ?? string.Empty;
+                ProductName = value?.ProductName ?? string.Empty;
+                OnPropertyChanged(nameof(SelectedProduct));
+            }
+        }
+
+        public string ProductCode
+        {
+            get => _productCode!;
+            set
+            {
+                _productCode = value;
+                OnPropertyChanged(nameof(ProductCode));
+            }
+        }
+
+        public string ProductName
+        {
+            get => _productName!;
+            set
+            {
+                _productName = value;
+                OnPropertyChanged(nameof(ProductName));
+            }
+        }
+
+        public decimal Demand
+        {
+            get => _demand;
+            set
+            {
+                _demand = value;
+                OnPropertyChanged(nameof(Demand));
+            }
+        }
+
+        public decimal Quantity
+        {
+            get => _quantity;
+            set
+            {
+                _quantity = value;
+                OnPropertyChanged(nameof(Quantity));
+            }
         }
 
         public bool IsNewRow
         {
             get => _isNewRow;
-            set { _isNewRow = value; OnPropertyChanged(nameof(IsNewRow)); }
+            set
+            {
+                _isNewRow = value;
+                OnPropertyChanged(nameof(IsNewRow));
+            }
         }
-        public ProductMasterResponseDTO? SelectedProduct { get; set; }
+
+        public string? StockOutCode { get; set; }
+
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 }

@@ -9,6 +9,7 @@
     xmlns:local="clr-namespace:Chrome_WPF.Views.UserControls.StockOut"
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:Chrome_WPF.ViewModels.StockOutViewModel"
     d:DesignHeight="700"
     d:DesignWidth="800"
     mc:Ignorable="d">
@@ -58,15 +59,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        <Style x:Key="ForecastToolTipStyle" TargetType="ToolTip">
-            <Setter Property="Background" Value="#FFFFFF" />
-            <Setter Property="BorderBrush" Value="#E0E0E0" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Padding" Value="10" />
-            <Setter Property="MaxWidth" Value="300" />
-            <Setter Property="materialDesign:ElevationAssist.Elevation" Value="Dp2" />
-        </Style>
-        <Style x:Key="InfoButtonStyle" TargetType="Button">
+        <Style x:Key="ForecastButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderBrush" Value="Transparent" />
             <Setter Property="Padding" Value="0" />
@@ -581,12 +574,10 @@
                                                 <ComboBox
                                                     DisplayMemberPath="ProductName"
                                                     ItemsSource="{Binding DataContext.LstProducts, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                    SelectedItem="{Binding SelectedProduct, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                    SelectedValuePath="ProductCode" />
+                                                    SelectedItem="{Binding SelectedProduct, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
                                     </DataGridTemplateColumn>
-
                                     <DataGridTextColumn
                                         Width="*"
                                         Binding="{Binding Demand}"
@@ -595,50 +586,20 @@
                                         Width="*"
                                         Binding="{Binding Quantity}"
                                         Header="Số lượng thực xuất" />
-                                    <DataGridTemplateColumn Width="100" IsReadOnly="True">
+                                    <DataGridTemplateColumn
+                                        Width="100"
+                                        Header="Dự báo xuất"
+                                        IsReadOnly="True">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <Button
+                                                    x:Name="ForecastButton"
                                                     HorizontalAlignment="Center"
                                                     VerticalAlignment="Center"
-                                                    helper:ButtonBehaviors.MouseEnterCommand="{Binding DataContext.RowMouseEnterCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    Command="{Binding DataContext.RowMouseEnterCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                     CommandParameter="{Binding}"
-                                                    Style="{StaticResource MaterialDesignFlatButton}">
-                                                    <Button.ToolTip>
-                                                        <ToolTip Style="{StaticResource ForecastToolTipStyle}">
-                                                            <ToolTip.Visibility>
-                                                                <Binding Path="DataContext.ForecastData" RelativeSource="{RelativeSource AncestorType=UserControl}">
-                                                                    <Binding.Converter>
-                                                                        <converters:BooleanToVisibilityConverter />
-                                                                    </Binding.Converter>
-                                                                </Binding>
-                                                            </ToolTip.Visibility>
-                                                            <StackPanel>
-                                                                <TextBlock FontWeight="SemiBold" Text="Dự báo xuất kho" />
-                                                                <Separator Margin="0,5" />
-                                                                <TextBlock>
-                                                                    <Run Text="Sản phẩm: " />
-                                                                    <Run Text="{Binding ProductName}" />
-                                                                </TextBlock>
-                                                                <TextBlock>
-                                                                    <Run Text="Số lượng tồn kho: " />
-                                                                    <Run Text="{Binding DataContext.ForecastData.QuantityOnHand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
-                                                                </TextBlock>
-                                                                <TextBlock>
-                                                                    <Run Text="Số lượng tiêu thụ dự kiến: " />
-                                                                    <Run Text="{Binding DataContext.ForecastData.QuantityToOutBound, RelativeSource={RelativeSource AncestorType=UserControl}}" />
-                                                                </TextBlock>
-                                                                <TextBlock>
-                                                                    <Run Text="Số lượng nhận dự kiến: " />
-                                                                    <Run Text="{Binding DataContext.ForecastData.QuantityToInBound, RelativeSource={RelativeSource AncestorType=UserControl}}" />
-                                                                </TextBlock>
-                                                                <TextBlock>
-                                                                    <Run Text="Số lượng khả thi (dự báo): " />
-                                                                    <Run Text="{Binding DataContext.ForecastData.AvailableQty, RelativeSource={RelativeSource AncestorType=UserControl}}" />
-                                                                </TextBlock>
-                                                            </StackPanel>
-                                                        </ToolTip>
-                                                    </Button.ToolTip>
+                                                    Style="{StaticResource MaterialDesignFlatButton}"
+                                                    ToolTip="Xem dữ liệu dự báo">
                                                     <materialDesign:PackIcon
                                                         Width="20"
                                                         Height="20"
