@@ -191,13 +191,13 @@ namespace Chrome_WPF.ViewModels.StockTakeViewModel
                 Responsible = stockTake.Responsible
             };
 
-            SaveCommand = new RelayCommand(async _ => await SaveStockTakeAsync(), CanSave);
+            SaveCommand = new RelayCommand(async parameter => await SaveStockTakeAsync(parameter), CanSave);
             BackCommand = new RelayCommand(_ => NavigateBack());
             DeleteDetailLineCommand = new RelayCommand(async detail => await DeleteDetailLineAsync((StockTakeDetailResponseDTO)detail));
             PreviousPageCommand = new RelayCommand(_ => PreviousPage());
             NextPageCommand = new RelayCommand(_ => NextPage());
             SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
-            ConfirmCommand = new RelayCommand(async _ => await ConfirmStockTakeAsync(), CanConfirm);
+            ConfirmCommand = new RelayCommand(async parameter => await ConfirmStockTakeAsync(parameter), CanConfirm);
 
             _stockTakeRequestDTO.PropertyChanged += OnStockTakeRequestDTOPropertyChanged!;
             _ = InitializeAsync();
@@ -215,12 +215,13 @@ namespace Chrome_WPF.ViewModels.StockTakeViewModel
                 }
 
                 await Task.WhenAll(
-                    LoadWarehousesAsync(),
-                    LoadResponsiblePersonsAsync());
+                    LoadWarehousesAsync());
+                    
 
                 if (!IsAddingNew)
                 {
                     await LoadStockTakeDetailsAsync();
+                    await LoadResponsiblePersonsAsync();
                 }
             }
             catch (Exception ex)
@@ -317,7 +318,7 @@ namespace Chrome_WPF.ViewModels.StockTakeViewModel
             }
         }
 
-        private async Task SaveStockTakeAsync()
+        private async Task SaveStockTakeAsync(object parameter)
         {
             if (_isSaving) return;
 
@@ -326,9 +327,9 @@ namespace Chrome_WPF.ViewModels.StockTakeViewModel
                 _isSaving = true;
 
                 StockTakeRequestDTO.RequestValidation();
-                if (!string.IsNullOrEmpty(StockTakeRequestDTO.Error))
+                if (!CanSave(parameter))
                 {
-                    _notificationService.ShowMessage($"Lỗi dữ liệu: {StockTakeRequestDTO.Error}", "OK", isError: true);
+                    _notificationService.ShowMessage("Vui lòng kiểm tra lại thông tin nhập vào.", "OK", isError: true);
                     return;
                 }
 
@@ -384,13 +385,15 @@ namespace Chrome_WPF.ViewModels.StockTakeViewModel
                     }
                 }
 
-                _notificationService.ShowMessage(IsAddingNew ? "Thêm lệnh kiểm đếm thành công!" : "Cập nhật lệnh kiểm đếm thành công!", "OK", isError: false);
+                _notificationService.QueueMessageForNextSnackbar(IsAddingNew ? "Thêm lệnh kiểm đếm thành công!" : "Cập nhật lệnh kiểm đếm thành công!", "OK", isError: false);
                 if (IsAddingNew)
                 {
                     StockTakeRequestDTO.ClearValidation();
                     IsAddingNew = false;
                 }
                 await _messengerService.SendMessageAsync("ReloadStockTakeList");
+                var stockTake = App.ServiceProvider!.GetRequiredService<ucStockTake>();
+                _navigationService.NavigateTo(stockTake);
             }
             catch (Exception ex)
             {
@@ -402,7 +405,7 @@ namespace Chrome_WPF.ViewModels.StockTakeViewModel
             }
         }
 
-        private async Task ConfirmStockTakeAsync()
+        private async Task ConfirmStockTakeAsync(object parameter)
         {
             try
             {
@@ -412,7 +415,7 @@ namespace Chrome_WPF.ViewModels.StockTakeViewModel
                     return;
                 }
 
-                await SaveStockTakeAsync();
+                await SaveStockTakeAsync(parameter);
                 if (!string.IsNullOrEmpty(StockTakeRequestDTO.Error))
                 {
                     return;
@@ -485,7 +488,7 @@ namespace Chrome_WPF.ViewModels.StockTakeViewModel
         private bool CanSave(object parameter)
         {
             var dto = StockTakeRequestDTO;
-            var propertiesToValidate = new[] { nameof(dto.StockTakeCode), nameof(dto.WarehouseCode) };
+            var propertiesToValidate = new[] { nameof(dto.StockTakeCode), nameof(dto.WarehouseCode), nameof(dto.Responsible),nameof(dto.StocktakeDate) };
 
             foreach (var prop in propertiesToValidate)
             {
