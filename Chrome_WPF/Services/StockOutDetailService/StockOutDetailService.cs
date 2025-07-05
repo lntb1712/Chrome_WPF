@@ -3,6 +3,7 @@ using Chrome_WPF.Models.APIResult;
 using Chrome_WPF.Models.PagedResponse;
 using Chrome_WPF.Models.ProductMasterDTO;
 using Chrome_WPF.Models.StockOutDetailDTO;
+using DocumentFormat.OpenXml.Wordprocessing;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -475,6 +476,62 @@ namespace Chrome_WPF.Services.StockOutDetailService
             catch (Exception ex)
             {
                 return new ApiResult<bool>($"Lỗi không xác định: {ex.Message}", false);
+            }
+        }
+
+        public async Task<ApiResult<ForecastStockOutDetailDTO>> GetForecastStockOutDetail(string stockOutCode, string productCode)
+        {
+            if (string.IsNullOrEmpty(stockOutCode) ||string.IsNullOrEmpty(productCode))
+            {
+                return new ApiResult<ForecastStockOutDetailDTO>("Dữ liệu nhận vào không hợp lệ", false);
+            }
+            try
+            {
+                var response = await _httpClient.GetAsync($"StockOut/{Uri.EscapeDataString(stockOutCode)}/StockOutDetail/GetForecastStockOutDetail?productCode={productCode}").ConfigureAwait(false);
+                var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = JsonConvert.DeserializeObject<ApiResult<ForecastStockOutDetailDTO>>(jsonResponse);
+                    if (result == null || !result.Success)
+                    {
+                        return new ApiResult<ForecastStockOutDetailDTO>(result?.Message ?? "Không thể phân tích phản hồi", false);
+                    }
+                    return result;
+                }
+                var errorResult = JsonConvert.DeserializeObject<ApiResult<ForecastStockOutDetailDTO>>(jsonResponse);
+                var errorMessage = errorResult?.Message ?? "Không thể lấy danh sách sản phẩm xuất kho";
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    return new ApiResult<ForecastStockOutDetailDTO>(errorMessage, false);
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    return new ApiResult<ForecastStockOutDetailDTO>(errorMessage, false);
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return new ApiResult<ForecastStockOutDetailDTO>(errorMessage, false);
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+                {
+                    return new ApiResult<ForecastStockOutDetailDTO>(errorMessage, false);
+                }
+                else
+                {
+                    return new ApiResult<ForecastStockOutDetailDTO>(errorMessage, false);
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                return new ApiResult<ForecastStockOutDetailDTO>($"Lỗi mạng: {ex.Message}", false);
+            }
+            catch (JsonException ex)
+            {
+                return new ApiResult<ForecastStockOutDetailDTO>($"Lỗi phân tích phản hồi: {ex.Message}", false);
+            }
+            catch (Exception ex)
+            {
+                return new ApiResult<ForecastStockOutDetailDTO>($"Lỗi không xác định: {ex.Message}", false);
             }
         }
     }

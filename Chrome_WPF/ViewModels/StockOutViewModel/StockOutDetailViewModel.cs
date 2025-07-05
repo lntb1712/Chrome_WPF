@@ -50,7 +50,8 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
         private ObservableCollection<ReservationAndDetailResponseDTO> _lstReservations;
         private ObservableCollection<PickAndDetailResponseDTO> _lstPickList;
         private ObservableCollection<object> _displayPages;
-        private StockOutRequestDTO _stockOutRequestDTO;
+        private StockOutRequestDTO _stockOutRequestDTO; 
+        private ForecastStockOutDetailDTO _forecastData;
         private bool _isAddingNew;
         private int _currentPage;
         private int _pageSize = 10;
@@ -244,6 +245,15 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                 ((RelayCommand)ConfirmQuantityCommand)?.RaiseCanExecuteChanged();
             }
         }
+        public ForecastStockOutDetailDTO ForecastData
+        {
+            get => _forecastData;
+            set
+            {
+                _forecastData = value;
+                OnPropertyChanged();
+            }
+        }
 
         public ICommand SaveCommand { get; }
         public ICommand BackCommand { get; }
@@ -256,6 +266,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
         public ICommand CreateReservationCommand { get; }
         public ICommand CreatePicklistCommand { get; }
 
+        public ICommand RowMouseEnterCommand { get; }
         public StockOutDetailViewModel(
             IStockOutDetailService stockOutDetailService,
             IStockOutService stockOutService,
@@ -289,6 +300,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             _isSaving = false;
             _hasPicklist = false;
             _hasReservation = false;
+            _forecastData=new ForecastStockOutDetailDTO();
             _stockOutRequestDTO = stockOut == null ? new StockOutRequestDTO() : new StockOutRequestDTO
             {
                 StockOutCode = stockOut.StockOutCode,
@@ -309,10 +321,43 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             ConfirmQuantityCommand = new RelayCommand(async parameter => await CheckQuantityAsync(parameter), CanConfirmQuantity);
             CreateReservationCommand = new RelayCommand(async parameter => await CreateReservationAsync(parameter), CanCreateReservation);
             CreatePicklistCommand = new RelayCommand(async parameter => await CreatePicklistAsync(parameter), CanCreatePicklist);
+            RowMouseEnterCommand = new RelayCommand(
+                async detail => await LoadForecastDataAsync((StockOutDetailResponseDTO)detail),
+                detail => detail != null && !IsAddingNew && !string.IsNullOrEmpty(StockOutRequestDTO?.StockOutCode) && !string.IsNullOrEmpty((detail as StockOutDetailResponseDTO)?.ProductCode)
+            );
 
             _stockOutRequestDTO.PropertyChanged += OnPropertyChangedHandler!;
             _ = InitializeAsync();
         }
+
+        private async Task LoadForecastDataAsync(StockOutDetailResponseDTO detail)
+        {
+            if (detail == null || IsAddingNew || string.IsNullOrEmpty(StockOutRequestDTO.StockOutCode) || string.IsNullOrEmpty(detail.ProductCode))
+            {
+                ForecastData = null!;
+                return;
+            }
+
+            try
+            {
+                var result = await _stockOutDetailService.GetForecastStockOutDetail(StockOutRequestDTO.StockOutCode, detail.ProductCode);
+                if (result.Success && result.Data != null)
+                {
+                    ForecastData = result.Data;
+                }
+                else
+                {
+                    ForecastData = null!;
+                    _notificationService.ShowMessage(result.Message ?? "Không thể tải dữ liệu dự báo.", "OK", isError: true);
+                }
+            }
+            catch (Exception ex)
+            {
+                ForecastData = null;
+                _notificationService.ShowMessage($"Lỗi khi tải dữ liệu dự báo: {ex.Message}", "OK", isError: true);
+            }
+        }
+
 
         private async Task InitializeAsync()
         {
@@ -336,6 +381,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                 if (!IsAddingNew)
                 {
                     await LoadStockOutDetailsAsync();
+                    await LoadResponsiblePersonsAsync();
                 }
                 if( HasReservation)
                 {

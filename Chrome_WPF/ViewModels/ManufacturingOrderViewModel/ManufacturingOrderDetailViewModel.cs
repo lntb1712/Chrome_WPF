@@ -10,6 +10,7 @@ using Chrome_WPF.Models.PickListDTO;
 using Chrome_WPF.Models.ProductMasterDTO;
 using Chrome_WPF.Models.PutAwayDTO;
 using Chrome_WPF.Models.ReservationDTO;
+using Chrome_WPF.Models.StockInDTO;
 using Chrome_WPF.Models.TransferDTO;
 using Chrome_WPF.Models.WarehouseMasterDTO;
 using Chrome_WPF.Services.ManufacturingOrderDetailService;
@@ -369,7 +370,6 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
                 if (!IsAddingNew)
                 {
                     await LoadManufacturingOrderDetailsAsync();
-                    await LoadInventoryStorages();
                     await LoadResponsiblePersonsAsync();
                 }
                 if (HasReservation)
@@ -526,35 +526,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
                 _notificationService.ShowMessage($"Lỗi khi tải danh sách cất hàng: {ex.Message}", "OK", isError: true);
             }
         }
-        private async Task LoadInventoryStorages ()
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(ManufacturingOrderRequestDTO.ManufacturingOrderCode) && string.IsNullOrEmpty(ManufacturingOrderRequestDTO.WarehouseCode))
-                {
-                    InventoryShortages.Clear();
-                    return;
-                }
-                var result = await _manufacturingOrderService.CheckInventoryShortageForManufacturingOrderAsync(ManufacturingOrderRequestDTO.ManufacturingOrderCode,ManufacturingOrderRequestDTO.WarehouseCode!);
-                if (result.Success && result.Data != null)
-                {
-                    InventoryShortages.Clear();
-                    foreach (var item in result.Data)
-                    {
-                        InventoryShortages.Add(item);
-                    }
-
-                }
-                else
-                {
-                    _notificationService.ShowMessage(result.Message ?? "Không thể tải danh sách thiếu hàng", "OK", isError: true);
-                }
-            }
-            catch (Exception ex)
-            {
-                _notificationService.ShowMessage($"Lỗi khi tải danh sách thiếu hàng: {ex.Message}", "OK", isError: true);
-            }
-        }
+        
 
 
         private async Task LoadManufacturingOrderDetailsAsync()
@@ -888,7 +860,16 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
 
         private bool CanSave(object parameter)
         {
-            return !_isSaving && ManufacturingOrderRequestDTO != null && string.IsNullOrEmpty(ManufacturingOrderRequestDTO.Error);
+            var dto = ManufacturingOrderRequestDTO;
+            var propertiesToValidate = new[] { nameof(dto.ManufacturingOrderCode), nameof(dto.OrderTypeCode), nameof(dto.WarehouseCode), nameof(dto.Bomcode), nameof(dto.Responsible), nameof(dto.ScheduleDate),nameof(dto.Deadline), nameof(dto.Quantity) };
+            foreach (var prop in propertiesToValidate)
+            {
+                if (!string.IsNullOrEmpty(dto[prop]))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         private bool CanAddDetailLine(object parameter)

@@ -1,4 +1,5 @@
-﻿using Chrome_WPF.Services.NotificationService;
+﻿using Chrome_WPF.Models.StockOutDetailDTO;
+using Chrome_WPF.Services.NotificationService;
 using Chrome_WPF.ViewModels.StockOutViewModel;
 using System;
 using System.Collections.Generic;
@@ -32,5 +33,6 @@ namespace Chrome_WPF.Views.UserControls.StockOut
             DataContext = _viewModel;
             _notificationService.RegisterSnackbar(StockOutDetailSnackbar);
         }
+       
     }
 }

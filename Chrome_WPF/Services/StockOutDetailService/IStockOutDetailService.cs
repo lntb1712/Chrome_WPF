@@ -26,5 +26,6 @@ namespace Chrome_WPF.Services.StockOutDetailService
         Task<ApiResult<bool>> UpdateStockOutDetail(StockOutDetailRequestDTO stockOutDetail);
         Task<ApiResult<bool>> ConfirmStockOut(string stockOutCode);
         Task<ApiResult<bool>> CheckAndUpdateBackOrderStatus(string stockOutCode);
-    }
+        Task<ApiResult<ForecastStockOutDetailDTO>>GetForecastStockOutDetail(string stockOutCode, string productCode);
+    };
 }
