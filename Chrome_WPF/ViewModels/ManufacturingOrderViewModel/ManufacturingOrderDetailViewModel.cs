@@ -11,6 +11,8 @@ using Chrome_WPF.Models.ProductMasterDTO;
 using Chrome_WPF.Models.PutAwayDTO;
 using Chrome_WPF.Models.ReservationDTO;
 using Chrome_WPF.Models.StockInDTO;
+using Chrome_WPF.Models.StockOutDetailDTO;
+using Chrome_WPF.Models.StockOutDTO;
 using Chrome_WPF.Models.TransferDTO;
 using Chrome_WPF.Models.WarehouseMasterDTO;
 using Chrome_WPF.Services.ManufacturingOrderDetailService;
@@ -21,7 +23,10 @@ using Chrome_WPF.Services.NotificationService;
 using Chrome_WPF.Services.PickListService;
 using Chrome_WPF.Services.PutAwayService;
 using Chrome_WPF.Services.ReservationService;
+using Chrome_WPF.ViewModels.StockOutViewModel;
 using Chrome_WPF.Views.UserControls.ManufacturingOrder;
+using Chrome_WPF.Views.UserControls.StockOut;
+using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.ObjectModel;
@@ -30,6 +35,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
 {
@@ -282,6 +288,8 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
         public ICommand SelectPageCommand { get; }
         public ICommand ConfirmQuantityCommand { get; }
 
+        public ICommand RowMouseEnterCommand { get; }
+
         public ManufacturingOrderDetailViewModel(
             IManufacturingOrderDetailService manufacturingOrderDetailService,
             IManufacturingOrderService manufacturingOrderService,
@@ -342,9 +350,71 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
             NextPageCommand = new RelayCommand(_ => NextPage());
             SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
             ConfirmQuantityCommand = new RelayCommand(async parameter => await ConfirmQuantityAsync(parameter), CanConfirmQuantity);
-
+            RowMouseEnterCommand = new RelayCommand(async parameter => await LoadForecastDataForTooltipAsync((ManufacturingOrderDetailResponseDTO)parameter));
             _manufacturingOrderRequestDTO.PropertyChanged += OnManufacturingOrderPropertyChanged!;
             _ = InitializeAsync();
+        }
+
+        private async Task LoadForecastDataForTooltipAsync(ManufacturingOrderDetailResponseDTO detail)
+        {
+            if (detail == null || IsAddingNew || string.IsNullOrEmpty(ManufacturingOrderRequestDTO.ManufacturingOrderCode) || string.IsNullOrEmpty(detail.ComponentCode))
+            {
+                return;
+            }
+
+            try
+            {
+                // Create and configure ucForecastTooltip
+                var forecastTooltip = new ucForecastManufacturingTooltip(App.ServiceProvider!.GetRequiredService<ForecastManufacturingTooltipViewModel>());
+                var tooltipViewModel = App.ServiceProvider!.GetRequiredService<ForecastManufacturingTooltipViewModel>();
+                tooltipViewModel.ProductName = detail.ComponentName;
+                await tooltipViewModel.LoadForecastDataAsync(ManufacturingOrderRequestDTO.ManufacturingOrderCode, detail.ComponentCode);
+                forecastTooltip.DataContext = tooltipViewModel;
+
+                // Create Window
+                var window = new Window
+                {
+                    Title = $"Dữ liệu dự báo ",
+                    Content = forecastTooltip,
+                    Width = 300,
+                    Height = 200,
+                    WindowStartupLocation = WindowStartupLocation.Manual, // Manual positioning
+                    Owner = Application.Current.MainWindow,
+                    WindowStyle = WindowStyle.SingleBorderWindow,
+                    Background = Brushes.White,
+                    BorderBrush = new SolidColorBrush(Color.FromRgb(224, 224, 224)),
+                    BorderThickness = new Thickness(1)
+                };
+
+                // Get the current mouse position relative to the main window
+                var mousePosition = Mouse.GetPosition(Application.Current.MainWindow);
+
+                // Convert the mouse position to screen coordinates
+                var screenPosition = Application.Current.MainWindow.PointToScreen(mousePosition);
+
+                // Set the window position (e.g., slightly offset from the mouse cursor)
+                window.Left = screenPosition.X + 10; // Offset by 10 pixels to the right
+                window.Top = screenPosition.Y + 10;  // Offset by 10 pixels down
+
+                // Ensure the window stays within screen bounds
+                var screen = SystemParameters.WorkArea; // Get the primary screen's working area
+                if (window.Left + window.Width > screen.Right)
+                {
+                    window.Left = screen.Right - window.Width - 100; // Adjust if it goes off the right edge
+                }
+                if (window.Top + window.Height > screen.Bottom)
+                {
+                    window.Top = screen.Bottom - window.Height - 100; // Adjust if it goes off the bottom edge
+                }
+
+
+                // Show the Window
+                window.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi hiển thị dữ liệu dự báo: {ex.Message}", "OK", isError: true);
+            }
         }
 
         private async Task InitializeAsync()
@@ -779,7 +849,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
                     return;
                 }
                 var viewModel = new BackOrderDialogViewModel(_notificationService, ManufacturingOrderRequestDTO);
-                var popup = new BackOrderDialog(viewModel)
+                var popup = new Views.UserControls.ManufacturingOrder.BackOrderDialog(viewModel)
                 {
                     DataContext = viewModel,
                     Owner = Application.Current.MainWindow

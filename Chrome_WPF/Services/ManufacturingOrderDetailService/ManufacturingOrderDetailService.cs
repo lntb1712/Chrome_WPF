@@ -24,6 +24,63 @@ namespace Chrome_WPF.Services.ManufacturingOrderDetailService
             _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", Properties.Settings.Default.AccessToken);
         }
 
+        public async Task<ApiResult<ForecastManufacturingOrderDetailDTO>> GetForecastManufacturingOrderDetail(string manufacturingOrderCode, string productCode)
+        {
+            if (string.IsNullOrEmpty(manufacturingOrderCode) || string.IsNullOrEmpty(productCode))
+            {
+                return new ApiResult<ForecastManufacturingOrderDetailDTO>("Mã lệnh sản xuất và mã sản phẩm không được để trống", false);
+            }
+            try
+            {
+                var response = await _httpClient.GetAsync($"ManufacturingOrderDetail/GetForecastManufacturingOrderDetail?manufacturingOrderCode={Uri.EscapeDataString(manufacturingOrderCode)}&productCode={Uri.EscapeDataString(productCode)}").ConfigureAwait(false);
+                var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = JsonConvert.DeserializeObject<ApiResult<ForecastManufacturingOrderDetailDTO>>(jsonResponse);
+                    if (result == null || !result.Success)
+                    {
+                        return new ApiResult<ForecastManufacturingOrderDetailDTO>(result?.Message ?? "Không thể lấy chi tiết lệnh sản xuất", false);
+                    }
+                    return result;
+                }
+                var errorResult = JsonConvert.DeserializeObject<ApiResult<ForecastManufacturingOrderDetailDTO>>(jsonResponse);
+                var errorMessage = errorResult?.Message ?? "Không thể lấy chi tiết lệnh sản xuất";
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    return new ApiResult<ForecastManufacturingOrderDetailDTO>((string)errorMessage, false);
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    return new ApiResult<ForecastManufacturingOrderDetailDTO>((string)errorMessage, false);
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return new ApiResult<ForecastManufacturingOrderDetailDTO>((string)errorMessage, false);
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+                {
+                    return new ApiResult<ForecastManufacturingOrderDetailDTO>((string)errorMessage, false);
+                }
+                else
+                {
+                    return new ApiResult<ForecastManufacturingOrderDetailDTO>((string)errorMessage, false);
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                return new ApiResult<ForecastManufacturingOrderDetailDTO>($"Lỗi mạng: {ex.Message}", false);
+            }
+            catch (JsonException ex)
+            {
+                return new ApiResult<ForecastManufacturingOrderDetailDTO>($"Lỗi phân tích phản hồi: {ex.Message}", false);
+            }
+            catch (Exception ex)
+            {
+                return new ApiResult<ForecastManufacturingOrderDetailDTO>($"Lỗi không xác định: {ex.Message}", false);
+            }
+        }
+        
+
         public async Task<ApiResult<PagedResponse<ManufacturingOrderDetailResponseDTO>>>GetManufacturingOrderDetail(string manufacturingOrderCode)
         {
             if (string.IsNullOrEmpty(manufacturingOrderCode))

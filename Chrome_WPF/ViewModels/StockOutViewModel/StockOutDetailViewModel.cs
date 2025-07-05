@@ -77,12 +77,12 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             {
                 if (_lstStockOutDetails != null)
                 {
-                    _lstStockOutDetails.CollectionChanged -= StockOutDetails_CollectionChanged;
+                    _lstStockOutDetails.CollectionChanged -= StockOutDetails_CollectionChanged!;
                 }
                 _lstStockOutDetails = value;
                 if (_lstStockOutDetails != null)
                 {
-                    _lstStockOutDetails.CollectionChanged += StockOutDetails_CollectionChanged;
+                    _lstStockOutDetails.CollectionChanged += StockOutDetails_CollectionChanged!;
                 }
                 OnPropertyChanged();
             }
@@ -282,7 +282,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             _messengerService = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
 
             _lstStockOutDetails = new ObservableCollection<StockOutDetailResponseDTO>();
-            _lstStockOutDetails.CollectionChanged += StockOutDetails_CollectionChanged;
+            _lstStockOutDetails.CollectionChanged += StockOutDetails_CollectionChanged!;
             _lstProducts = new ObservableCollection<ProductMasterResponseDTO>();
             _lstOrderTypes = new ObservableCollection<OrderTypeResponseDTO>();
             _lstWarehouses = new ObservableCollection<WarehouseMasterResponseDTO>();
@@ -327,14 +327,14 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             {
                 foreach (StockOutDetailResponseDTO item in e.OldItems)
                 {
-                    item.PropertyChanged -= StockOutDetail_PropertyChanged;
+                    item.PropertyChanged -= StockOutDetail_PropertyChanged!;
                 }
             }
             if (e.NewItems != null)
             {
                 foreach (StockOutDetailResponseDTO item in e.NewItems)
                 {
-                    item.PropertyChanged += StockOutDetail_PropertyChanged;
+                    item.PropertyChanged += StockOutDetail_PropertyChanged!;
                 }
             }
         }
@@ -971,7 +971,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                     }
 
                     ApiResult<bool> detailResult;
-                    if (await IsDetailExistsAsync(detail.StockOutCode, detail.ProductCode))
+                    if (await IsDetailExistsAsync(detail.StockOutCode!, detail.ProductCode))
                     {
                         detailResult = await _stockOutDetailService.UpdateStockOutDetail(request);
                     }
@@ -1051,7 +1051,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             {
                 if (!detail.IsNewRow)
                 {
-                    var result = await _stockOutDetailService.DeleteStockOutDetail(detail.StockOutCode, detail.ProductCode);
+                    var result = await _stockOutDetailService.DeleteStockOutDetail(detail.StockOutCode!, detail.ProductCode);
                     if (!result.Success)
                     {
                         _notificationService.ShowMessage(result.Message ?? "Không thể xóa chi tiết xuất kho.", "OK", isError: true);

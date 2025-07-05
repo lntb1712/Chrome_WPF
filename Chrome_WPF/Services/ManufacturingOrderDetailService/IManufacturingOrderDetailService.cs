@@ -13,5 +13,6 @@ namespace Chrome_WPF.Services.ManufacturingOrderDetailService
     {
         Task<ApiResult<PagedResponse<ManufacturingOrderDetailResponseDTO>>> GetManufacturingOrderDetail(string manufacturingOrderCode);
         Task<ApiResult<ManufacturingOrderDetailResponseDTO>> GetManufacturingOrderDetail(string manufacturingOrderCode, string productCode);
+        Task<ApiResult<ForecastManufacturingOrderDetailDTO>> GetForecastManufacturingOrderDetail(string manufacturingOrderCode, string productCode);
     }
 }

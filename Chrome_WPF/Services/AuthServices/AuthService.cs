@@ -53,7 +53,15 @@ namespace Chrome_WPF.Services.AuthServices
             var claims = await DecodeJWT(token); // Await the DecodeJWT method to get the result
             if (claims != null && claims.ContainsKey("Permission"))
             {
-                return JsonSerializer.Deserialize<List<string>>(claims["Permission"].ToString()!)!;
+                var permissionValue = claims["Permission"].ToString();
+                if (permissionValue!.StartsWith("[") && permissionValue.EndsWith("]"))
+                {
+                    return JsonSerializer.Deserialize<List<string>>(permissionValue)!;
+                }
+                else
+                {
+                    return permissionValue.Split(',').Select(p => p.Trim()).ToList();
+                }
             }
             return new List<string>();
         }

@@ -614,7 +614,28 @@
                                         Width="*"
                                         Binding="{Binding ScraptRate}"
                                         Header="Tỷ lệ phế phẩm" />
-
+                                    <DataGridTemplateColumn
+                                        Width="120"
+                                        Header="Dự báo hàng"
+                                        IsReadOnly="True">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Button
+                                                    x:Name="ForecastButton"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    Command="{Binding DataContext.RowMouseEnterCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Style="{StaticResource MaterialDesignFlatButton}"
+                                                    ToolTip="Xem dữ liệu dự báo">
+                                                    <materialDesign:PackIcon
+                                                        Width="20"
+                                                        Height="20"
+                                                        Kind="InformationOutline" />
+                                                </Button>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
                                 </DataGrid.Columns>
                             </DataGrid>
                             <StackPanel
