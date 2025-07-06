@@ -305,7 +305,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                 OrderTypeCode = stockOut.OrderTypeCode ?? string.Empty,
                 WarehouseCode = stockOut.WarehouseCode ?? string.Empty,
                 CustomerCode = stockOut.CustomerCode ?? string.Empty,
-                Responsible = stockOut.Responsible ?? string.Empty,
+                Responsible = stockOut.Responsible! ,
                 StockOutDate = stockOut.StockOutDate!
             };
 
@@ -562,6 +562,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
 
         private async Task CreatePicklistAsync(object parameter)
         {
+            await LoadResponsiblePersonsAsync();
             try
             {
                 if (string.IsNullOrEmpty(StockOutRequestDTO.StockOutCode))
@@ -898,6 +899,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
         {
             try
             {
+                var currentResponsible = StockOutRequestDTO.Responsible; // Preserve current value
                 var result = await _stockOutService.GetListResponsibleAsync(StockOutRequestDTO.WarehouseCode);
                 if (result.Success && result.Data != null)
                 {
@@ -905,6 +907,11 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                     foreach (var person in result.Data)
                     {
                         LstResponsiblePersons.Add(person);
+                    }
+                    // Restore the Responsible value if it exists in the new list
+                    if (!string.IsNullOrEmpty(currentResponsible) && LstResponsiblePersons.Any(p => p.UserName == currentResponsible))
+                    {
+                        StockOutRequestDTO.Responsible = currentResponsible;
                     }
                 }
                 else
@@ -1158,7 +1165,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             if (e.PropertyName == nameof(StockOutRequestDTO.WarehouseCode))
             {
                 _ = LoadResponsiblePersonsAsync();
-            }
+            }    
         }
     }
 }
