@@ -50,7 +50,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
         private int _currentPage;
         private int _pageSize = 10;
         private int _totalPages;
-        private int _lastLoadedPage; 
+        private int _lastLoadedPage;
         private bool _hasPutAway;
         public bool HasPutAway
         {
@@ -257,7 +257,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                 SupplierCode = stockIn.SupplierCode!,
                 Responsible = stockIn.Responsible!,
                 OrderDeadLine = stockIn.OrderDeadline!,
-                StockInDescription =stockIn.StockInDescription!,
+                StockInDescription = stockIn.StockInDescription!,
             };
 
             SaveCommand = new RelayCommand(async parameter => await SaveStockInAsync(parameter), CanSave);
@@ -277,7 +277,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
         {
             try
             {
-                var putAwayResult  = await _putAwayService.GetPutAwayContainsCodeAsync(StockInRequestDTO.StockInCode);
+                var putAwayResult = await _putAwayService.GetListPutAwayContainsCodeAsync(StockInRequestDTO.StockInCode);
                 HasPutAway = putAwayResult.Success && putAwayResult.Data != null;
             }
             catch (Exception ex)
@@ -379,7 +379,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                 }
 
                 await LoadProductsAsync();
-               
+
 
                 await Task.WhenAll(
                     LoadOrderTypesAsync(),
@@ -396,7 +396,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                 {
                     await LoadPutAway();
                 }
-                
+
             }
             catch (Exception ex)
             {
@@ -413,12 +413,15 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                     LstPutAway.Clear();
                     return;
                 }
-                var result = await _putAwayService.GetPutAwayContainsCodeAsync(StockInRequestDTO.StockInCode);
+                var result = await _putAwayService.GetListPutAwayContainsCodeAsync(StockInRequestDTO.StockInCode);
                 if (result.Success && result.Data != null)
                 {
                     LstPutAway.Clear();
-                    LstPutAway.Add(result.Data);
-                    
+                    foreach (var item in result.Data)
+                    {
+                        LstPutAway.Add(item);
+                    }
+
                 }
                 else
                 {
@@ -607,8 +610,8 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                     stockInResult = await _stockInService.AddStockIn(StockInRequestDTO);
                 }
                 else
-                {   
-              
+                {
+
                     stockInResult = await _stockInService.UpdateStockIn(StockInRequestDTO);
                 }
 
@@ -657,9 +660,9 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                         return;
                     }
                 }
-               
+
                 _notificationService.QueueMessageForNextSnackbar(IsAddingNew ? "Thêm phiếu nhập kho thành công!" : "Cập nhật phiếu nhập kho thành công!", "OK", isError: false);
-               
+
                 await _messengerService.SendMessageAsync("ReloadStockInList");
                 var ucStockInView = App.ServiceProvider!.GetRequiredService<ucStockIn>();
                 _navigationService.NavigateTo(ucStockInView);
@@ -674,7 +677,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
         private bool CanSave(object parameter)
         {
             var dto = StockInRequestDTO;
-            var propertiesToValidate = new[] { nameof(dto.StockInCode), nameof(dto.OrderTypeCode), nameof(dto.WarehouseCode), nameof(dto.SupplierCode),nameof(dto.Responsible), nameof(dto.OrderDeadLine) };
+            var propertiesToValidate = new[] { nameof(dto.StockInCode), nameof(dto.OrderTypeCode), nameof(dto.WarehouseCode), nameof(dto.SupplierCode), nameof(dto.Responsible), nameof(dto.OrderDeadLine) };
             foreach (var prop in propertiesToValidate)
             {
                 if (!string.IsNullOrEmpty(dto[prop]))
@@ -806,15 +809,15 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                 DisplayPages.Add(TotalPages);
         }
 
-        private  void OnPropertyChangedHandler(object sender, PropertyChangedEventArgs e)
+        private void OnPropertyChangedHandler(object sender, PropertyChangedEventArgs e)
         {
             ((RelayCommand)SaveCommand)?.RaiseCanExecuteChanged();
             ((RelayCommand)AddDetailLineCommand)?.RaiseCanExecuteChanged();
 
-            if(e.PropertyName==nameof(StockInRequestDTO.WarehouseCode))
+            if (e.PropertyName == nameof(StockInRequestDTO.WarehouseCode))
             {
-                _= LoadResponsiblePersonsAsync();
-            }    
+                _ = LoadResponsiblePersonsAsync();
+            }
         }
     }
 }

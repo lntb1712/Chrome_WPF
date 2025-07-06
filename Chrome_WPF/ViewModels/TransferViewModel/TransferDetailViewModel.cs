@@ -513,11 +513,14 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
                     LstPutAway.Clear();
                     return;
                 }
-                var result = await _putAwayService.GetPutAwayContainsCodeAsync(TransferRequestDTO.TransferCode);
+                var result = await _putAwayService.GetListPutAwayContainsCodeAsync(TransferRequestDTO.TransferCode);
                 if (result.Success && result.Data != null)
                 {
                     LstPutAway.Clear();
-                    LstPutAway.Add(result.Data);
+                    foreach(var item in result.Data)
+                    {
+                        LstPutAway.Add(item);
+                    }    
 
                 }
                 else

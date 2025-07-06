@@ -834,6 +834,7 @@
                             <DataGrid
                                 x:Name="ParentDataGrid"
                                 Grid.Row="0"
+                                MaxHeight="250"
                                 AutoGenerateColumns="False"
                                 CanUserAddRows="False"
                                 IsReadOnly="True"
