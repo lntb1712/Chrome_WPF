@@ -1010,6 +1010,10 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
             {
                 await LoadBomMastersAsync(ManufacturingOrderRequestDTO.ProductCode);
             }
+            if(e.PropertyName ==nameof(ManufacturingOrderRequestDTO.WarehouseCode))
+            {
+                await LoadResponsiblePersonsAsync();
+            }    
             CommandManager.InvalidateRequerySuggested();
         }
     }

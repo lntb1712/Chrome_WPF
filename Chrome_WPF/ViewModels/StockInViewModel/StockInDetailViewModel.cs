@@ -256,7 +256,8 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                 WarehouseCode = stockIn.WarehouseCode!,
                 SupplierCode = stockIn.SupplierCode!,
                 Responsible = stockIn.Responsible!,
-                OrderDeadLine = stockIn.OrderDeadline!
+                OrderDeadLine = stockIn.OrderDeadline!,
+                StockInDescription =stockIn.StockInDescription!,
             };
 
             SaveCommand = new RelayCommand(async parameter => await SaveStockInAsync(parameter), CanSave);
@@ -267,7 +268,6 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
             NextPageCommand = new RelayCommand(_ => NextPage());
             SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
             ConfirmQuantityCommand = new RelayCommand(parameter => CheckQuantity(parameter));
-
             _stockInRequestDTO.PropertyChanged += OnPropertyChangedHandler!;
             _ = InitializeAsync();
         }

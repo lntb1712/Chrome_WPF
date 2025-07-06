@@ -6,6 +6,7 @@ using Chrome_WPF.Models.OrderTypeDTO;
 using Chrome_WPF.Models.PickListDTO;
 using Chrome_WPF.Models.ProductMasterDTO;
 using Chrome_WPF.Models.ReservationDTO;
+using Chrome_WPF.Models.StockInDTO;
 using Chrome_WPF.Models.StockOutDetailDTO;
 using Chrome_WPF.Models.StockOutDTO;
 using Chrome_WPF.Models.WarehouseMasterDTO;
@@ -21,6 +22,7 @@ using DocumentFormat.OpenXml.VariantTypes;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -318,6 +320,8 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             CreateReservationCommand = new RelayCommand(async parameter => await CreateReservationAsync(parameter), CanCreateReservation);
             CreatePicklistCommand = new RelayCommand(async parameter => await CreatePicklistAsync(parameter), CanCreatePicklist);
             RowMouseEnterCommand = new RelayCommand(async parameter =>await LoadForecastDataForTooltipAsync((StockOutDetailResponseDTO)parameter));
+
+            _stockOutRequestDTO.PropertyChanged += OnPropertyChangedHandler!;
             _ = InitializeAsync();
         }
         
@@ -653,7 +657,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                 var result = await _reservationService.AddReservation(reservation);
                 if (result.Success)
                 {
-                    _notificationService.ShowMessage("Tạo đặt chỗ thành công!", "OK");
+                    _notificationService.ShowMessage("Tạo đặt chỗ thành công!", "OK",isError:false);
                     HasReservation = true;
                     await _messengerService.SendMessageAsync("ReloadReservationList");
                     await LoadReservationsAsync();
@@ -1145,12 +1149,16 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             }
         }
 
-        private void OnPropertyChangedHandler(object sender, PropertyChangedEventArgs e)
+        private  void OnPropertyChangedHandler(object sender, PropertyChangedEventArgs e)
         {
             ((RelayCommand)SaveCommand)?.RaiseCanExecuteChanged();
             ((RelayCommand)CreateReservationCommand)?.RaiseCanExecuteChanged();
             ((RelayCommand)CreatePicklistCommand)?.RaiseCanExecuteChanged();
             ((RelayCommand)ConfirmQuantityCommand)?.RaiseCanExecuteChanged();
+            if (e.PropertyName == nameof(StockOutRequestDTO.WarehouseCode))
+            {
+                _ = LoadResponsiblePersonsAsync();
+            }
         }
     }
 }

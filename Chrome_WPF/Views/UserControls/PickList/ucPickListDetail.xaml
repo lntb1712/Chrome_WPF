@@ -272,6 +272,7 @@
                                 Margin="0,0,0,16"
                                 AutoGenerateColumns="False"
                                 CanUserAddRows="False"
+                                IsReadOnly="True"
                                 ItemsSource="{Binding PickListDetails, UpdateSourceTrigger=PropertyChanged}"
                                 Style="{StaticResource ModernDataGridStyle}">
                                 <DataGrid.Columns>

@@ -332,11 +332,20 @@
                             Padding="12,8"
                             materialDesign:HintAssist.Hint="Chọn loại lệnh"
                             materialDesign:HintAssist.IsFloating="True"
-                            DisplayMemberPath="OrderTypeName"
                             FontSize="14"
                             ItemsSource="{Binding LstOrderTypes}"
                             SelectedValue="{Binding ManufacturingOrderRequestDTO.OrderTypeCode, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True}"
-                            SelectedValuePath="OrderTypeCode" />
+                            SelectedValuePath="OrderTypeCode">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock>
+                                        <Run Text="{Binding OrderTypeCode}" />
+                                        <Run Text=" - " />
+                                        <Run Text="{Binding OrderTypeName}" />
+                                    </TextBlock>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
                     </StackPanel>
                     <StackPanel
                         Grid.Row="2"
@@ -354,11 +363,20 @@
                             Padding="12,8"
                             materialDesign:HintAssist.Hint="Chọn sản phẩm"
                             materialDesign:HintAssist.IsFloating="True"
-                            DisplayMemberPath="ProductName"
                             FontSize="14"
                             ItemsSource="{Binding LstProducts}"
                             SelectedValue="{Binding ManufacturingOrderRequestDTO.ProductCode, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True}"
-                            SelectedValuePath="ProductCode" />
+                            SelectedValuePath="ProductCode">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock>
+                                        <Run Text="{Binding ProductCode}" />
+                                        <Run Text=" - " />
+                                        <Run Text="{Binding ProductName}" />
+                                    </TextBlock>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
                     </StackPanel>
                     <StackPanel
                         Grid.Row="3"
@@ -405,11 +423,20 @@
                             Padding="12,8"
                             materialDesign:HintAssist.Hint="Chọn kho"
                             materialDesign:HintAssist.IsFloating="True"
-                            DisplayMemberPath="WarehouseName"
                             FontSize="14"
                             ItemsSource="{Binding LstWarehouses}"
                             SelectedValue="{Binding ManufacturingOrderRequestDTO.WarehouseCode, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True}"
-                            SelectedValuePath="WarehouseCode" />
+                            SelectedValuePath="WarehouseCode">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock>
+                                        <Run Text="{Binding WarehouseCode}" />
+                                        <Run Text=" - " />
+                                        <Run Text="{Binding WarehouseName}" />
+                                    </TextBlock>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
                     </StackPanel>
                     <StackPanel
                         Grid.Row="1"

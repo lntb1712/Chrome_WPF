@@ -262,7 +262,7 @@
                         Header="Danh mục" />
                     <DataGridTextColumn
                         Width="100"
-                        Binding="{Binding BaseQuantity}"
+                        Binding="{Binding BaseQuantity, StringFormat={}{0:N2}}"
                         Header="Số lượng">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">

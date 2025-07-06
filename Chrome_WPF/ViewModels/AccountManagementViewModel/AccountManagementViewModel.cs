@@ -430,7 +430,7 @@ namespace Chrome_WPF.ViewModels
                     if (deleteResult.Success)
                     {
                         _=LoadAccountsAsync();
-                        _notificationService.ShowMessage("Xóa tài khoản thành công!", "OK");
+                        _notificationService.ShowMessage("Xóa tài khoản thành công!", "OK",isError:false);
                     }
                     else
                     {

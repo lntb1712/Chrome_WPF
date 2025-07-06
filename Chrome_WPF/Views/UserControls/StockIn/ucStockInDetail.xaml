@@ -545,7 +545,8 @@
                                     <DataGridTextColumn
                                         Width="*"
                                         Binding="{Binding Quantity}"
-                                        Header="Số lượng thực nhận" />
+                                        Header="Số lượng thực nhận"
+                                        IsReadOnly="True" />
                                     <DataGridTemplateColumn Width="80" IsReadOnly="True">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
