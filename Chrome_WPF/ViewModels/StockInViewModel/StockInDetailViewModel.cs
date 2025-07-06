@@ -603,9 +603,9 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                     return;
                 }
 
-                var existingStockIn = await _stockInService.GetStockInByCode(StockInRequestDTO.StockInCode);
+                
                 ApiResult<bool> stockInResult;
-                if (!existingStockIn.Success)
+                if (IsAddingNew)
                 {
                     stockInResult = await _stockInService.AddStockIn(StockInRequestDTO);
                 }
