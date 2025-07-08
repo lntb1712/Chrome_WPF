@@ -11,10 +11,11 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
     public class BackOrderDialogViewModel : BaseViewModel
     {
         private readonly INotificationService _notificationService;
-        private ObservableCollection<StockOutDetailResponseDTO> _stockOutDetails; // Removed readonly modifier
+        private ObservableCollection<StockOutDetailResponseDTO> _stockOutDetails;
         private bool _createBackorder;
         private bool _noBackorder;
         private bool _isClosed;
+        private DateTime? _selectedDate;
 
         public ObservableCollection<StockOutDetailResponseDTO> StockOutDetails
         {
@@ -33,6 +34,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             {
                 _createBackorder = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(NoBackorder)); // Ensure mutual exclusivity
             }
         }
 
@@ -43,6 +45,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             {
                 _noBackorder = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(CreateBackorder)); // Ensure mutual exclusivity
             }
         }
 
@@ -56,6 +59,17 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             }
         }
 
+        public DateTime? SelectedDate
+        {
+            get => _selectedDate;
+            set
+            {
+                _selectedDate = value;
+                OnPropertyChanged();
+                ((RelayCommand)CreateBackorderCommand)?.RaiseCanExecuteChanged();
+            }
+        }
+
         public ICommand CreateBackorderCommand { get; }
         public ICommand NoBackorderCommand { get; }
         public ICommand DiscardCommand { get; }
@@ -66,8 +80,9 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
         {
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             _stockOutDetails = stockOutDetails ?? throw new ArgumentNullException(nameof(stockOutDetails));
+            _selectedDate = DateTime.Now; // Default to current date
 
-            CreateBackorderCommand = new RelayCommand(_ => ExecuteCreateBackorder());
+            CreateBackorderCommand = new RelayCommand(_ => ExecuteCreateBackorder(), CanExecuteCreateBackorder);
             NoBackorderCommand = new RelayCommand(_ => ExecuteNoBackorder());
             DiscardCommand = new RelayCommand(_ => ExecuteDiscard());
         }
@@ -76,6 +91,12 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
         {
             if (StockOutDetails.Any(d => d.Quantity < d.Demand))
             {
+                if (!SelectedDate.HasValue || SelectedDate.Value < DateTime.Today)
+                {
+                    _notificationService.ShowMessage("Vui lòng chọn ngày dự kiến hoàn thành hợp lệ (từ hôm nay trở đi).", "OK", isError: true);
+                    return;
+                }
+
                 CreateBackorder = true;
                 NoBackorder = false;
                 IsClosed = true;
@@ -85,6 +106,11 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             {
                 _notificationService.ShowMessage("Không cần tạo backorder vì tất cả sản phẩm đã đủ số lượng.", "OK", isError: true);
             }
+        }
+
+        private bool CanExecuteCreateBackorder(object parameter)
+        {
+            return SelectedDate.HasValue && SelectedDate.Value >= DateTime.Today;
         }
 
         private void ExecuteNoBackorder()

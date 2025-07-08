@@ -21,7 +21,7 @@ namespace Chrome_WPF.Services.StockOutDetailService
         Task<ApiResult<PagedResponse<StockOutDetailResponseDTO>>> GetAllStockOutDetails(string stockOutCode, int page, int pageSize);
         Task<ApiResult<List<ProductMasterResponseDTO>>> GetListProductToSO(string stockOutCode);
         Task<ApiResult<bool>> AddStockOutDetail(StockOutDetailRequestDTO stockOutDetail);
-        Task<ApiResult<bool>> CreateBackOrder(string stockOutCode, string backOrderDescription);
+        Task<ApiResult<bool>> CreateBackOrder(string stockOutCode, string backOrderDescription,string dateBackOrder);
         Task<ApiResult<bool>> DeleteStockOutDetail(string stockOutCode, string productCode);
         Task<ApiResult<bool>> UpdateStockOutDetail(StockOutDetailRequestDTO stockOutDetail);
         Task<ApiResult<bool>> ConfirmStockOut(string stockOutCode);

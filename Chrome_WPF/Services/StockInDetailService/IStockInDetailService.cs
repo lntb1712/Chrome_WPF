@@ -15,7 +15,7 @@ namespace Chrome_WPF.Services.StockInDetailService
         Task<ApiResult<PagedResponse<StockInDetailResponseDTO>>> GetAllStockInDetails(string stockInCode, int page, int pageSize);
         Task<ApiResult<List<ProductMasterResponseDTO>>> GetListProductToSI(string stockInCode);
         Task<ApiResult<bool>> AddStockInDetail(StockInDetailRequestDTO stockInDetail);
-        Task<ApiResult<bool>> CreateBackOrder(string stockInCode, string backOrderDescription);
+        Task<ApiResult<bool>> CreateBackOrder(string stockInCode, string backOrderDescription, string dateBackOrder);
         Task<ApiResult<bool>> DeleteStockInDetail(string stockInCode, string productCode);
         Task<ApiResult<bool>> UpdateStockInDetail( StockInDetailRequestDTO stockInDetail);
         Task<ApiResult<bool>> ConfirmnStockIn(string stockInCode);

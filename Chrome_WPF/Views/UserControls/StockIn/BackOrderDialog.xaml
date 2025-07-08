@@ -4,11 +4,12 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Chrome_WPF.Views.UserControls.StockIn"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="clr-namespace:Chrome_WPF.ViewModels.StockInViewModel"
     Title="Tạo Backorder?"
     Width="500"
-    Height="200"
+    Height="250"
     ResizeMode="NoResize"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
@@ -18,9 +19,10 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- Tiêu đề -->
+        <!--  Tiêu đề  -->
         <TextBlock
             Grid.Row="0"
             Margin="0,0,0,10"
@@ -28,14 +30,14 @@
             FontWeight="Bold"
             Text="Tạo Backorder?" />
 
-        <!-- Thông báo -->
+        <!--  Thông báo  -->
         <TextBlock
             Grid.Row="1"
             Margin="0,0,0,10"
             FontSize="12"
             Text="Bạn đã xử lý ít sản phẩm hơn so với yêu cầu ban đầu." />
 
-        <!-- Lựa chọn -->
+        <!--  Lựa chọn  -->
         <StackPanel
             Grid.Row="2"
             Margin="0,0,0,10"
@@ -47,9 +49,19 @@
             <TextBlock FontSize="12" Text="Không tạo backorder nếu bạn sẽ không xử lý các sản phẩm còn lại." />
         </StackPanel>
 
-        <!-- Nút điều khiển -->
+        <!--  DatePicker  -->
+        <DatePicker
+            Grid.Row="2"
+            Grid.RowSpan="2"
+            Width="372"
+            Margin="0,42,0,10"
+            HorizontalAlignment="Center"
+            materialDesign:HintAssist.Hint="Ngày dự kiến hoàn thành"
+            SelectedDate="{Binding SelectedDate}" />
+
+        <!--  Nút điều khiển  -->
         <StackPanel
-            Grid.Row="3"
+            Grid.Row="4"
             HorizontalAlignment="Left"
             Orientation="Horizontal">
             <Button

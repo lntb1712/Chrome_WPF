@@ -18,10 +18,11 @@ using Chrome_WPF.Services.ReservationService;
 using Chrome_WPF.Services.StockOutDetailService;
 using Chrome_WPF.Services.StockOutService;
 using Chrome_WPF.Views.UserControls.StockOut;
-using DocumentFormat.OpenXml.VariantTypes;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -301,12 +302,13 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             _hasReservation = false;
             _stockOutRequestDTO = stockOut == null ? new StockOutRequestDTO() : new StockOutRequestDTO
             {
-                StockOutCode = stockOut.StockOutCode,
+                StockOutCode = stockOut.StockOutCode ?? string.Empty,
                 OrderTypeCode = stockOut.OrderTypeCode ?? string.Empty,
                 WarehouseCode = stockOut.WarehouseCode ?? string.Empty,
                 CustomerCode = stockOut.CustomerCode ?? string.Empty,
-                Responsible = stockOut.Responsible! ,
-                StockOutDate = stockOut.StockOutDate!
+                Responsible = stockOut.Responsible ?? string.Empty,
+                StockOutDate = stockOut.StockOutDate ?? string.Empty,
+                StockOutDescription = stockOut.StockOutDescription??string.Empty,
             };
 
             SaveCommand = new RelayCommand(async parameter => await SaveStockOutAsync(parameter), CanSave);
@@ -319,14 +321,31 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             ConfirmQuantityCommand = new RelayCommand(async parameter => await CheckQuantityAsync(parameter), CanConfirmQuantity);
             CreateReservationCommand = new RelayCommand(async parameter => await CreateReservationAsync(parameter), CanCreateReservation);
             CreatePicklistCommand = new RelayCommand(async parameter => await CreatePicklistAsync(parameter), CanCreatePicklist);
-            RowMouseEnterCommand = new RelayCommand(async parameter =>await LoadForecastDataForTooltipAsync((StockOutDetailResponseDTO)parameter));
+            RowMouseEnterCommand = new RelayCommand(async parameter => await LoadForecastDataForTooltipAsync((StockOutDetailResponseDTO)parameter));
+
+            // Fix for CS0019: Operator '+=' cannot be applied to operands of type 'StockOutRequestDTO' and 'method group'
+            // The issue is that the code is attempting to use the '+=' operator on an object of type 'StockOutRequestDTO'.
+            // This is incorrect because 'StockOutRequestDTO' does not support event subscription directly.
+            // The correct approach is to subscribe to the 'PropertyChanged' event of the 'StockOutRequestDTO' instance.
 
             _stockOutRequestDTO.PropertyChanged += OnPropertyChangedHandler!;
+            // Fix for CS1002: ; expected
+            // This error typically occurs when a semicolon is missing at the end of a statement.
+            // Ensure that all statements are properly terminated with a semicolon.
+
+
             _ = InitializeAsync();
         }
-        
+
         private void StockOutDetails_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
+            if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Reset)
+            {
+                foreach (var item in _lstStockOutDetails)
+                {
+                    item.PropertyChanged -= StockOutDetail_PropertyChanged!;
+                }
+            }
             if (e.OldItems != null)
             {
                 foreach (StockOutDetailResponseDTO item in e.OldItems)
@@ -343,16 +362,23 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             }
         }
 
-        private async void StockOutDetail_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        private void StockOutDetail_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(StockOutDetailResponseDTO.SelectedProduct))
+            try
             {
-                var detail = (StockOutDetailResponseDTO)sender;
-                if (detail.SelectedProduct != null)
+                if (e.PropertyName == nameof(StockOutDetailResponseDTO.SelectedProduct))
                 {
-                    await Task.Delay(500);
-
+                    var detail = (StockOutDetailResponseDTO)sender;
+                    if (detail?.SelectedProduct != null)
+                    {
+                        _ = Task.Delay(500);
+                        // Add logic for handling selected product change if necessary
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Error handling detail change: {ex.Message}", "OK", isError: true);
             }
         }
 
@@ -365,21 +391,19 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
 
             try
             {
-                // Create and configure ucForecastTooltip
                 var forecastTooltip = new ucForecastTooltip(App.ServiceProvider!.GetRequiredService<ForecastTooltipViewModel>());
                 var tooltipViewModel = App.ServiceProvider!.GetRequiredService<ForecastTooltipViewModel>();
                 tooltipViewModel.ProductName = detail.ProductName;
                 await tooltipViewModel.LoadForecastDataAsync(StockOutRequestDTO.StockOutCode, detail.ProductCode);
                 forecastTooltip.DataContext = tooltipViewModel;
 
-                // Create Window
                 var window = new Window
                 {
-                    Title = $"Dữ liệu dự báo ",
+                    Title = "Dữ liệu dự báo",
                     Content = forecastTooltip,
                     Width = 300,
                     Height = 200,
-                    WindowStartupLocation = WindowStartupLocation.Manual, // Manual positioning
+                    WindowStartupLocation = WindowStartupLocation.Manual,
                     Owner = Application.Current.MainWindow,
                     WindowStyle = WindowStyle.SingleBorderWindow,
                     Background = Brushes.White,
@@ -387,34 +411,25 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                     BorderThickness = new Thickness(1)
                 };
 
-                // Get the current mouse position relative to the main window
                 var mousePosition = Mouse.GetPosition(Application.Current.MainWindow);
-
-                // Convert the mouse position to screen coordinates
                 var screenPosition = Application.Current.MainWindow.PointToScreen(mousePosition);
 
-                // Set the window position (e.g., slightly offset from the mouse cursor)
-                window.Left = screenPosition.X + 10; // Offset by 10 pixels to the right
-                window.Top = screenPosition.Y + 10;  // Offset by 10 pixels down
+                window.Left = screenPosition.X + 10;
+                window.Top = screenPosition.Y + 10;
 
-                // Ensure the window stays within screen bounds
-                var screen = SystemParameters.WorkArea; // Get the primary screen's working area
-                if (window.Left + window.Width > screen.Right)
-                {
-                    window.Left = screen.Right - window.Width-100; // Adjust if it goes off the right edge
-                }
-                if (window.Top + window.Height > screen.Bottom)
-                {
-                    window.Top = screen.Bottom - window.Height-100; // Adjust if it goes off the bottom edge
-                }
-                
+                var screen = SystemParameters.WorkArea;
+                window.Left = Math.Max(screen.Left, Math.Min(screen.Right - window.Width, window.Left));
+                window.Top = Math.Max(screen.Top, Math.Min(screen.Bottom - window.Height, window.Top));
 
-                // Show the Window
                 window.ShowDialog();
             }
             catch (Exception ex)
             {
                 _notificationService.ShowMessage($"Lỗi khi hiển thị dữ liệu dự báo: {ex.Message}", "OK", isError: true);
+            }
+            finally
+            {
+                // Ensure proper disposal if necessary
             }
         }
 
@@ -429,26 +444,36 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                     return;
                 }
 
-                await LoadProductsAsync();
-
-                await Task.WhenAll(
-                    LoadOrderTypesAsync(),
-                    LoadWarehousesAsync(),
-                    LoadCustomersAsync(),
-                    CheckReservationExistenceAsync());
-
+                // Load static data only if not already loaded
+                if (!LstOrderTypes.Any())
+                {
+                    await LoadOrderTypesAsync();
+                }
+                if (!LstWarehouses.Any())
+                {
+                    await LoadWarehousesAsync();
+                }
+                if (!LstCustomers.Any())
+                {
+                    await LoadCustomersAsync();
+                }
                 if (!IsAddingNew)
                 {
+                    if (!LstProducts.Any())
+                    {
+                        await LoadProductsAsync();
+                    }
                     await LoadStockOutDetailsAsync();
                     await LoadResponsiblePersonsAsync();
-                }
-                if (HasReservation)
-                {
-                    await LoadReservationsAsync();
-                }
-                if (HasPicklist)
-                {
-                    await LoadPickListAsync();
+                    await CheckReservationExistenceAsync();
+                    if (HasReservation)
+                    {
+                        await LoadReservationsAsync();
+                    }
+                    if (HasPicklist)
+                    {
+                        await LoadPickListAsync();
+                    }
                 }
             }
             catch (Exception ex)
@@ -494,7 +519,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                 {
                     LstPickList.Clear();
                     LstPickList.Add(pickListResult.Data);
-                    await CheckPicklistExistenceAsync();
+                    HasPicklist = true;
                 }
                 else
                 {
@@ -509,6 +534,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             catch (Exception ex)
             {
                 _notificationService.ShowMessage($"Lỗi khi tải danh sách lấy hàng: {ex.Message}", "OK", isError: true);
+                HasPicklist = false;
             }
         }
 
@@ -519,7 +545,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                 if (string.IsNullOrEmpty(StockOutRequestDTO.StockOutCode))
                 {
                     LstReservations.Clear();
-                    HasPicklist = false;
+                    HasReservation = false;
                     return;
                 }
 
@@ -528,12 +554,13 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                 {
                     LstReservations.Clear();
                     LstReservations.Add(reservationResult.Data);
+                    HasReservation = true;
                     await CheckPicklistExistenceAsync();
                 }
                 else
                 {
                     LstReservations.Clear();
-                    HasPicklist = false;
+                    HasReservation = false;
                     _notificationService.ShowMessage(reservationResult.Message ?? "Không thể tải danh sách đặt chỗ.", "OK", isError: true);
                 }
                 ((RelayCommand)CreateReservationCommand)?.RaiseCanExecuteChanged();
@@ -543,6 +570,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             catch (Exception ex)
             {
                 _notificationService.ShowMessage($"Lỗi khi tải danh sách đặt chỗ: {ex.Message}", "OK", isError: true);
+                HasReservation = false;
             }
         }
 
@@ -550,6 +578,11 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
         {
             try
             {
+                if (string.IsNullOrEmpty(StockOutRequestDTO.StockOutCode))
+                {
+                    HasPicklist = false;
+                    return;
+                }
                 var picklistResult = await _pickListService.GetPickListContainCodeAsync(StockOutRequestDTO.StockOutCode);
                 HasPicklist = picklistResult.Success && picklistResult.Data != null;
             }
@@ -562,7 +595,6 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
 
         private async Task CreatePicklistAsync(object parameter)
         {
-            await LoadResponsiblePersonsAsync();
             try
             {
                 if (string.IsNullOrEmpty(StockOutRequestDTO.StockOutCode))
@@ -576,7 +608,6 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                     _notificationService.ShowMessage("Không có đặt chỗ nào để tạo picklist.", "OK", isError: true);
                     return;
                 }
-
                 await SaveStockOutAsync(parameter);
                 if (!string.IsNullOrEmpty(StockOutRequestDTO.Error))
                 {
@@ -591,7 +622,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                     ReservationCode = reservation.ReservationCode,
                     Responsible = StockOutRequestDTO.Responsible,
                     StatusId = 1,
-                    WarehouseCode = reservation.WarehouseCode,
+                    WarehouseCode = reservation.WarehouseCode
                 };
 
                 var result = await _pickListService.AddPickList(picklist);
@@ -615,12 +646,12 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
 
         private bool CanCreatePicklist(object parameter)
         {
-            return !string.IsNullOrEmpty(StockOutRequestDTO?.StockOutCode) && LstReservations.Any() && !HasPicklist;
+            return !string.IsNullOrEmpty(StockOutRequestDTO?.StockOutCode) && LstReservations.Any() && !HasPicklist && string.IsNullOrEmpty(StockOutRequestDTO?.Error);
         }
 
         private bool CanCreateReservation(object parameter)
         {
-            return !string.IsNullOrEmpty(StockOutRequestDTO?.StockOutCode) && !HasReservation;
+            return !string.IsNullOrEmpty(StockOutRequestDTO?.StockOutCode) && !HasReservation && string.IsNullOrEmpty(StockOutRequestDTO?.Error);
         }
 
         private async Task CreateReservationAsync(object parameter)
@@ -658,7 +689,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                 var result = await _reservationService.AddReservation(reservation);
                 if (result.Success)
                 {
-                    _notificationService.ShowMessage("Tạo đặt chỗ thành công!", "OK",isError:false);
+                    _notificationService.ShowMessage("Tạo đặt chỗ thành công!", "OK", isError: false);
                     HasReservation = true;
                     await _messengerService.SendMessageAsync("ReloadReservationList");
                     await LoadReservationsAsync();
@@ -676,7 +707,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
 
         private bool CanConfirmQuantity(object parameter)
         {
-            return !string.IsNullOrEmpty(StockOutRequestDTO?.StockOutCode) && HasPicklist;
+            return !string.IsNullOrEmpty(StockOutRequestDTO?.StockOutCode) && HasPicklist && string.IsNullOrEmpty(StockOutRequestDTO?.Error);
         }
 
         private async Task CheckQuantityAsync(object parameter)
@@ -690,6 +721,11 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                 }
 
                 await SaveStockOutAsync(parameter);
+                if (!string.IsNullOrEmpty(StockOutRequestDTO.Error))
+                {
+                    return;
+                }
+
                 bool hasShortage = LstStockOutDetails.Any(d => d.Quantity < d.Demand);
                 if (!hasShortage)
                 {
@@ -719,7 +755,10 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                 {
                     if (viewModel.CreateBackorder)
                     {
-                        var backOrderResult = await _stockOutDetailService.CreateBackOrder(StockOutRequestDTO.StockOutCode, $"Tạo back order cho phiếu xuất {StockOutRequestDTO.StockOutCode}");
+                        var backOrderResult = await _stockOutDetailService.CreateBackOrder(
+                            StockOutRequestDTO.StockOutCode,
+                            $"Tạo back order cho phiếu xuất {StockOutRequestDTO.StockOutCode}",
+                            viewModel.SelectedDate.ToString()!); // Pass SelectedDate
                         if (!backOrderResult.Success)
                         {
                             _notificationService.ShowMessage(backOrderResult.Message ?? "Không thể tạo backorder.", "OK", isError: true);
@@ -764,14 +803,12 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
         {
             try
             {
-                if (_lastLoadedPage == CurrentPage && LstStockOutDetails.Any())
-                {
-                    return;
-                }
+              
 
                 if (string.IsNullOrEmpty(StockOutRequestDTO.StockOutCode))
                 {
                     LstStockOutDetails.Clear();
+                    TotalPages = 0;
                     return;
                 }
 
@@ -791,11 +828,15 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                 else
                 {
                     _notificationService.ShowMessage(result.Message ?? "Không thể tải chi tiết xuất kho.", "OK", isError: true);
+                    LstStockOutDetails.Clear();
+                    TotalPages = 0;
                 }
             }
             catch (Exception ex)
             {
                 _notificationService.ShowMessage($"Lỗi khi tải chi tiết xuất kho: {ex.Message}", "OK", isError: true);
+                LstStockOutDetails.Clear();
+                TotalPages = 0;
             }
         }
 
@@ -815,11 +856,13 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                 else
                 {
                     _notificationService.ShowMessage(result.Message ?? "Không thể tải danh sách sản phẩm.", "OK", isError: true);
+                    LstProducts.Clear();
                 }
             }
             catch (Exception ex)
             {
                 _notificationService.ShowMessage($"Lỗi khi tải danh sách sản phẩm: {ex.Message}", "OK", isError: true);
+                LstProducts.Clear();
             }
         }
 
@@ -839,11 +882,13 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                 else
                 {
                     _notificationService.ShowMessage(result.Message ?? "Không thể tải danh sách loại lệnh.", "OK", isError: true);
+                    LstOrderTypes.Clear();
                 }
             }
             catch (Exception ex)
             {
                 _notificationService.ShowMessage($"Lỗi khi tải danh sách loại lệnh: {ex.Message}", "OK", isError: true);
+                LstOrderTypes.Clear();
             }
         }
 
@@ -863,11 +908,13 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                 else
                 {
                     _notificationService.ShowMessage(result.Message ?? "Không thể tải danh sách kho.", "OK", isError: true);
+                    LstWarehouses.Clear();
                 }
             }
             catch (Exception ex)
             {
                 _notificationService.ShowMessage($"Lỗi khi tải danh sách kho: {ex.Message}", "OK", isError: true);
+                LstWarehouses.Clear();
             }
         }
 
@@ -887,11 +934,13 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                 else
                 {
                     _notificationService.ShowMessage(result.Message ?? "Không thể tải danh sách khách hàng.", "OK", isError: true);
+                    LstCustomers.Clear();
                 }
             }
             catch (Exception ex)
             {
                 _notificationService.ShowMessage($"Lỗi khi tải danh sách khách hàng: {ex.Message}", "OK", isError: true);
+                LstCustomers.Clear();
             }
         }
 
@@ -899,7 +948,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
         {
             try
             {
-                var currentResponsible = StockOutRequestDTO.Responsible; // Preserve current value
+                var currentResponsible = StockOutRequestDTO.Responsible;
                 var result = await _stockOutService.GetListResponsibleAsync(StockOutRequestDTO.WarehouseCode);
                 if (result.Success && result.Data != null)
                 {
@@ -908,7 +957,6 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                     {
                         LstResponsiblePersons.Add(person);
                     }
-                    // Restore the Responsible value if it exists in the new list
                     if (!string.IsNullOrEmpty(currentResponsible) && LstResponsiblePersons.Any(p => p.UserName == currentResponsible))
                     {
                         StockOutRequestDTO.Responsible = currentResponsible;
@@ -917,11 +965,13 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                 else
                 {
                     _notificationService.ShowMessage(result.Message ?? "Không thể tải danh sách người phụ trách.", "OK", isError: true);
+                    LstResponsiblePersons.Clear();
                 }
             }
             catch (Exception ex)
             {
                 _notificationService.ShowMessage($"Lỗi khi tải danh sách người phụ trách: {ex.Message}", "OK", isError: true);
+                LstResponsiblePersons.Clear();
             }
         }
 
@@ -934,11 +984,12 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                 _isSaving = true;
 
                 StockOutRequestDTO.RequestValidation();
-                if (!CanSave(parameter))
+                if (!string.IsNullOrEmpty(StockOutRequestDTO.Error) || !CanSave(parameter))
                 {
-                    _notificationService.ShowMessage("Vui lòng kiểm tra lại thông tin nhập vào.", "OK", isError: true);
+                    _notificationService.ShowMessage(StockOutRequestDTO.Error ?? "Vui lòng kiểm tra lại thông tin nhập vào.", "OK", isError: true);
                     return;
                 }
+
                 ApiResult<bool> stockOutResult;
                 if (IsAddingNew)
                 {
@@ -957,13 +1008,13 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
 
                 foreach (var detail in LstStockOutDetails.ToList())
                 {
-                    if (detail.SelectedProduct == null)
+                    if (detail?.SelectedProduct == null)
                     {
                         _notificationService.ShowMessage("Vui lòng chọn sản phẩm cho tất cả các dòng.", "OK", isError: true);
                         return;
                     }
 
-                    detail.ProductCode = detail.SelectedProduct.ProductCode;
+                    detail.ProductCode = detail.SelectedProduct.ProductCode ?? throw new InvalidOperationException("Product code cannot be null.");
                     detail.ProductName = detail.SelectedProduct.ProductName ?? string.Empty;
 
                     var request = new StockOutDetailRequestDTO
@@ -998,16 +1049,30 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                     }
                 }
 
-                _notificationService.QueueMessageForNextSnackbar(IsAddingNew ? "Thêm phiếu xuất kho thành công!" : "Cập nhật phiếu xuất kho thành công!", "OK", isError: false);
+                _notificationService.ShowMessage(IsAddingNew ? "Thêm phiếu xuất kho thành công!" : "Cập nhật phiếu xuất kho thành công!", "OK", isError: false);
                 if (IsAddingNew)
                 {
                     StockOutRequestDTO.ClearValidation();
                     IsAddingNew = false;
+                    // Load products only when adding new to ensure dropdowns are populated
+                    if (!LstProducts.Any())
+                    {
+                        await LoadProductsAsync();
+                    }
                 }
 
                 await _messengerService.SendMessageAsync("ReloadStockOutList");
-                var ucStockOutView = App.ServiceProvider!.GetRequiredService<ucStockOut>();
-                _navigationService.NavigateTo(ucStockOutView);
+                // Refresh only necessary data
+                await LoadStockOutDetailsAsync();
+                await CheckReservationExistenceAsync();
+                if (HasReservation)
+                {
+                    await LoadReservationsAsync();
+                }
+                if (HasPicklist)
+                {
+                    await LoadPickListAsync();
+                }
             }
             catch (Exception ex)
             {
@@ -1022,10 +1087,10 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
         private bool CanSave(object parameter)
         {
             var dto = StockOutRequestDTO;
-            var propertiesToValidate = new[] { nameof(dto.StockOutCode), nameof(dto.OrderTypeCode), nameof(dto.WarehouseCode), nameof(dto.CustomerCode), nameof(dto.Responsible), nameof(dto.StockOutDate) };
+            var propertiesToValidate = new[] { nameof(dto.StockOutCode), nameof(dto.OrderTypeCode), nameof(dto.WarehouseCode), nameof(dto.CustomerCode), nameof(dto.Responsible) };
             foreach (var prop in propertiesToValidate)
             {
-                if (!string.IsNullOrEmpty(dto[prop]))
+                if (!string.IsNullOrEmpty(dto[prop]?.ToString()))
                 {
                     return false;
                 }
@@ -1156,16 +1221,26 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             }
         }
 
-        private  void OnPropertyChangedHandler(object sender, PropertyChangedEventArgs e)
+        private async void OnPropertyChangedHandler(object sender, PropertyChangedEventArgs e)
         {
-            ((RelayCommand)SaveCommand)?.RaiseCanExecuteChanged();
-            ((RelayCommand)CreateReservationCommand)?.RaiseCanExecuteChanged();
-            ((RelayCommand)CreatePicklistCommand)?.RaiseCanExecuteChanged();
-            ((RelayCommand)ConfirmQuantityCommand)?.RaiseCanExecuteChanged();
-            if (e.PropertyName == nameof(StockOutRequestDTO.WarehouseCode))
+            if (e.PropertyName == nameof(StockOutRequestDTO.StockOutCode))
             {
-                _ = LoadResponsiblePersonsAsync();
-            }    
+                ((RelayCommand)CreateReservationCommand)?.RaiseCanExecuteChanged();
+                ((RelayCommand)CreatePicklistCommand)?.RaiseCanExecuteChanged();
+                ((RelayCommand)ConfirmQuantityCommand)?.RaiseCanExecuteChanged();
+                ((RelayCommand)AddDetailLineCommand)?.RaiseCanExecuteChanged();
+            }
+            else if (e.PropertyName == nameof(StockOutRequestDTO.WarehouseCode))
+            {
+                await LoadResponsiblePersonsAsync();
+            }
+            else if (new[] { nameof(StockOutRequestDTO.StockOutCode), nameof(StockOutRequestDTO.OrderTypeCode),
+                             nameof(StockOutRequestDTO.WarehouseCode), nameof(StockOutRequestDTO.CustomerCode),
+                             nameof(StockOutRequestDTO.Responsible), nameof(StockOutRequestDTO.StockOutDate) }
+                     .Contains(e.PropertyName))
+            {
+                ((RelayCommand)SaveCommand)?.RaiseCanExecuteChanged();
+            }
         }
     }
 }

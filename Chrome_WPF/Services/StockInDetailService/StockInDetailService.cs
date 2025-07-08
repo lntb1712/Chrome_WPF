@@ -202,12 +202,12 @@ namespace Chrome_WPF.Services.StockInDetailService
             }
         }
 
-        public async Task<ApiResult<bool>> CreateBackOrder(string stockInCode, string backOrderDescription)
+        public async Task<ApiResult<bool>> CreateBackOrder(string stockInCode, string backOrderDescription,string dateBackOrder)
         {
             if (string.IsNullOrEmpty(stockInCode) || string.IsNullOrEmpty(backOrderDescription)) return new ApiResult<bool>("Dữ liệu nhận vào không hợp lệ", false);
             try
             {
-                var response = await _httpClient.PostAsync($"StockIn/{Uri.EscapeDataString(stockInCode)}/StockInDetail/CreateBackOrder?backOrderDescription={backOrderDescription}", new StringContent("")).ConfigureAwait(false);
+                var response = await _httpClient.PostAsync($"StockIn/{Uri.EscapeDataString(stockInCode)}/StockInDetail/CreateBackOrder?backOrderDescription={backOrderDescription}&dateBackOrder={dateBackOrder}", new StringContent("")).ConfigureAwait(false);
                 var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 if (response.IsSuccessStatusCode)
                 {

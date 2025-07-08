@@ -197,7 +197,7 @@ namespace Chrome_WPF.Services.StockOutDetailService
             }
         }
 
-        public async Task<ApiResult<bool>> CreateBackOrder(string stockOutCode, string backOrderDescription)
+        public async Task<ApiResult<bool>> CreateBackOrder(string stockOutCode, string backOrderDescription, string dateBackOrder)
         {
             if (string.IsNullOrEmpty(stockOutCode) || string.IsNullOrEmpty(backOrderDescription))
             {
@@ -205,7 +205,7 @@ namespace Chrome_WPF.Services.StockOutDetailService
             }
             try
             {
-                var response = await _httpClient.PostAsync($"StockOut/{Uri.EscapeDataString(stockOutCode)}/StockOutDetail/CreateBackOrder?backOrderDescription={Uri.EscapeDataString(backOrderDescription)}", new StringContent("")).ConfigureAwait(false);
+                var response = await _httpClient.PostAsync($"StockOut/{Uri.EscapeDataString(stockOutCode)}/StockOutDetail/CreateBackOrder?backOrderDescription={Uri.EscapeDataString(backOrderDescription)}&dateBackOrder={dateBackOrder}", new StringContent("")).ConfigureAwait(false);
                 var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 if (response.IsSuccessStatusCode)
                 {

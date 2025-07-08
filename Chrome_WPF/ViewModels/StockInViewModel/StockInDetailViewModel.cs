@@ -6,7 +6,6 @@ using Chrome_WPF.Models.ProductMasterDTO;
 using Chrome_WPF.Models.PutAwayDTO;
 using Chrome_WPF.Models.StockInDetailDTO;
 using Chrome_WPF.Models.StockInDTO;
-using Chrome_WPF.Models.StockOutDTO;
 using Chrome_WPF.Models.SupplierMasterDTO;
 using Chrome_WPF.Models.WarehouseMasterDTO;
 using Chrome_WPF.Services.MessengerService;
@@ -16,7 +15,6 @@ using Chrome_WPF.Services.PutAwayService;
 using Chrome_WPF.Services.StockInDetailService;
 using Chrome_WPF.Services.StockInService;
 using Chrome_WPF.Views.UserControls.StockIn;
-using MaterialDesignThemes.Wpf;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.ObjectModel;
@@ -51,7 +49,9 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
         private int _pageSize = 10;
         private int _totalPages;
         private int _lastLoadedPage;
+        private bool _isSaving;
         private bool _hasPutAway;
+
         public bool HasPutAway
         {
             get => _hasPutAway;
@@ -59,8 +59,10 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
             {
                 _hasPutAway = value;
                 OnPropertyChanged();
+                ((RelayCommand)ConfirmQuantityCommand)?.RaiseCanExecuteChanged();
             }
         }
+
         public ObservableCollection<PutAwayAndDetailResponseDTO> LstPutAway
         {
             get => _lstPutAway;
@@ -76,7 +78,15 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
             get => _lstStockInDetails;
             set
             {
+                if (_lstStockInDetails != null)
+                {
+                    _lstStockInDetails.CollectionChanged -= StockInDetails_CollectionChanged!;
+                }
                 _lstStockInDetails = value;
+                if (_lstStockInDetails != null)
+                {
+                    _lstStockInDetails.CollectionChanged += StockInDetails_CollectionChanged!;
+                }
                 OnPropertyChanged();
             }
         }
@@ -157,6 +167,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                 }
                 OnPropertyChanged();
                 _ = LoadStockInDetailsAsync();
+                _ = CheckPutAwayHasValue();
             }
         }
 
@@ -227,8 +238,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
             INavigationService navigationService,
             IMessengerService messengerService,
             IPutAwayService putAwayService,
-
-            StockInResponseDTO stockIn = null!)
+            StockInResponseDTO? stockIn = null)
         {
             _stockInDetailService = stockInDetailService ?? throw new ArgumentNullException(nameof(stockInDetailService));
             _stockInService = stockInService ?? throw new ArgumentNullException(nameof(stockInService));
@@ -238,6 +248,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
             _putAwayService = putAwayService ?? throw new ArgumentNullException(nameof(putAwayService));
 
             _lstStockInDetails = new ObservableCollection<StockInDetailResponseDTO>();
+            _lstStockInDetails.CollectionChanged += StockInDetails_CollectionChanged!;
             _lstProducts = new ObservableCollection<ProductMasterResponseDTO>();
             _lstOrderTypes = new ObservableCollection<OrderTypeResponseDTO>();
             _lstWarehouses = new ObservableCollection<WarehouseMasterResponseDTO>();
@@ -248,16 +259,17 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
             _isAddingNew = stockIn == null;
             _currentPage = 1;
             _lastLoadedPage = 0;
+            _isSaving = false;
             _hasPutAway = false;
             _stockInRequestDTO = stockIn == null ? new StockInRequestDTO() : new StockInRequestDTO
             {
-                StockInCode = stockIn.StockInCode,
-                OrderTypeCode = stockIn.OrderTypeCode!,
-                WarehouseCode = stockIn.WarehouseCode!,
-                SupplierCode = stockIn.SupplierCode!,
-                Responsible = stockIn.Responsible!,
+                StockInCode = stockIn.StockInCode ?? string.Empty,
+                OrderTypeCode = stockIn.OrderTypeCode ?? string.Empty,
+                WarehouseCode = stockIn.WarehouseCode ?? string.Empty,
+                SupplierCode = stockIn.SupplierCode ?? string.Empty,
+                Responsible = stockIn.Responsible ?? string.Empty,
                 OrderDeadLine = stockIn.OrderDeadline!,
-                StockInDescription = stockIn.StockInDescription!,
+                StockInDescription = stockIn.StockInDescription ?? string.Empty
             };
 
             SaveCommand = new RelayCommand(async parameter => await SaveStockInAsync(parameter), CanSave);
@@ -267,106 +279,57 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
             PreviousPageCommand = new RelayCommand(_ => PreviousPage());
             NextPageCommand = new RelayCommand(_ => NextPage());
             SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
-            ConfirmQuantityCommand = new RelayCommand(parameter => CheckQuantity(parameter));
+            ConfirmQuantityCommand = new RelayCommand(async parameter => await CheckQuantityAsync(parameter), CanConfirmQuantity);
+
             _stockInRequestDTO.PropertyChanged += OnPropertyChangedHandler!;
             _ = InitializeAsync();
         }
 
-
-        private async Task CheckPutAwayHasValue()
+        private void StockInDetails_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
-            try
+            if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Reset)
             {
-                var putAwayResult = await _putAwayService.GetListPutAwayContainsCodeAsync(StockInRequestDTO.StockInCode);
-                HasPutAway = putAwayResult.Success && putAwayResult.Data != null;
+                foreach (var item in _lstStockInDetails)
+                {
+                    item.PropertyChanged -= StockInDetail_PropertyChanged!;
+                }
             }
-            catch (Exception ex)
+            if (e.OldItems != null)
             {
-                _notificationService.ShowMessage($"Lỗi khi kiểm tra picklist: {ex.Message}", "OK", isError: true);
-                HasPutAway = false;
+                foreach (StockInDetailResponseDTO item in e.OldItems)
+                {
+                    item.PropertyChanged -= StockInDetail_PropertyChanged!;
+                }
+            }
+            if (e.NewItems != null)
+            {
+                foreach (StockInDetailResponseDTO item in e.NewItems)
+                {
+                    item.PropertyChanged += StockInDetail_PropertyChanged!;
+                }
             }
         }
-        private async void CheckQuantity(object parameter)
+
+        private void StockInDetail_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             try
             {
-                if (!LstStockInDetails.Any())
+                if (e.PropertyName == nameof(StockInDetailResponseDTO.SelectedProduct))
                 {
-                    _notificationService.ShowMessage("Danh sách chi tiết nhập kho rỗng.", "OK", isError: true);
-                    return;
-                }
-                _ = SaveStockInAsync(parameter);
-                // Kiểm tra xem có sản phẩm nào thiếu số lượng không
-                bool hasShortage = LstStockInDetails.Any(d => d.Quantity < d.Demand);
-                if (!hasShortage)
-                {
-                    // Tất cả sản phẩm đủ số lượng, xác nhận phiếu nhập kho
-                    var confirmResult = await _stockInDetailService.ConfirmnStockIn(StockInRequestDTO.StockInCode);
-                    if (confirmResult.Success)
+                    var detail = (StockInDetailResponseDTO)sender;
+                    if (detail?.SelectedProduct != null)
                     {
-                        _notificationService.ShowMessage("Xác nhận phiếu nhập kho thành công!", "OK", isError: false);
-                        await _messengerService.SendMessageAsync("ReloadStockInList");
+                        _= Task.Delay(500); // Consider replacing with proper debouncing if needed
+                        // Add logic for handling selected product change if necessary
                     }
-                    else
-                    {
-                        _notificationService.ShowMessage(confirmResult.Message ?? "Không thể xác nhận phiếu nhập kho.", "OK", isError: true);
-                    }
-                    return;
-                }
-
-                // Có sản phẩm thiếu, hiển thị popup để người dùng chọn
-                var viewModel = new BackOrderDialogViewModel(_notificationService, new ObservableCollection<StockInDetailResponseDTO>(LstStockInDetails));
-                var popup = new BackOrderDialog(viewModel)
-                {
-                    Owner = Application.Current.MainWindow // Căn giữa dialog
-                };
-                popup.ShowDialog();
-
-                if (viewModel.IsClosed)
-                {
-                    if (viewModel.CreateBackorder) // Người dùng chọn tạo backorder
-                    {
-                        // Tạo backorder và xác nhận phiếu nhập kho
-                        var backOrderResult = await _stockInDetailService.CreateBackOrder(StockInRequestDTO.StockInCode, $"Tạo back order cho phiếu nhập {StockInRequestDTO.StockInCode}");
-                        if (!backOrderResult.Success)
-                        {
-                            _notificationService.ShowMessage(backOrderResult.Message ?? "Không thể tạo backorder.", "OK", isError: true);
-                            return;
-                        }
-
-                        var confirmResult = await _stockInDetailService.ConfirmnStockIn(StockInRequestDTO.StockInCode);
-                        if (confirmResult.Success)
-                        {
-                            _notificationService.ShowMessage("Xác nhận phiếu nhập kho và tạo backorder thành công!", "OK", isError: false);
-                            await _messengerService.SendMessageAsync("ReloadStockInList");
-                        }
-                        else
-                        {
-                            _notificationService.ShowMessage(confirmResult.Message ?? "Không thể xác nhận phiếu nhập kho.", "OK", isError: true);
-                        }
-                    }
-                    else if (viewModel.NoBackorder) // Người dùng không tạo backorder
-                    {
-                        // Xác nhận phiếu nhập kho mà không tạo backorder
-                        var confirmResult = await _stockInDetailService.ConfirmnStockIn(StockInRequestDTO.StockInCode);
-                        if (confirmResult.Success)
-                        {
-                            _notificationService.ShowMessage("Xác nhận phiếu nhập kho thành công, không tạo backorder.", "OK", isError: false);
-                            await _messengerService.SendMessageAsync("ReloadStockInList");
-                        }
-                        else
-                        {
-                            _notificationService.ShowMessage(confirmResult.Message ?? "Không thể xác nhận phiếu nhập kho.", "OK", isError: true);
-                        }
-                    }
-                    // Trường hợp Discard không cần xử lý thêm vì popup đã đóng
                 }
             }
             catch (Exception ex)
             {
-                _notificationService.ShowMessage($"Lỗi khi kiểm tra số lượng: {ex.Message}", "OK", isError: true);
+                _notificationService.ShowMessage($"Lỗi khi xử lý thay đổi chi tiết: {ex.Message}", "OK", isError: true);
             }
         }
+
         private async Task InitializeAsync()
         {
             try
@@ -378,25 +341,33 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                     return;
                 }
 
-                await LoadProductsAsync();
-
-
-                await Task.WhenAll(
-                    LoadOrderTypesAsync(),
-                    LoadWarehousesAsync(),
-                    LoadSuppliersAsync(),
-                    CheckPutAwayHasValue());
-
+                // Load static data only if not already loaded
+                if (!LstOrderTypes.Any())
+                {
+                    await LoadOrderTypesAsync();
+                }
+                if (!LstWarehouses.Any())
+                {
+                    await LoadWarehousesAsync();
+                }
+                if (!LstSuppliers.Any())
+                {
+                    await LoadSuppliersAsync();
+                }
                 if (!IsAddingNew)
                 {
+                    if (!LstProducts.Any())
+                    {
+                        await LoadProductsAsync();
+                    }
                     await LoadStockInDetailsAsync();
                     await LoadResponsiblePersonsAsync();
+                    await CheckPutAwayHasValue();
+                    if (HasPutAway)
+                    {
+                        await LoadPutAway();
+                    }
                 }
-                if (HasPutAway)
-                {
-                    await LoadPutAway();
-                }
-
             }
             catch (Exception ex)
             {
@@ -404,6 +375,26 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                 NavigateBack();
             }
         }
+
+        private async Task CheckPutAwayHasValue()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(StockInRequestDTO.StockInCode))
+                {
+                    HasPutAway = false;
+                    return;
+                }
+                var putAwayResult = await _putAwayService.GetListPutAwayContainsCodeAsync(StockInRequestDTO.StockInCode);
+                HasPutAway = putAwayResult.Success && putAwayResult.Data != null;
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi kiểm tra putaway: {ex.Message}", "OK", isError: true);
+                HasPutAway = false;
+            }
+        }
+
         private async Task LoadPutAway()
         {
             try
@@ -411,40 +402,133 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                 if (string.IsNullOrEmpty(StockInRequestDTO.StockInCode))
                 {
                     LstPutAway.Clear();
+                    HasPutAway = false;
                     return;
                 }
                 var result = await _putAwayService.GetListPutAwayContainsCodeAsync(StockInRequestDTO.StockInCode);
                 if (result.Success && result.Data != null)
                 {
                     LstPutAway.Clear();
-                    foreach (var item in result.Data)
+                    foreach(var item in result.Data)
                     {
                         LstPutAway.Add(item);
                     }
-
+                    HasPutAway = true;
                 }
                 else
                 {
-                    _notificationService.ShowMessage(result.Message ?? "Không thể tải danh sách cất hàng", "OK", isError: true);
+                    LstPutAway.Clear();
+                    HasPutAway = false;
+                    _notificationService.ShowMessage(result.Message ?? "Không thể tải danh sách cất hàng.", "OK", isError: true);
                 }
+                ((RelayCommand)ConfirmQuantityCommand)?.RaiseCanExecuteChanged();
             }
             catch (Exception ex)
             {
                 _notificationService.ShowMessage($"Lỗi khi tải danh sách cất hàng: {ex.Message}", "OK", isError: true);
+                HasPutAway = false;
             }
         }
-        private async Task LoadStockInDetailsAsync()
+
+        private async Task CheckQuantityAsync(object parameter)
         {
             try
             {
-                if (_lastLoadedPage == CurrentPage && LstStockInDetails.Any())
+                if (!LstStockInDetails.Any())
+                {
+                    _notificationService.ShowMessage("Danh sách chi tiết nhập kho rỗng.", "OK", isError: true);
+                    return;
+                }
+
+                await SaveStockInAsync(parameter);
+                if (!string.IsNullOrEmpty(StockInRequestDTO.Error))
                 {
                     return;
                 }
 
+                bool hasShortage = LstStockInDetails.Any(d => d.Quantity < d.Demand);
+                if (!hasShortage)
+                {
+                    var confirmResult = await _stockInDetailService.ConfirmnStockIn(StockInRequestDTO.StockInCode);
+                    if (confirmResult.Success)
+                    {
+                        _notificationService.ShowMessage("Xác nhận phiếu nhập kho thành công!", "OK", isError: false);
+                        await _messengerService.SendMessageAsync("ReloadStockInList");
+                        NavigateBack();
+                    }
+                    else
+                    {
+                        _notificationService.ShowMessage(confirmResult.Message ?? "Không thể xác nhận phiếu nhập kho.", "OK", isError: true);
+                    }
+                    return;
+                }
+
+                var viewModel = new BackOrderDialogViewModel(_notificationService, new ObservableCollection<StockInDetailResponseDTO>(LstStockInDetails));
+                var popup = new BackOrderDialog(viewModel)
+                {
+                    DataContext = viewModel,
+                    Owner = Application.Current.MainWindow
+                };
+                popup.ShowDialog();
+
+                if (viewModel.IsClosed)
+                {
+                    if (viewModel.CreateBackorder)
+                    {
+                        var backOrderResult = await _stockInDetailService.CreateBackOrder(
+                            StockInRequestDTO.StockInCode,
+                            $"Tạo back order cho phiếu nhập {StockInRequestDTO.StockInCode}",
+                            viewModel.SelectedDate.ToString()!); // Pass SelectedDate
+                        if (!backOrderResult.Success)
+                        {
+                            _notificationService.ShowMessage(backOrderResult.Message ?? "Không thể tạo backorder.", "OK", isError: true);
+                            return;
+                        }
+
+                        var confirmResult = await _stockInDetailService.ConfirmnStockIn(StockInRequestDTO.StockInCode);
+                        if (confirmResult.Success)
+                        {
+                            _notificationService.ShowMessage("Xác nhận phiếu nhập kho và tạo backorder thành công!", "OK", isError: false);
+                            await _messengerService.SendMessageAsync("ReloadStockInList");
+                            NavigateBack();
+                        }
+                        else
+                        {
+                            _notificationService.ShowMessage(confirmResult.Message ?? "Không thể xác nhận phiếu nhập kho.", "OK", isError: true);
+                        }
+                    }
+                    else if (viewModel.NoBackorder)
+                    {
+                        var confirmResult = await _stockInDetailService.ConfirmnStockIn(StockInRequestDTO.StockInCode);
+                        if (confirmResult.Success)
+                        {
+                            _notificationService.ShowMessage("Xác nhận phiếu nhập kho thành công, không tạo backorder.", "OK", isError: false);
+                            await _messengerService.SendMessageAsync("ReloadStockInList");
+                            NavigateBack();
+                        }
+                        else
+                        {
+                            _notificationService.ShowMessage(confirmResult.Message ?? "Không thể xác nhận phiếu nhập kho.", "OK", isError: true);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi kiểm tra số lượng: {ex.Message}", "OK", isError: true);
+            }
+        }
+
+        private async Task LoadStockInDetailsAsync()
+        {
+            try
+            {
+                
+
                 if (string.IsNullOrEmpty(StockInRequestDTO.StockInCode))
                 {
                     LstStockInDetails.Clear();
+                    TotalPages = 0;
                     return;
                 }
 
@@ -464,11 +548,15 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                 else
                 {
                     _notificationService.ShowMessage(result.Message ?? "Không thể tải chi tiết nhập kho.", "OK", isError: true);
+                    LstStockInDetails.Clear();
+                    TotalPages = 0;
                 }
             }
             catch (Exception ex)
             {
                 _notificationService.ShowMessage($"Lỗi khi tải chi tiết nhập kho: {ex.Message}", "OK", isError: true);
+                LstStockInDetails.Clear();
+                TotalPages = 0;
             }
         }
 
@@ -488,11 +576,13 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                 else
                 {
                     _notificationService.ShowMessage(result.Message ?? "Không thể tải danh sách sản phẩm.", "OK", isError: true);
+                    LstProducts.Clear();
                 }
             }
             catch (Exception ex)
             {
                 _notificationService.ShowMessage($"Lỗi khi tải danh sách sản phẩm: {ex.Message}", "OK", isError: true);
+                LstProducts.Clear();
             }
         }
 
@@ -512,11 +602,13 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                 else
                 {
                     _notificationService.ShowMessage(result.Message ?? "Không thể tải danh sách loại lệnh.", "OK", isError: true);
+                    LstOrderTypes.Clear();
                 }
             }
             catch (Exception ex)
             {
                 _notificationService.ShowMessage($"Lỗi khi tải danh sách loại lệnh: {ex.Message}", "OK", isError: true);
+                LstOrderTypes.Clear();
             }
         }
 
@@ -536,11 +628,13 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                 else
                 {
                     _notificationService.ShowMessage(result.Message ?? "Không thể tải danh sách kho.", "OK", isError: true);
+                    LstWarehouses.Clear();
                 }
             }
             catch (Exception ex)
             {
                 _notificationService.ShowMessage($"Lỗi khi tải danh sách kho: {ex.Message}", "OK", isError: true);
+                LstWarehouses.Clear();
             }
         }
 
@@ -560,11 +654,13 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                 else
                 {
                     _notificationService.ShowMessage(result.Message ?? "Không thể tải danh sách nhà cung cấp.", "OK", isError: true);
+                    LstSuppliers.Clear();
                 }
             }
             catch (Exception ex)
             {
                 _notificationService.ShowMessage($"Lỗi khi tải danh sách nhà cung cấp: {ex.Message}", "OK", isError: true);
+                LstSuppliers.Clear();
             }
         }
 
@@ -572,6 +668,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
         {
             try
             {
+                var currentResponsible = StockInRequestDTO.Responsible;
                 var result = await _stockInService.GetListResponsibleAsync(StockInRequestDTO.WarehouseCode);
                 if (result.Success && result.Data != null)
                 {
@@ -580,30 +677,39 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                     {
                         LstResponsiblePersons.Add(person);
                     }
+                    if (!string.IsNullOrEmpty(currentResponsible) && LstResponsiblePersons.Any(p => p.UserName == currentResponsible))
+                    {
+                        StockInRequestDTO.Responsible = currentResponsible;
+                    }
                 }
                 else
                 {
                     _notificationService.ShowMessage(result.Message ?? "Không thể tải danh sách người phụ trách.", "OK", isError: true);
+                    LstResponsiblePersons.Clear();
                 }
             }
             catch (Exception ex)
             {
                 _notificationService.ShowMessage($"Lỗi khi tải danh sách người phụ trách: {ex.Message}", "OK", isError: true);
+                LstResponsiblePersons.Clear();
             }
         }
 
         private async Task SaveStockInAsync(object parameter)
         {
+            if (_isSaving) return;
+
             try
             {
+                _isSaving = true;
+
                 StockInRequestDTO.RequestValidation();
-                if (!CanSave(parameter))
+                if (!string.IsNullOrEmpty(StockInRequestDTO.Error) || !CanSave(parameter))
                 {
-                    _notificationService.ShowMessage("Vui lòng kiểm tra lại thông tin nhập vào.", "OK", isError: true);
+                    _notificationService.ShowMessage(StockInRequestDTO.Error ?? "Vui lòng kiểm tra lại thông tin nhập vào.", "OK", isError: true);
                     return;
                 }
 
-                
                 ApiResult<bool> stockInResult;
                 if (IsAddingNew)
                 {
@@ -611,7 +717,6 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                 }
                 else
                 {
-
                     stockInResult = await _stockInService.UpdateStockIn(StockInRequestDTO);
                 }
 
@@ -621,20 +726,23 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                     return;
                 }
 
-                foreach (var detail in LstStockInDetails)
+                foreach (var detail in LstStockInDetails.ToList())
                 {
-                    if (detail.SelectedProduct != null)
+                    if (detail?.SelectedProduct == null)
                     {
-                        detail.ProductCode = detail.SelectedProduct.ProductCode;
-                        detail.ProductName = detail.SelectedProduct.ProductName!;
+                        _notificationService.ShowMessage("Vui lòng chọn sản phẩm cho tất cả các dòng.", "OK", isError: true);
+                        return;
                     }
+
+                    detail.ProductCode = detail.SelectedProduct.ProductCode ?? throw new InvalidOperationException("Product code cannot be null.");
+                    detail.ProductName = detail.SelectedProduct.ProductName ?? string.Empty;
 
                     var request = new StockInDetailRequestDTO
                     {
                         StockInCode = StockInRequestDTO.StockInCode,
                         ProductCode = detail.ProductCode,
-                        Demand = detail.Demand,
-                        Quantity = detail.Quantity
+                        Demand = (double?)detail.Demand,
+                        Quantity = (double?)detail.Quantity
                     };
 
                     request.RequestValidation();
@@ -645,7 +753,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                     }
 
                     ApiResult<bool> detailResult;
-                    if (await IsDetailExistsAsync(detail.StockInCode, detail.ProductCode))
+                    if (await IsDetailExistsAsync(detail.StockInCode!, detail.ProductCode))
                     {
                         detailResult = await _stockInDetailService.UpdateStockInDetail(request);
                     }
@@ -661,16 +769,34 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                     }
                 }
 
-                _notificationService.QueueMessageForNextSnackbar(IsAddingNew ? "Thêm phiếu nhập kho thành công!" : "Cập nhật phiếu nhập kho thành công!", "OK", isError: false);
+                _notificationService.ShowMessage(IsAddingNew ? "Thêm phiếu nhập kho thành công!" : "Cập nhật phiếu nhập kho thành công!", "OK", isError: false);
+                if (IsAddingNew)
+                {
+                    StockInRequestDTO.ClearValidation();
+                    IsAddingNew = false;
+                    // Load products only when adding new to ensure dropdowns are populated
+                    if (!LstProducts.Any())
+                    {
+                        await LoadProductsAsync();
+                    }
+                }
 
                 await _messengerService.SendMessageAsync("ReloadStockInList");
-                var ucStockInView = App.ServiceProvider!.GetRequiredService<ucStockIn>();
-                _navigationService.NavigateTo(ucStockInView);
-
+                // Refresh only necessary data
+                await LoadStockInDetailsAsync();
+                await CheckPutAwayHasValue();
+                if (HasPutAway)
+                {
+                    await LoadPutAway();
+                }
             }
             catch (Exception ex)
             {
-                _notificationService.ShowMessage($"Lỗi khi lưu nhập kho: {ex.Message}", "OK", isError: true);
+                _notificationService.ShowMessage($"Lỗi khi lưu thông tin nhập kho: {ex.Message}", "OK", isError: true);
+            }
+            finally
+            {
+                _isSaving = false;
             }
         }
 
@@ -680,7 +806,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
             var propertiesToValidate = new[] { nameof(dto.StockInCode), nameof(dto.OrderTypeCode), nameof(dto.WarehouseCode), nameof(dto.SupplierCode), nameof(dto.Responsible), nameof(dto.OrderDeadLine) };
             foreach (var prop in propertiesToValidate)
             {
-                if (!string.IsNullOrEmpty(dto[prop]))
+                if (!string.IsNullOrEmpty(dto[prop]?.ToString()))
                 {
                     return false;
                 }
@@ -688,9 +814,14 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
             return true;
         }
 
+        private bool CanConfirmQuantity(object parameter)
+        {
+            return !string.IsNullOrEmpty(StockInRequestDTO?.StockInCode) && HasPutAway && string.IsNullOrEmpty(StockInRequestDTO?.Error);
+        }
+
         private bool CanAddDetailLine(object parameter)
         {
-            return !string.IsNullOrEmpty(StockInRequestDTO.StockInCode);
+            return !string.IsNullOrEmpty(StockInRequestDTO?.StockInCode);
         }
 
         private async Task<bool> IsDetailExistsAsync(string stockInCode, string productCode)
@@ -727,7 +858,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                 SelectedProduct = null
             };
             LstStockInDetails.Add(newDetail);
-            _messengerService.SendMessageAsync("FocusNewDetailRow");
+            _ = _messengerService.SendMessageAsync("FocusNewDetailRow");
         }
 
         private async Task DeleteDetailLineAsync(StockInDetailResponseDTO detail)
@@ -739,16 +870,18 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
             {
                 try
                 {
-                    var deleteResult = await _stockInDetailService.DeleteStockInDetail(detail.StockInCode, detail.ProductCode);
-                    if (deleteResult.Success)
+                    if (!detail.IsNewRow)
                     {
-                        LstStockInDetails.Remove(detail);
-                        _notificationService.ShowMessage("Xóa chi tiết nhập kho thành công.", "OK", isError: false);
+                        var deleteResult = await _stockInDetailService.DeleteStockInDetail(detail.StockInCode, detail.ProductCode);
+                        if (!deleteResult.Success)
+                        {
+                            _notificationService.ShowMessage(deleteResult.Message ?? "Không thể xóa chi tiết nhập kho.", "OK", isError: true);
+                            return;
+                        }
                     }
-                    else
-                    {
-                        _notificationService.ShowMessage(deleteResult.Message ?? "Không thể xóa chi tiết nhập kho.", "OK", isError: true);
-                    }
+
+                    LstStockInDetails.Remove(detail);
+                    _notificationService.ShowMessage("Xóa chi tiết nhập kho thành công.", "OK", isError: false);
                 }
                 catch (Exception ex)
                 {
@@ -809,14 +942,23 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                 DisplayPages.Add(TotalPages);
         }
 
-        private void OnPropertyChangedHandler(object sender, PropertyChangedEventArgs e)
+        private async void OnPropertyChangedHandler(object sender, PropertyChangedEventArgs e)
         {
-            ((RelayCommand)SaveCommand)?.RaiseCanExecuteChanged();
-            ((RelayCommand)AddDetailLineCommand)?.RaiseCanExecuteChanged();
-
-            if (e.PropertyName == nameof(StockInRequestDTO.WarehouseCode))
+            if (e.PropertyName == nameof(StockInRequestDTO.StockInCode))
             {
-                _ = LoadResponsiblePersonsAsync();
+                ((RelayCommand)ConfirmQuantityCommand)?.RaiseCanExecuteChanged();
+                ((RelayCommand)AddDetailLineCommand)?.RaiseCanExecuteChanged();
+            }
+            else if (e.PropertyName == nameof(StockInRequestDTO.WarehouseCode))
+            {
+                await LoadResponsiblePersonsAsync();
+            }
+            else if (new[] { nameof(StockInRequestDTO.StockInCode), nameof(StockInRequestDTO.OrderTypeCode),
+                             nameof(StockInRequestDTO.WarehouseCode), nameof(StockInRequestDTO.SupplierCode),
+                             nameof(StockInRequestDTO.Responsible), nameof(StockInRequestDTO.OrderDeadLine) }
+                     .Contains(e.PropertyName))
+            {
+                ((RelayCommand)SaveCommand)?.RaiseCanExecuteChanged();
             }
         }
     }
