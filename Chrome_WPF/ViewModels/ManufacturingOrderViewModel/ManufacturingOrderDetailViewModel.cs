@@ -5,6 +5,7 @@ using Chrome_WPF.Models.APIResult;
 using Chrome_WPF.Models.BOMMasterDTO;
 using Chrome_WPF.Models.ManufacturingOrderDetailDTO;
 using Chrome_WPF.Models.ManufacturingOrderDTO;
+using Chrome_WPF.Models.MovementDTO;
 using Chrome_WPF.Models.OrderTypeDTO;
 using Chrome_WPF.Models.PickListDTO;
 using Chrome_WPF.Models.ProductMasterDTO;
@@ -89,7 +90,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
                 OnPropertyChanged();
             }
         }
-   
+
 
         public ObservableCollection<ManufacturingOrderDetailResponseDTO> LstManufacturingOrderDetails
         {
@@ -308,7 +309,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
             _messengerService = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
-            _putAwayService =putAwayService ?? throw new ArgumentNullException(nameof(putAwayService));
+            _putAwayService = putAwayService ?? throw new ArgumentNullException(nameof(putAwayService));
 
             _lstManufacturingOrderDetails = new ObservableCollection<ManufacturingOrderDetailResponseDTO>();
             _lstProducts = new ObservableCollection<ProductMasterResponseDTO>();
@@ -345,7 +346,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
             SaveCommand = new RelayCommand(async parameter => await SaveManufacturingOrderAsync(parameter), CanSave);
             BackCommand = new RelayCommand(_ => NavigateBack());
             AddDetailLineCommand = new RelayCommand(_ => AddDetailLine(), CanAddDetailLine);
-            DeleteDetailLineCommand = new RelayCommand( detail =>  DeleteDetailLineAsync((ManufacturingOrderDetailResponseDTO)detail));
+            DeleteDetailLineCommand = new RelayCommand(detail => DeleteDetailLineAsync((ManufacturingOrderDetailResponseDTO)detail));
             PreviousPageCommand = new RelayCommand(_ => PreviousPage());
             NextPageCommand = new RelayCommand(_ => NextPage());
             SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
@@ -439,8 +440,10 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
 
                 if (!IsAddingNew)
                 {
-                    await LoadManufacturingOrderDetailsAsync();
-                    await LoadResponsiblePersonsAsync();
+                    await Task.WhenAll(
+                        LoadManufacturingOrderDetailsAsync(),
+                        LoadResponsiblePersonsAsync()
+                        );
                 }
                 if (HasReservation)
                 {
@@ -596,7 +599,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
                 _notificationService.ShowMessage($"Lỗi khi tải danh sách cất hàng: {ex.Message}", "OK", isError: true);
             }
         }
-        
+
 
 
         private async Task LoadManufacturingOrderDetailsAsync()
@@ -795,21 +798,40 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
 
                 if (!manufacturingOrderResult.Success)
                 {
-                    MessageBox.Show(manufacturingOrderResult.Message ?? "Không thể lưu thông tin lệnh sản xuất.", "Cảnh báo",MessageBoxButton.OK,MessageBoxImage.Warning);
+                    MessageBox.Show(manufacturingOrderResult.Message ?? "Không thể lưu thông tin lệnh sản xuất.", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 
-                _notificationService.QueueMessageForNextSnackbar(IsAddingNew ? "Thêm lệnh sản xuất thành công!" : "Cập nhật lệnh sản xuất thành công!", "OK", isError: false);
+                _notificationService.ShowMessage(IsAddingNew ? "Thêm lệnh sản xuất thành công!" : "Cập nhật lệnh sản xuất thành công!", "OK", isError: false);
                 if (IsAddingNew)
                 {
                     ManufacturingOrderRequestDTO.ClearValidation();
                     IsAddingNew = false;
+                    if (!LstProducts.Any())
+                    {
+                        await LoadProductsAsync();
+                    }
                 }
-                
+                await LoadManufacturingOrderDetailsAsync();
+                await CheckPicklistExistenceAsync();
+                await CheckReservationExistenceAsync();
+                await CheckPutAwayHasValue();
+                if (HasReservation)
+                {
+                    await LoadReservationsAsync();
+                }
+                if (HasPicklist)
+                {
+                    await LoadPickListAsync();
+                }
+                if (HasPutAway)
+                {
+                    await LoadPutAway();
+                }
+
                 await _messengerService.SendMessageAsync("ReloadManufacturingOrderList");
 
-                var manufacturing = App.ServiceProvider!.GetRequiredService<ucManufacturingOrder>();
-                _navigationService.NavigateTo(manufacturing);
+
             }
             catch (Exception ex)
             {
@@ -909,7 +931,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
             LstManufacturingOrderDetails.Add(newDetail);
         }
 
-        private  void  DeleteDetailLineAsync(ManufacturingOrderDetailResponseDTO detail)
+        private void DeleteDetailLineAsync(ManufacturingOrderDetailResponseDTO detail)
         {
             if (detail == null) return;
 
@@ -931,7 +953,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
         private bool CanSave(object parameter)
         {
             var dto = ManufacturingOrderRequestDTO;
-            var propertiesToValidate = new[] { nameof(dto.ManufacturingOrderCode), nameof(dto.OrderTypeCode), nameof(dto.WarehouseCode), nameof(dto.Bomcode), nameof(dto.Responsible), nameof(dto.ScheduleDate),nameof(dto.Deadline), nameof(dto.Quantity) };
+            var propertiesToValidate = new[] { nameof(dto.ManufacturingOrderCode), nameof(dto.OrderTypeCode), nameof(dto.WarehouseCode), nameof(dto.Bomcode), nameof(dto.Responsible), nameof(dto.ScheduleDate), nameof(dto.Deadline), nameof(dto.Quantity) };
             foreach (var prop in propertiesToValidate)
             {
                 if (!string.IsNullOrEmpty(dto[prop]))
@@ -1006,15 +1028,21 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
 
         private async void OnManufacturingOrderPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(ManufacturingOrderRequestDTO.ProductCode))
+            OnPropertyChanged(nameof(MovementRequestDTO));
+            if (!_isSaving)
             {
-                await LoadBomMastersAsync(ManufacturingOrderRequestDTO.ProductCode);
+                ((RelayCommand)SaveCommand)?.RaiseCanExecuteChanged();
+                ((RelayCommand)AddDetailLineCommand)?.RaiseCanExecuteChanged();
+                if (e.PropertyName == nameof(ManufacturingOrderRequestDTO.ProductCode))
+                {
+                    await LoadBomMastersAsync(ManufacturingOrderRequestDTO.ProductCode);
+                }
+                if (e.PropertyName == nameof(ManufacturingOrderRequestDTO.WarehouseCode))
+                {
+                    await LoadResponsiblePersonsAsync();
+                }
             }
-            if(e.PropertyName ==nameof(ManufacturingOrderRequestDTO.WarehouseCode))
-            {
-                await LoadResponsiblePersonsAsync();
-            }    
-            CommandManager.InvalidateRequerySuggested();
+            
         }
     }
 }

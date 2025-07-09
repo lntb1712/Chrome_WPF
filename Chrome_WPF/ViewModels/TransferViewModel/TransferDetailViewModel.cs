@@ -627,9 +627,6 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
                 if (string.IsNullOrEmpty(TransferRequestDTO.FromWarehouseCode))
                 {
                     LstProducts.Clear();
-                    _notificationService
-
-.ShowMessage("Vui lòng chọn kho xuất trước.", "OK", isError: true);
                     return;
                 }
 
@@ -833,15 +830,35 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
                     }
                 }
 
-                _notificationService.QueueMessageForNextSnackbar(IsAddingNew ? "Thêm phiếu chuyển kho thành công!" : "Cập nhật phiếu chuyển kho thành công!", "OK", isError: false);
+                _notificationService.ShowMessage(IsAddingNew ? "Thêm phiếu chuyển kho thành công!" : "Cập nhật phiếu chuyển kho thành công!", "OK", isError: false);
                 if (IsAddingNew)
                 {
                     TransferRequestDTO.ClearValidation();
                     IsAddingNew = false;
+                    // Load products only when adding new to ensure dropdowns are populated
+                    if (!LstProducts.Any())
+                    {
+                        await LoadProductsAsync();
+                    }
+                }
+
+                await LoadTransferDetailsAsync();
+                await CheckPicklistExistenceAsync();
+                await CheckReservationExistenceAsync();
+                await CheckPutAwayHasValue();
+                if (HasReservation)
+                {
+                    await LoadReservationsAsync();
+                }
+                if (HasPicklist)
+                {
+                    await LoadPickListAsync();
+                }
+                if (HasPutAway)
+                {
+                    await LoadPutAway();
                 }
                 await _messengerService.SendMessageAsync("ReloadTransferList");
-                var ucTransfer = App.ServiceProvider!.GetRequiredService<ucTransfer>();
-                _navigationService.NavigateTo(ucTransfer);
             }
             catch (Exception ex)
             {

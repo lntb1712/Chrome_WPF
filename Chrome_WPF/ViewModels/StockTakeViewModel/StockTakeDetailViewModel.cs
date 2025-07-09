@@ -385,15 +385,16 @@ namespace Chrome_WPF.ViewModels.StockTakeViewModel
                     }
                 }
 
-                _notificationService.QueueMessageForNextSnackbar(IsAddingNew ? "Thêm lệnh kiểm đếm thành công!" : "Cập nhật lệnh kiểm đếm thành công!", "OK", isError: false);
+                _notificationService.ShowMessage(IsAddingNew ? "Thêm lệnh kiểm đếm thành công!" : "Cập nhật lệnh kiểm đếm thành công!", "OK", isError: false);
                 if (IsAddingNew)
                 {
                     StockTakeRequestDTO.ClearValidation();
                     IsAddingNew = false;
+
                 }
+                await LoadStockTakeDetailsAsync();
                 await _messengerService.SendMessageAsync("ReloadStockTakeList");
-                var stockTake = App.ServiceProvider!.GetRequiredService<ucStockTake>();
-                _navigationService.NavigateTo(stockTake);
+                
             }
             catch (Exception ex)
             {

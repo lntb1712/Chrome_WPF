@@ -270,7 +270,6 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
         public ICommand NextPageCommand { get; }
         public ICommand PreviousPageCommand { get; }
         public ICommand SelectPageCommand { get; }
-        public ICommand ConfirmCommand { get; }
 
         public MovementDetailViewModel(
             IMovementService movementService,
@@ -316,8 +315,8 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
                 FromLocation = movement.FromLocation,
                 ToLocation = movement.ToLocation,
                 Responsible = movement.Responsible,
-                StatusId = movement.StatusId,
                 MovementDate = movement.MovementDate,
+                StatusId = movement.StatusId,
                 MovementDescription = movement.MovementDescription
             };
 
@@ -328,7 +327,6 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
             PreviousPageCommand = new RelayCommand(_ => PreviousPage());
             NextPageCommand = new RelayCommand(_ => NextPage());
             SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
-            ConfirmCommand = new RelayCommand(async parameter => await ConfirmMovementAsync(parameter), CanConfirm);
 
             _movementRequestDTO.PropertyChanged += OnMovementRequestDTOPropertyChanged!;
             _ = InitializeAsync();
@@ -666,13 +664,13 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
         {
             try
             {
-                if (string.IsNullOrEmpty(MovementRequestDTO.WarehouseCode))
+                if (string.IsNullOrEmpty(MovementRequestDTO.FromLocation))
                 {
                     LstToLocations.Clear();
                     return;
                 }
 
-                var result = await _movementService.GetListToLocation(MovementRequestDTO.WarehouseCode, MovementRequestDTO.FromLocation!);
+                var result = await _movementService.GetListToLocation(MovementRequestDTO.WarehouseCode!, MovementRequestDTO.FromLocation!);
                 if (result.Success && result.Data != null)
                 {
                     LstToLocations.Clear();
@@ -788,15 +786,35 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
                     }
                 }
 
-                _notificationService.QueueMessageForNextSnackbar(IsAddingNew ? "Thêm phiếu di chuyển thành công!" : "Cập nhật phiếu di chuyển thành công!", "OK", isError: false);
+                _notificationService.ShowMessage(IsAddingNew ? "Thêm phiếu di chuyển thành công!" : "Cập nhật phiếu di chuyển thành công!", "OK", isError: false);
                 if (IsAddingNew)
                 {
                     MovementRequestDTO.ClearValidation();
                     IsAddingNew = false;
+
+                    if (!LstProducts.Any())
+                    {
+                        await LoadProductsAsync();
+                    }
+                }
+                await LoadMovementDetailsAsync();
+                await CheckPicklistExistenceAsync();
+                await CheckReservationExistenceAsync();
+                await CheckPutAwayHasValue();
+                if (HasReservation)
+                {
+                    await LoadReservationsAsync();
+                }
+                if (HasPicklist)
+                {
+                    await LoadPickListAsync();
+                }
+                if (HasPutAway)
+                {
+                    await LoadPutAway();
                 }
                 await _messengerService.SendMessageAsync("ReloadMovementList");
-                var ucMovementView = App.ServiceProvider!.GetRequiredService<ucMovement>();
-                _navigationService.NavigateTo(ucMovementView);
+               
             }
             catch (Exception ex)
             {
@@ -808,51 +826,7 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
             }
         }
 
-        private async Task ConfirmMovementAsync(object parameter)
-        {
-            try
-            {
-                if (!LstMovementDetails.Any())
-                {
-                    _notificationService.ShowMessage("Danh sách chi tiết di chuyển rỗng.", "OK", isError: true);
-                    return;
-                }
-
-                await SaveMovementAsync(parameter);
-                if (!string.IsNullOrEmpty(MovementRequestDTO.Error))
-                {
-                    return;
-                }
-
-                var confirmResult = await _movementService.UpdateMovement(new MovementRequestDTO
-                {
-                    MovementCode = MovementRequestDTO.MovementCode,
-                    OrderTypeCode = MovementRequestDTO.OrderTypeCode,
-                    WarehouseCode = MovementRequestDTO.WarehouseCode,
-                    FromLocation = MovementRequestDTO.FromLocation,
-                    ToLocation = MovementRequestDTO.ToLocation,
-                    Responsible = MovementRequestDTO.Responsible,
-                    StatusId = 3, // Assuming 3 is completed status
-                    MovementDate = MovementRequestDTO.MovementDate,
-                    MovementDescription = MovementRequestDTO.MovementDescription
-                });
-
-                if (confirmResult.Success)
-                {
-                    _notificationService.ShowMessage("Xác nhận phiếu di chuyển thành công!", "OK", isError: false);
-                    await _messengerService.SendMessageAsync("ReloadMovementList");
-                    NavigateBack();
-                }
-                else
-                {
-                    _notificationService.ShowMessage(confirmResult.Message ?? "Không thể xác nhận phiếu di chuyển.", "OK", isError: true);
-                }
-            }
-            catch (Exception ex)
-            {
-                _notificationService.ShowMessage($"Lỗi khi xác nhận phiếu di chuyển: {ex.Message}", "OK", isError: true);
-            }
-        }
+        
 
         private async Task<bool> IsDetailExistsAsync(string movementCode, string productCode)
         {
@@ -924,6 +898,7 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
 
             foreach (var prop in propertiesToValidate)
             {
+
                 if (!string.IsNullOrEmpty(dto[prop]))
                 {
                     return false;
@@ -938,17 +913,10 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
             return !string.IsNullOrEmpty(MovementRequestDTO?.MovementCode);
         }
 
-        private bool CanConfirm(object parameter)
-        {
-            return !string.IsNullOrEmpty(MovementRequestDTO?.MovementCode) && LstMovementDetails.Any();
-        }
+      
 
         private void NavigateBack()
         {
-            if (_movementRequestDTO != null)
-            {
-                _movementRequestDTO.PropertyChanged -= OnMovementRequestDTOPropertyChanged!;
-            }
 
             var movementList = App.ServiceProvider!.GetRequiredService<ucMovement>();
             _navigationService.NavigateTo(movementList);
@@ -1007,28 +975,61 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
             {
                 ((RelayCommand)SaveCommand)?.RaiseCanExecuteChanged();
                 ((RelayCommand)AddDetailLineCommand)?.RaiseCanExecuteChanged();
-                ((RelayCommand)ConfirmCommand)?.RaiseCanExecuteChanged();
 
-                if (e.PropertyName == nameof(MovementRequestDTO.WarehouseCode))
+                try
                 {
-                    // Clear locations when warehouse changes
-                    LstFromLocations.Clear();
-                    LstToLocations.Clear();
-                    MovementRequestDTO.FromLocation = null;
-                    MovementRequestDTO.ToLocation = null;
-                    LstProducts.Clear();
+                    if (e.PropertyName == nameof(MovementRequestDTO.WarehouseCode))
+                    {
+                        // Clear locations when warehouse changes
+                        LstFromLocations.Clear();
+                        LstToLocations.Clear();
+                        MovementRequestDTO.FromLocation = null;
+                        MovementRequestDTO.ToLocation = null;
+                        LstProducts.Clear();
 
-                    // Load new locations
-                    await Task.WhenAll( LoadFromLocationsAsync(),LoadResponsiblePersonsAsync());
+                        // Validate and escape parameter
+                        string warehouseCode = MovementRequestDTO.WarehouseCode!;
+                        if (string.IsNullOrEmpty(warehouseCode))
+                        {
+                            _notificationService.ShowMessage("Vui lòng chọn kho trước.", "OK", isError: true);
+                            return;
+                        }
 
+                        // Escape parameter to handle special characters
+                        warehouseCode = Uri.EscapeDataString(warehouseCode);
+
+                        // Load new locations
+                        await Task.WhenAll(
+                            LoadFromLocationsAsync(),
+                            LoadResponsiblePersonsAsync(),
+                            LoadProductsAsync());
+                    }
+                    else if (e.PropertyName == nameof(MovementRequestDTO.FromLocation))
+                    {
+                        // Clear products when from location changes
+                        LstProducts.Clear();
+                        LstToLocations.Clear();
+                        MovementRequestDTO.ToLocation = null;
+
+                        string fromLocation = MovementRequestDTO.FromLocation!;
+                        if (string.IsNullOrEmpty(fromLocation))
+                        {
+                            _notificationService.ShowMessage("Vui lòng chọn vị trí nguồn trước.", "OK", isError: false);
+                            return;
+                        }
+
+                        // Escape parameter
+                        fromLocation = Uri.EscapeDataString(fromLocation);
+
+                        // Load new data
+                        await Task.WhenAll(
+                            LoadToLocationsAsync(),
+                            LoadProductsAsync());
+                    }
                 }
-                else if (e.PropertyName == nameof(MovementRequestDTO.FromLocation))
+                catch (Exception ex)
                 {
-                    // Clear products when from location changes
-                    LstProducts.Clear();
-                    await LoadToLocationsAsync();
-                    await LoadProductsAsync();
-
+                    _notificationService.ShowMessage($"Lỗi khi tải dữ liệu: {ex.Message}", "OK", isError: true);
                 }
             }
         }

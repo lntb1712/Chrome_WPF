@@ -55,7 +55,6 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
         private int _currentPage;
         private int _pageSize = 10;
         private int _totalPages;
-        private int _lastLoadedPage;
         private bool _isSaving;
         private bool _hasPicklist;
         private bool _hasReservation;
@@ -296,7 +295,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             _displayPages = new ObservableCollection<object>();
             _isAddingNew = stockOut == null;
             _currentPage = 1;
-            _lastLoadedPage = 0;
+
             _isSaving = false;
             _hasPicklist = false;
             _hasReservation = false;
@@ -378,7 +377,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             }
             catch (Exception ex)
             {
-                _notificationService.ShowMessage($"Error handling detail change: {ex.Message}", "OK", isError: true);
+                _notificationService.ShowMessage($"Lỗi: {ex.Message}", "OK", isError: true);
             }
         }
 
@@ -823,7 +822,6 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                         LstStockOutDetails.Add(detail);
                     }
                     TotalPages = result.Data.TotalPages;
-                    _lastLoadedPage = CurrentPage;
                 }
                 else
                 {
