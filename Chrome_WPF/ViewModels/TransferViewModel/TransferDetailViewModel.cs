@@ -319,7 +319,10 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
             _hasReservation = false;
             _hasPutAway = false;
 
-            _transferRequestDTO = transfer == null ? new TransferRequestDTO() : new TransferRequestDTO
+            _transferRequestDTO = transfer == null ? new TransferRequestDTO
+            {
+                TransferDate = DateTime.Now.ToString("dd/MM/yyyy")
+            } : new TransferRequestDTO
             {
                 TransferCode = transfer.TransferCode,
                 OrderTypeCode = transfer.OrderTypeCode,
@@ -355,10 +358,23 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
                     NavigateBack();
                     return;
                 }
-
+                if (!LstOrderTypes.Any())
+                {
+                    await LoadOrderTypesAsync();
+                    if (IsAddingNew && LstOrderTypes.Any())
+                    {
+                        TransferRequestDTO!.OrderTypeCode = LstOrderTypes.First().OrderTypeCode;
+                    }
+                }
+                if (!LstWarehouses.Any())
+                {
+                    await LoadWarehousesAsync();
+                    if (IsAddingNew && LstWarehouses.Any())
+                    {
+                        TransferRequestDTO!.FromWarehouseCode = LstWarehouses.First().WarehouseCode;
+                    }
+                }
                 await Task.WhenAll(
-                    LoadOrderTypesAsync(),
-                    LoadWarehousesAsync(),
                     LoadFromResponsiblePersonsAsync(),
                     LoadToResponsiblePersonsAsync(),
                     LoadProductsAsync(),

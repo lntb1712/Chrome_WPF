@@ -5,6 +5,7 @@ using Chrome_WPF.ViewModels;
 using Chrome_WPF.Views.UserControls;
 using Chrome_WPF.Views.UserControls.BOMMaster;
 using Chrome_WPF.Views.UserControls.CustomerMaster;
+using Chrome_WPF.Views.UserControls.Dashboard;
 using Chrome_WPF.Views.UserControls.GroupManagement;
 using Chrome_WPF.Views.UserControls.Inventory;
 using Chrome_WPF.Views.UserControls.ManufacturingOrder;
@@ -199,6 +200,9 @@ namespace Chrome_WPF.Views
             {
                 switch (selectedItem.Name)
                 {
+                    case "ucDashboard":
+                        _navigationService.NavigateTo<ucDashboard>();
+                        break;
                     case "ucAccountManagement":
                         _navigationService.NavigateTo<ucAccountManagement>();
                         break;

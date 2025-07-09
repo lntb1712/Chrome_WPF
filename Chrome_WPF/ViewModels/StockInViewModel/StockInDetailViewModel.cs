@@ -231,59 +231,62 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
         public ICommand SelectPageCommand { get; }
         public ICommand ConfirmQuantityCommand { get; }
 
-        public StockInDetailViewModel(
-            IStockInDetailService stockInDetailService,
-            IStockInService stockInService,
-            INotificationService notificationService,
-            INavigationService navigationService,
-            IMessengerService messengerService,
-            IPutAwayService putAwayService,
-            StockInResponseDTO? stockIn = null)
-        {
-            _stockInDetailService = stockInDetailService ?? throw new ArgumentNullException(nameof(stockInDetailService));
-            _stockInService = stockInService ?? throw new ArgumentNullException(nameof(stockInService));
-            _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
-            _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
-            _messengerService = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
-            _putAwayService = putAwayService ?? throw new ArgumentNullException(nameof(putAwayService));
-
-            _lstStockInDetails = new ObservableCollection<StockInDetailResponseDTO>();
-            _lstStockInDetails.CollectionChanged += StockInDetails_CollectionChanged!;
-            _lstProducts = new ObservableCollection<ProductMasterResponseDTO>();
-            _lstOrderTypes = new ObservableCollection<OrderTypeResponseDTO>();
-            _lstWarehouses = new ObservableCollection<WarehouseMasterResponseDTO>();
-            _lstSuppliers = new ObservableCollection<SupplierMasterResponseDTO>();
-            _lstResponsiblePersons = new ObservableCollection<AccountManagementResponseDTO>();
-            _lstPutAway = new ObservableCollection<PutAwayAndDetailResponseDTO>();
-            _displayPages = new ObservableCollection<object>();
-            _isAddingNew = stockIn == null;
-            _currentPage = 1;
-            _lastLoadedPage = 0;
-            _isSaving = false;
-            _hasPutAway = false;
-            _stockInRequestDTO = stockIn == null ? new StockInRequestDTO() : new StockInRequestDTO
+            public StockInDetailViewModel(
+                IStockInDetailService stockInDetailService,
+                IStockInService stockInService,
+                INotificationService notificationService,
+                INavigationService navigationService,
+                IMessengerService messengerService,
+                IPutAwayService putAwayService,
+                StockInResponseDTO? stockIn = null)
             {
-                StockInCode = stockIn.StockInCode ?? string.Empty,
-                OrderTypeCode = stockIn.OrderTypeCode ?? string.Empty,
-                WarehouseCode = stockIn.WarehouseCode ?? string.Empty,
-                SupplierCode = stockIn.SupplierCode ?? string.Empty,
-                Responsible = stockIn.Responsible ?? string.Empty,
-                OrderDeadLine = stockIn.OrderDeadline!,
-                StockInDescription = stockIn.StockInDescription ?? string.Empty
-            };
+                _stockInDetailService = stockInDetailService ?? throw new ArgumentNullException(nameof(stockInDetailService));
+                _stockInService = stockInService ?? throw new ArgumentNullException(nameof(stockInService));
+                _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
+                _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
+                _messengerService = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
+                _putAwayService = putAwayService ?? throw new ArgumentNullException(nameof(putAwayService));
 
-            SaveCommand = new RelayCommand(async parameter => await SaveStockInAsync(parameter), CanSave);
-            BackCommand = new RelayCommand(_ => NavigateBack());
-            AddDetailLineCommand = new RelayCommand(_ => AddDetailLine(), CanAddDetailLine);
-            DeleteDetailLineCommand = new RelayCommand(async detail => await DeleteDetailLineAsync((StockInDetailResponseDTO)detail));
-            PreviousPageCommand = new RelayCommand(_ => PreviousPage());
-            NextPageCommand = new RelayCommand(_ => NextPage());
-            SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
-            ConfirmQuantityCommand = new RelayCommand(async parameter => await CheckQuantityAsync(parameter), CanConfirmQuantity);
+                _lstStockInDetails = new ObservableCollection<StockInDetailResponseDTO>();
+                _lstStockInDetails.CollectionChanged += StockInDetails_CollectionChanged!;
+                _lstProducts = new ObservableCollection<ProductMasterResponseDTO>();
+                _lstOrderTypes = new ObservableCollection<OrderTypeResponseDTO>();
+                _lstWarehouses = new ObservableCollection<WarehouseMasterResponseDTO>();
+                _lstSuppliers = new ObservableCollection<SupplierMasterResponseDTO>();
+                _lstResponsiblePersons = new ObservableCollection<AccountManagementResponseDTO>();
+                _lstPutAway = new ObservableCollection<PutAwayAndDetailResponseDTO>();
+                _displayPages = new ObservableCollection<object>();
+                _isAddingNew = stockIn == null;
+                _currentPage = 1;
+                _lastLoadedPage = 0;
+                _isSaving = false;
+                _hasPutAway = false;
+                _stockInRequestDTO = stockIn == null ? new StockInRequestDTO
+                {
+                    OrderDeadLine = DateTime.Now.ToString("dd/MM/yyyy")
+                } : new StockInRequestDTO
+                {
+                    StockInCode = stockIn.StockInCode ?? string.Empty,
+                    OrderTypeCode = stockIn.OrderTypeCode ?? string.Empty,
+                    WarehouseCode = stockIn.WarehouseCode ?? string.Empty,
+                    SupplierCode = stockIn.SupplierCode ?? string.Empty,
+                    Responsible = stockIn.Responsible ?? string.Empty,
+                    OrderDeadLine = stockIn.OrderDeadline!,
+                    StockInDescription = stockIn.StockInDescription ?? string.Empty
+                };
 
-            _stockInRequestDTO.PropertyChanged += OnPropertyChangedHandler!;
-            _ = InitializeAsync();
-        }
+                SaveCommand = new RelayCommand(async parameter => await SaveStockInAsync(parameter), CanSave);
+                BackCommand = new RelayCommand(_ => NavigateBack());
+                AddDetailLineCommand = new RelayCommand(_ => AddDetailLine(), CanAddDetailLine);
+                DeleteDetailLineCommand = new RelayCommand(async detail => await DeleteDetailLineAsync((StockInDetailResponseDTO)detail));
+                PreviousPageCommand = new RelayCommand(_ => PreviousPage());
+                NextPageCommand = new RelayCommand(_ => NextPage());
+                SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
+                ConfirmQuantityCommand = new RelayCommand(async parameter => await CheckQuantityAsync(parameter), CanConfirmQuantity);
+
+                _stockInRequestDTO.PropertyChanged += OnPropertyChangedHandler!;
+                _ = InitializeAsync();
+            }
 
         private void StockInDetails_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
@@ -341,18 +344,30 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                     return;
                 }
 
-                // Load static data only if not already loaded
+                // Load static data and select first item if not already loaded
                 if (!LstOrderTypes.Any())
                 {
                     await LoadOrderTypesAsync();
+                    if (IsAddingNew && LstOrderTypes.Any())
+                    {
+                        StockInRequestDTO!.OrderTypeCode = LstOrderTypes.First().OrderTypeCode;
+                    }
                 }
                 if (!LstWarehouses.Any())
                 {
                     await LoadWarehousesAsync();
+                    if (IsAddingNew && LstWarehouses.Any())
+                    {
+                        StockInRequestDTO!.WarehouseCode = LstWarehouses.First().WarehouseCode;
+                    }
                 }
                 if (!LstSuppliers.Any())
                 {
                     await LoadSuppliersAsync();
+                    if (IsAddingNew && LstSuppliers.Any())
+                    {
+                        StockInRequestDTO!.SupplierCode = LstSuppliers.First().SupplierCode;
+                    }
                 }
                 if (!IsAddingNew)
                 {
@@ -368,6 +383,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                         await LoadPutAway();
                     }
                 }
+                
             }
             catch (Exception ex)
             {

@@ -327,7 +327,11 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
             _lastLoadedPage = 0;
             _isSaving = false;
             _hasPicklist = false;
-            _manufacturingOrderRequestDTO = manufacturingOrder == null ? new ManufacturingOrderRequestDTO() : new ManufacturingOrderRequestDTO
+            _manufacturingOrderRequestDTO = manufacturingOrder == null ? new ManufacturingOrderRequestDTO
+            {
+                ScheduleDate =DateTime.Now.ToString("dd/MM/yyyy"),
+                Deadline = DateTime.Today.AddDays(7).ToString("dd/MM/yyyy")
+            } : new ManufacturingOrderRequestDTO
             {
                 ManufacturingOrderCode = manufacturingOrder.ManufacturingOrderCode,
                 OrderTypeCode = manufacturingOrder.OrderTypeCode ?? string.Empty,
@@ -428,12 +432,25 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
                     NavigateBack();
                     return;
                 }
-
+                if (!LstOrderTypes.Any())
+                {
+                    await LoadOrderTypesAsync();
+                    if (IsAddingNew && LstOrderTypes.Any())
+                    {
+                        ManufacturingOrderRequestDTO!.OrderTypeCode = LstOrderTypes.First().OrderTypeCode;
+                    }
+                }
+                if (!LstWarehouses.Any())
+                {
+                    await LoadWarehousesAsync();
+                    if (IsAddingNew && LstWarehouses.Any())
+                    {
+                        ManufacturingOrderRequestDTO!.WarehouseCode = LstWarehouses.First().WarehouseCode;
+                    }
+                }
                 await Task.WhenAll(
                     LoadProductsAsync(),
                     LoadBomMastersAsync(ManufacturingOrderRequestDTO!.ProductCode),
-                    LoadOrderTypesAsync(),
-                    LoadWarehousesAsync(),
                     CheckReservationExistenceAsync(),
                     CheckPicklistExistenceAsync(),
                     CheckPutAwayHasValue());

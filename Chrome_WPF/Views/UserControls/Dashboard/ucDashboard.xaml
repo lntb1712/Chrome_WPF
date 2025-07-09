@@ -1,0 +1,180 @@
+﻿<UserControl
+    x:Class="Chrome_WPF.Views.UserControls.Dashboard.ucDashboard"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
+    <UserControl.Resources>
+        <SolidColorBrush x:Key="PrimaryColor" Color="#3F51B5" />
+        <SolidColorBrush x:Key="AccentColor" Color="#FF4081" />
+        <SolidColorBrush x:Key="TextPrimary" Color="#212121" />
+        <SolidColorBrush x:Key="TextSecondary" Color="#757575" />
+        <SolidColorBrush x:Key="CardBackground" Color="#FFFFFF" />
+    </UserControl.Resources>
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock
+            Margin="0,0,0,15"
+            FontSize="24"
+            FontWeight="Bold"
+            Text="📊 Dashboard Tổng Quan" />
+
+        <!--  PieChart + Card + BarChart  -->
+        <Grid Grid.Row="1" Margin="0,10,0,15">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*" />
+                <ColumnDefinition Width="2*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="0.8*" />
+            </Grid.RowDefinitions>
+            <materialDesign:Card
+                Grid.Row="1"
+                Grid.Column="0"
+                Width="350"
+                Margin="10"
+                Padding="10"
+                Background="{StaticResource CardBackground}"
+                UniformCornerRadius="12">
+                <StackPanel>
+                    <materialDesign:ColorZone
+                        Padding="8"
+                        Background="Red"
+                        CornerRadius="8"
+                        Mode="PrimaryMid">
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            FontSize="16"
+                            FontWeight="Bold"
+                            Foreground="White"
+                            Text="Chưa hoàn thành" />
+                    </materialDesign:ColorZone>
+                    <StackPanel
+                        Margin="0,8"
+                        HorizontalAlignment="Center"
+                        Orientation="Horizontal">
+                        <StackPanel Margin="10,0">
+                            <TextBlock
+                                HorizontalAlignment="Center"
+                                FontSize="14"
+                                FontWeight="SemiBold"
+                                Foreground="{StaticResource TextPrimary}"
+                                Text="Phiếu nhập" />
+                            <TextBlock
+                                Margin="0,6"
+                                HorizontalAlignment="Center"
+                                FontSize="16"
+                                FontWeight="Bold"
+                                Foreground="{StaticResource AccentColor}"
+                                Text="{Binding QuantityToCompleteStockIn}" />
+                        </StackPanel>
+                        <Border
+                            Width="1"
+                            Margin="10,8"
+                            VerticalAlignment="Stretch"
+                            Background="{StaticResource TextSecondary}" />
+                        <StackPanel Margin="10,0">
+                            <TextBlock
+                                HorizontalAlignment="Center"
+                                FontSize="14"
+                                FontWeight="SemiBold"
+                                Foreground="{StaticResource TextPrimary}"
+                                Text="Phiếu xuất" />
+                            <TextBlock
+                                Margin="0,6"
+                                HorizontalAlignment="Center"
+                                FontSize="16"
+                                FontWeight="Bold"
+                                Foreground="{StaticResource AccentColor}"
+                                Text="{Binding QuantityToCompleteStockOut}" />
+                        </StackPanel>
+                        <Border
+                            Width="1"
+                            Margin="10,8"
+                            VerticalAlignment="Stretch"
+                            Background="{StaticResource TextSecondary}" />
+                        <StackPanel Margin="10,0">
+                            <TextBlock
+                                HorizontalAlignment="Center"
+                                FontSize="14"
+                                FontWeight="SemiBold"
+                                Foreground="{StaticResource TextPrimary}"
+                                Text="Lệnh sản xuất" />
+                            <TextBlock
+                                Margin="0,6"
+                                HorizontalAlignment="Center"
+                                FontSize="16"
+                                FontWeight="Bold"
+                                Foreground="{StaticResource AccentColor}"
+                                Text="{Binding QuantityToCompleteManufacturingOrder}" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </materialDesign:Card>
+            <lvc:PieChart
+                Grid.Row="0"
+                Grid.Column="0"
+                Width="280"
+                Margin="10"
+                LegendLocation="Right"
+                Series="{Binding InventoryPieSeries}" />
+            <lvc:CartesianChart
+                Grid.Row="0"
+                Grid.RowSpan="2"
+                Grid.Column="1"
+                Margin="10"
+                LegendLocation="Right"
+                Series="{Binding StatusBarSeries}">
+                <lvc:CartesianChart.AxisX>
+                    <lvc:Axis Title="Loại lệnh" Labels="{Binding StatusBarLabels}" />
+                </lvc:CartesianChart.AxisX>
+                <lvc:CartesianChart.AxisY>
+                    <lvc:Axis Title="Số lượng" />
+                </lvc:CartesianChart.AxisY>
+            </lvc:CartesianChart>
+        </Grid>
+
+        <!--  Daily Stock and Progress Charts  -->
+        <Grid Grid.Row="3" Margin="0,10,0,15">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="1*" />
+            </Grid.ColumnDefinitions>
+            <lvc:CartesianChart
+                Grid.Column="0"
+                Margin="10"
+                LegendLocation="Right"
+                Series="{Binding DailyStockSeries}">
+                <lvc:CartesianChart.AxisX>
+                    <lvc:Axis Title="Ngày" Labels="{Binding DailyStockLabels}" />
+                </lvc:CartesianChart.AxisX>
+                <lvc:CartesianChart.AxisY>
+                    <lvc:Axis Title="Số phiếu" />
+                </lvc:CartesianChart.AxisY>
+            </lvc:CartesianChart>
+            <lvc:CartesianChart
+                Grid.Column="1"
+                Margin="10"
+                LegendLocation="Right"
+                Series="{Binding ProgressBarSeries}">
+                <lvc:CartesianChart.AxisY>
+                    <lvc:Axis
+                        Title="Lệnh sản xuất"
+                        Labels="{Binding ProgressBarLabels}"
+                        Position="RightTop" />
+                </lvc:CartesianChart.AxisY>
+                <lvc:CartesianChart.AxisX>
+                    <lvc:Axis Title="Tiến độ (%)" />
+                </lvc:CartesianChart.AxisX>
+            </lvc:CartesianChart>
+        </Grid>
+    </Grid>
+</UserControl>

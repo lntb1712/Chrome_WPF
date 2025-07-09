@@ -299,7 +299,10 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             _isSaving = false;
             _hasPicklist = false;
             _hasReservation = false;
-            _stockOutRequestDTO = stockOut == null ? new StockOutRequestDTO() : new StockOutRequestDTO
+            _stockOutRequestDTO = stockOut == null ? new StockOutRequestDTO
+            {
+                StockOutDate = DateTime.Now.ToString("dd/MM/yyyy")
+            } : new StockOutRequestDTO
             {
                 StockOutCode = stockOut.StockOutCode ?? string.Empty,
                 OrderTypeCode = stockOut.OrderTypeCode ?? string.Empty,
@@ -447,14 +450,26 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                 if (!LstOrderTypes.Any())
                 {
                     await LoadOrderTypesAsync();
+                    if (IsAddingNew && LstOrderTypes.Any())
+                    {
+                        StockOutRequestDTO!.OrderTypeCode = LstOrderTypes.First().OrderTypeCode;
+                    }
                 }
                 if (!LstWarehouses.Any())
                 {
                     await LoadWarehousesAsync();
+                    if (IsAddingNew && LstWarehouses.Any())
+                    {
+                        StockOutRequestDTO!.WarehouseCode = LstWarehouses.First().WarehouseCode;
+                    }
                 }
                 if (!LstCustomers.Any())
                 {
                     await LoadCustomersAsync();
+                    if(IsAddingNew && LstCustomers.Any())
+                    {
+                        StockOutRequestDTO!.CustomerCode = LstCustomers.First().CustomerCode;
+                    }    
                 }
                 if (!IsAddingNew)
                 {

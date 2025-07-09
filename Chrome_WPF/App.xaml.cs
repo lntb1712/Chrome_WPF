@@ -6,6 +6,7 @@ using Chrome_WPF.Services.BOMComponentService;
 using Chrome_WPF.Services.BOMMasterService;
 using Chrome_WPF.Services.CategoryService;
 using Chrome_WPF.Services.CustomerMasterService;
+using Chrome_WPF.Services.DashboardService;
 using Chrome_WPF.Services.GroupManagementService;
 using Chrome_WPF.Services.InventoryService;
 using Chrome_WPF.Services.LocationMasterService;
@@ -60,6 +61,7 @@ using Chrome_WPF.Views.UserControls;
 using Chrome_WPF.Views.UserControls.AccountManagement;
 using Chrome_WPF.Views.UserControls.BOMMaster;
 using Chrome_WPF.Views.UserControls.CustomerMaster;
+using Chrome_WPF.Views.UserControls.Dashboard;
 using Chrome_WPF.Views.UserControls.GroupManagement;
 using Chrome_WPF.Views.UserControls.Inventory;
 using Chrome_WPF.Views.UserControls.ManufacturingOrder;
@@ -151,6 +153,7 @@ namespace Chrome_WPF
             services.AddSingleton<IStockTakeDetailService, StockTakeDetailService>();
             services.AddSingleton<IManufacturingOrderService,ManufacturingOrderService>();
             services.AddSingleton<IManufacturingOrderDetailService, ManufacturingOrderDetailService>();
+            services.AddSingleton<IDashboardService ,DashboardService>();
 
             // Register IServiceProvider
             services.AddSingleton(sp => sp);
@@ -208,6 +211,7 @@ namespace Chrome_WPF
             services.AddTransient<ViewModels.ManufacturingOrderViewModel.BackOrderDialogViewModel>();
             services.AddTransient<ForecastTooltipViewModel>();
             services.AddTransient<ForecastManufacturingTooltipViewModel>();
+            services.AddTransient<DashboardViewModel>();
 
             // Register Views
             services.AddTransient<LoginWindow>(provider =>
@@ -421,6 +425,11 @@ namespace Chrome_WPF
 
             services.AddTransient<ucForecastManufacturingTooltip>(provider =>
                 new ucForecastManufacturingTooltip(provider.GetRequiredService<ForecastManufacturingTooltipViewModel>()));
+
+            services.AddTransient<ucDashboard>(provider =>
+                new ucDashboard(
+                    provider.GetRequiredService<DashboardViewModel>(),
+                    provider.GetRequiredService<INotificationService>()));
 
         }
 

@@ -1,6 +1,7 @@
 ﻿using Chrome_WPF.Helpers;
 using Chrome_WPF.Models.AccountManagementDTO;
 using Chrome_WPF.Models.APIResult;
+using Chrome_WPF.Models.MovementDTO;
 using Chrome_WPF.Models.PagedResponse;
 using Chrome_WPF.Models.StockTakeDetailDTO;
 using Chrome_WPF.Models.StocktakeDTO;
@@ -183,12 +184,15 @@ namespace Chrome_WPF.ViewModels.StockTakeViewModel
             _currentPage = 1;
             _lastLoadedPage = 0;
             _isSaving = false;
-            _stockTakeRequestDTO = stockTake == null ? new StockTakeRequestDTO() : new StockTakeRequestDTO
+            _stockTakeRequestDTO = stockTake == null ? new StockTakeRequestDTO
+            {
+                StocktakeDate = DateTime.Now.ToString("dd/MM/yyyy")
+            } : new StockTakeRequestDTO
             {
                 StockTakeCode = stockTake.StocktakeCode,
                 StocktakeDate = stockTake.StocktakeDate,
                 WarehouseCode = stockTake.WarehouseCode,
-                Responsible = stockTake.Responsible
+                Responsible = stockTake.Responsible,
             };
 
             SaveCommand = new RelayCommand(async parameter => await SaveStockTakeAsync(parameter), CanSave);
@@ -213,10 +217,15 @@ namespace Chrome_WPF.ViewModels.StockTakeViewModel
                     NavigateBack();
                     return;
                 }
+                if (!LstWarehouses.Any())
+                {
+                    await LoadWarehousesAsync();
+                    if (IsAddingNew && LstWarehouses.Any())
+                    {
+                        StockTakeRequestDTO!.WarehouseCode = LstWarehouses.First().WarehouseCode;
+                    }
+                }
 
-                await Task.WhenAll(
-                    LoadWarehousesAsync());
-                    
 
                 if (!IsAddingNew)
                 {

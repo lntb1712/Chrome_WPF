@@ -9,6 +9,7 @@ using Chrome_WPF.Models.PickListDTO;
 using Chrome_WPF.Models.ProductMasterDTO;
 using Chrome_WPF.Models.PutAwayDTO;
 using Chrome_WPF.Models.ReservationDTO;
+using Chrome_WPF.Models.TransferDTO;
 using Chrome_WPF.Models.WarehouseMasterDTO;
 using Chrome_WPF.Services.MessengerService;
 using Chrome_WPF.Services.MovementDetailService;
@@ -307,7 +308,10 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
             _currentPage = 1;
             _lastLoadedPage = 0;
             _isSaving = false;
-            _movementRequestDTO = movement == null ? new MovementRequestDTO() : new MovementRequestDTO
+            _movementRequestDTO = movement == null ? new MovementRequestDTO
+            {
+                MovementDate = DateTime.Now.ToString("dd/MM/yyyy")
+            } : new MovementRequestDTO
             {
                 MovementCode = movement.MovementCode,
                 OrderTypeCode = movement.OrderTypeCode,
@@ -342,10 +346,23 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
                     NavigateBack();
                     return;
                 }
-
+                if (!LstOrderTypes.Any())
+                {
+                    await LoadOrderTypesAsync();
+                    if (IsAddingNew && LstOrderTypes.Any())
+                    {
+                        MovementRequestDTO!.OrderTypeCode = LstOrderTypes.First().OrderTypeCode;
+                    }
+                }
+                if (!LstWarehouses.Any())
+                {
+                    await LoadWarehousesAsync();
+                    if (IsAddingNew && LstWarehouses.Any())
+                    {
+                        MovementRequestDTO!.WarehouseCode = LstWarehouses.First().WarehouseCode;
+                    }
+                }
                 await Task.WhenAll(
-                    LoadOrderTypesAsync(),
-                    LoadWarehousesAsync(),
 
                     CheckReservationExistenceAsync(),
                     CheckPicklistExistenceAsync(),
@@ -429,7 +446,6 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
                 _notificationService.ShowMessage($"Lỗi khi tải danh sách đặt chỗ: {ex.Message}", "OK", isError: true);
             }
         }
-
         private async Task CheckPicklistExistenceAsync()
         {
             try
