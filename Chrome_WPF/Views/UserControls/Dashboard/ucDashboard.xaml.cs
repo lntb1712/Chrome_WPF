@@ -14,6 +14,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace Chrome_WPF.Views.UserControls.Dashboard
 {
@@ -22,6 +23,7 @@ namespace Chrome_WPF.Views.UserControls.Dashboard
     /// </summary>
     public partial class ucDashboard : UserControl
     {
+        private readonly DispatcherTimer _refreshTimer = new DispatcherTimer();
         private readonly DashboardViewModel _viewModel;
         private readonly INotificationService _notificationService;
         public ucDashboard(DashboardViewModel viewModel, INotificationService notificationService)
@@ -30,6 +32,17 @@ namespace Chrome_WPF.Views.UserControls.Dashboard
             _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             DataContext= _viewModel;
+            _refreshTimer.Interval = TimeSpan.FromSeconds(30);
+            _refreshTimer.Tick += async (s, e) => await _viewModel.LoadDashboardDataAsync();
+            _refreshTimer.Start();
+        }
+
+        private void UserControl_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (e.NewSize.Width < 1400)
+                VisualStateManager.GoToState(this, "SmallScreen", true);
+            else
+                VisualStateManager.GoToState(this, "LargeScreen", true);
         }
     }
 }

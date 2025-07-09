@@ -23,16 +23,12 @@ namespace Chrome_WPF.ViewModels
         [ObservableProperty] private SeriesCollection inventoryPieSeries;
         [ObservableProperty] private SeriesCollection progressBarSeries;
         [ObservableProperty] private string? progressBarMessage;
-
         [ObservableProperty] private int quantityToCompleteStockIn;
         [ObservableProperty] private int quantityToCompleteStockOut;
         [ObservableProperty] private int quantityToCompleteManufacturingOrder;
-
         [ObservableProperty] private string? upcomingDeadlinesWarning;
-
         [ObservableProperty] private SeriesCollection statusBarSeries;
         [ObservableProperty] private string[] statusBarLabels;
-
         [ObservableProperty] private SeriesCollection dailyStockSeries;
         [ObservableProperty] private string[] dailyStockLabels;
         private List<string> _progressBarLabels;
@@ -56,6 +52,7 @@ namespace Chrome_WPF.ViewModels
                 OnPropertyChanged();
             }
         }
+
         public DashboardViewModel(IDashboardService dashboardService, API_Constant apiConstant)
         {
             _dashboardService = dashboardService ?? throw new ArgumentNullException(nameof(dashboardService));
@@ -66,6 +63,8 @@ namespace Chrome_WPF.ViewModels
             DailyStockSeries = new SeriesCollection();
             _progressBarLabels = new List<string>();
             _warehouseCodes = new List<string>();
+            dailyStockLabels = Array.Empty<string>();
+            statusBarLabels = Array.Empty<string>();
 
             // Load warehouse permissions
             var savedPermissions = Properties.Settings.Default.WarehousePermission;
@@ -75,11 +74,10 @@ namespace Chrome_WPF.ViewModels
                 ApplicableWarehouseCodes = string.Join(", ", _warehouseCodes);
             }
             _ = LoadDashboardDataAsync();
-
         }
 
         [RelayCommand]
-        private async Task LoadDashboardDataAsync()
+        public async Task LoadDashboardDataAsync()
         {
             IsLoading = true;
 
@@ -93,20 +91,39 @@ namespace Chrome_WPF.ViewModels
                 var data = (await dashboardTask).Data!;
                 var stockInOut = (await stockInOutTask).Data!;
 
-                // Pie Chart - Tồn kho theo sản phẩm
+                // Pie Chart - Tồn kho theo danh mục sản phẩm
                 InventoryPieSeries.Clear();
-                var inventoryGroups = data.inventorySummaryDTOs.GroupBy(p => p.ProductCode);
+                var inventoryGroups = data.inventorySummaryDTOs
+                    .GroupBy(p => GetCategoryFromProductCode(p.ProductCode))
+                    .Select(g => new
+                    {
+                        Category = g.Key,
+                        TotalQuantity = g.Sum(p => p.BaseQuantity ?? 0),
+                        ProductCodes = g.Select(p => p.ProductCode).ToList() // Lưu danh sách mã sản phẩm
+                    });
+
                 foreach (var group in inventoryGroups)
                 {
-                    var productCode = group.Key;
-                    var quantity = group.Sum(p => p.BaseQuantity);
-
+                    var category = group.Category;
+                    var quantity = group.TotalQuantity;
+                    var productCodes = group.ProductCodes;
+                    var displayValue = quantity > 0 ? Math.Log10(quantity + 1) : 0;
+                   
                     InventoryPieSeries.Add(new PieSeries
                     {
-                        Title = productCode,
-                        Values = new ChartValues<double> { quantity ?? 0 },
+                        Title = category,
+                        Values = new ChartValues<double> { displayValue },
                         DataLabels = true,
-                        Fill = GetColorForCategory(productCode)
+                        LabelPoint = point =>
+                        {
+                            var actualQuantity = Math.Round(Math.Pow(10, point.Y) - 1, 2);
+                            // Danh sách mã sản phẩm
+                            return $"{category}: {actualQuantity}";
+                        },
+                        ToolTip = productCodes,
+                        Fill = GetColorForCategory(category),
+                        StrokeThickness = 1,
+                        Stroke = new SolidColorBrush(Colors.White)
                     });
                 }
 
@@ -123,10 +140,10 @@ namespace Chrome_WPF.ViewModels
                         Title = "Tiến độ",
                         Values = new ChartValues<double>(progresses.Select(p => p.Progress!.Value)),
                         DataLabels = true,
-                        Fill = new SolidColorBrush(Colors.SeaGreen)
+                        Fill = new SolidColorBrush(Color.FromRgb(46, 139, 87)), // SeaGreen
+                        Stroke = new SolidColorBrush(Colors.White),
+                        StrokeThickness = 1
                     });
-
-                    // Set the Y-axis labels to MaLenhSanXuat
                     ProgressBarLabels = progresses.Select(p => p.ManufacturingOrderCode).ToList();
                     ProgressBarMessage = null;
                 }
@@ -135,11 +152,11 @@ namespace Chrome_WPF.ViewModels
                     ProgressBarSeries.Add(new RowSeries
                     {
                         Title = "Tiến độ",
-                        Values = new ChartValues<double> { 0 }, // Add a dummy value to avoid empty chart
+                        Values = new ChartValues<double> { 0 },
                         DataLabels = false,
                         Fill = new SolidColorBrush(Colors.Transparent)
                     });
-                    ProgressBarLabels = new List<string> (); // Clear labels
+                    ProgressBarLabels = new List<string>();
                     ProgressBarMessage = "Không có dữ liệu lệnh sản xuất.";
                 }
 
@@ -163,19 +180,25 @@ namespace Chrome_WPF.ViewModels
                 {
                     Title = "Bắt đầu",
                     Values = new ChartValues<int>(data.statusOrderCodeDTOs.Select(x => x.CountStatusStart)),
-                    Fill = new SolidColorBrush(Colors.SkyBlue)
+                    Fill = new SolidColorBrush(Color.FromRgb(135, 206, 235)), // SkyBlue
+                    Stroke = new SolidColorBrush(Colors.White),
+                    StrokeThickness = 1
                 });
                 StatusBarSeries.Add(new ColumnSeries
                 {
                     Title = "Đang xử lý",
                     Values = new ChartValues<int>(data.statusOrderCodeDTOs.Select(x => x.CountStatusInProgress)),
-                    Fill = new SolidColorBrush(Colors.Orange)
+                    Fill = new SolidColorBrush(Color.FromRgb(255, 165, 0)), // Orange
+                    Stroke = new SolidColorBrush(Colors.White),
+                    StrokeThickness = 1
                 });
                 StatusBarSeries.Add(new ColumnSeries
                 {
                     Title = "Hoàn thành",
                     Values = new ChartValues<int>(data.statusOrderCodeDTOs.Select(x => x.CountStatusCompleted)),
-                    Fill = new SolidColorBrush(Colors.Green)
+                    Fill = new SolidColorBrush(Color.FromRgb(0, 128, 0)), // Green
+                    Stroke = new SolidColorBrush(Colors.White),
+                    StrokeThickness = 1
                 });
 
                 StatusBarLabels = data.statusOrderCodeDTOs.Select(x => x.OrderTypeCode).ToArray();
@@ -186,15 +209,19 @@ namespace Chrome_WPF.ViewModels
                 {
                     Title = "Nhập kho",
                     Values = new ChartValues<int>(stockInOut.DailyStockInOuts.Select(x => x.StockInCount)),
-                    Stroke = new SolidColorBrush(Colors.Blue),
-                    Fill = new SolidColorBrush(Color.FromArgb(40, 0, 0, 255))
+                    Stroke = new SolidColorBrush(Color.FromRgb(0, 0, 255)), // Blue
+                    Fill = new SolidColorBrush(Color.FromArgb(40, 0, 0, 255)),
+                    PointGeometrySize = 10,
+                    StrokeThickness = 2
                 });
                 DailyStockSeries.Add(new LineSeries
                 {
                     Title = "Xuất kho",
                     Values = new ChartValues<int>(stockInOut.DailyStockInOuts.Select(x => x.StockOutCount)),
-                    Stroke = new SolidColorBrush(Colors.Red),
-                    Fill = new SolidColorBrush(Color.FromArgb(40, 255, 0, 0))
+                    Stroke = new SolidColorBrush(Color.FromRgb(255, 0, 0)), // Red
+                    Fill = new SolidColorBrush(Color.FromArgb(40, 255, 0, 0)),
+                    PointGeometrySize = 10,
+                    StrokeThickness = 2
                 });
 
                 DailyStockLabels = stockInOut.DailyStockInOuts.Select(x => x.Date).ToArray();
@@ -209,16 +236,27 @@ namespace Chrome_WPF.ViewModels
             }
         }
 
-        private SolidColorBrush GetColorForCategory(string productCode)
+        private string GetCategoryFromProductCode(string productCode)
         {
             if (string.IsNullOrEmpty(productCode))
+                return "Unknown";
+
+            if (productCode.StartsWith("FG")) return "FG";
+            if (productCode.StartsWith("MAT")) return "MAT";
+            if (productCode.StartsWith("SFG")) return "SFG";
+            return "Other";
+        }
+
+        private SolidColorBrush GetColorForCategory(string category)
+        {
+            if (string.IsNullOrEmpty(category))
                 return new SolidColorBrush(Colors.Gray);
 
-            return productCode switch
+            return category switch
             {
-                string code when code.StartsWith("FG") => new SolidColorBrush(Colors.Blue),
-                string code when code.StartsWith("MAT") => new SolidColorBrush(Colors.Green),
-                string code when code.StartsWith("SFG") => new SolidColorBrush(Colors.Orange),
+                "FG" => new SolidColorBrush(Color.FromRgb(33, 150, 243)), // Blue
+                "MAT" => new SolidColorBrush(Color.FromRgb(76, 175, 80)), // Green
+                "SFG" => new SolidColorBrush(Color.FromRgb(255, 152, 0)), // Orange
                 _ => new SolidColorBrush(Colors.Gray)
             };
         }

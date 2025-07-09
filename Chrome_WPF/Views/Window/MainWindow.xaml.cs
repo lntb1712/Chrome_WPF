@@ -50,6 +50,7 @@ namespace Chrome_WPF.Views
             if (_navigationService is NavigationService navService)
             {
                 navService.SetContentControl(MainContent);
+                navService.NavigateTo<ucDashboard>();
             }
         }
 
@@ -101,6 +102,7 @@ namespace Chrome_WPF.Views
             var commandItems = new List<ListBoxItem>
             {
                 listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucInventory") ! ,
+                 listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucReservation") !,
                 listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucStockIn") !,
                 listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucStockOut") !,
                 listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucTransfer") !,
@@ -112,7 +114,7 @@ namespace Chrome_WPF.Views
 
             var productionItems = new List<ListBoxItem>
             {
-                listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucProductionOrder") !
+                listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucManufacturingOrder") !
             }.Where(item => item != null).ToList();
 
             // Kiểm tra trạng thái hiển thị của các mục con
