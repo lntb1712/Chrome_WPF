@@ -35,6 +35,7 @@ namespace Chrome_WPF.ViewModels
         private bool _canProductionOrder;
         private bool _canInventory;
         private bool _canReservation;
+        private bool _canReplenish;
         private string _currentDateTime;
         private readonly DispatcherTimer _timer;
 
@@ -95,6 +96,16 @@ namespace Chrome_WPF.ViewModels
                 OnPropertyChanged(nameof(CanGroupManagement));
             }
         }
+        public bool CanReplenish
+        {
+            get => _canReplenish;
+            set
+            {
+                _canReplenish = value;
+                OnPropertyChanged(nameof(CanReplenish));
+            }
+        }   
+        
 
         public bool CanReservation
         {
@@ -308,6 +319,7 @@ namespace Chrome_WPF.ViewModels
             CanProductionOrder = Permission.Contains("ucManufacturingOrder");
             CanInventory = Permission.Contains("ucInventory");
             CanReservation = Permission.Contains("ucReservation");
+            CanReplenish = Permission.Contains("ucReplenish");
         }
     }
 }

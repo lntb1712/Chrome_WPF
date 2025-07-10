@@ -18,7 +18,7 @@
         <convertert:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <convertert:AllFalseToVisibilityConverter x:Key="AllFalseToVisibilityConverter" />
         <convertert:ApplicableLocationsConverter x:Key="LocationsConverter" />
-        <!--  Style for Menu Items  -->
+        <convertert:IntGreaterThanZeroToVisibilityConverter x:Key="IntGreaterThanZeroToVisibilityConverter" />
         <Style x:Key="MenuItemStyle" TargetType="ListBoxItem">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="#333333" />
@@ -55,7 +55,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        <!--  Style cho nút trên thanh scrollbar  -->
         <Style x:Key="ScrollBarLineButton" TargetType="RepeatButton">
             <Setter Property="OverridesDefaultStyle" Value="True" />
             <Setter Property="IsTabStop" Value="False" />
@@ -103,10 +102,8 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        <!--  DataTemplate for Menu Items  -->
         <DataTemplate x:Key="MenuItemTemplate">
             <StackPanel Margin="10,0" Orientation="Horizontal">
-                <!--  Icon Placeholder (Replace with actual icons)  -->
                 <Rectangle
                     Width="20"
                     Height="20"
@@ -118,7 +115,6 @@
                     Text="{Binding}" />
             </StackPanel>
         </DataTemplate>
-        <!--  Style for Separator ListBoxItem  -->
         <Style
             x:Key="SeparatorItemStyle"
             BasedOn="{StaticResource MenuItemStyle}"
@@ -136,7 +132,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        <!--  Style for Title ListBoxItem  -->
         <Style
             x:Key="TitleItemStyle"
             BasedOn="{StaticResource MenuItemStyle}"
@@ -147,13 +142,35 @@
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="Gray" />
         </Style>
+        <Style x:Key="NotificationItemStyle" TargetType="ListBoxItem">
+            <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="Padding" Value="10" />
+            <Setter Property="Margin" Value="0,2" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="#E0E0E0"
+                            BorderThickness="0,0,0,1">
+                            <ContentPresenter Margin="{TemplateBinding Padding}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#F5F5F5" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
     <Grid x:Name="MainGrid">
         <Grid.ColumnDefinitions>
             <ColumnDefinition x:Name="SidebarColumn" Width="270" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <!--  Sidebar  -->
         <Border
             Grid.Column="0"
             BorderBrush="#E0E0E0"
@@ -164,17 +181,10 @@
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <!--  Logo Section  -->
                 <StackPanel
                     Grid.Row="0"
                     Margin="0,0,0,20"
                     HorizontalAlignment="Center">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
-                    </Grid>
                     <Image
                         Width="50"
                         Height="50"
@@ -184,13 +194,11 @@
                         Source="pack://application:,,,/Resources/img/logo1.png" />
                     <TextBlock
                         x:Name="LogoText"
-                        Grid.Row="1"
                         FontSize="24"
                         FontWeight="Bold"
                         Foreground="#333333"
                         Text="CHROME" />
                 </StackPanel>
-                <!--  Menu Items  -->
                 <ListBox
                     x:Name="MainMenuListBox"
                     Grid.Row="1"
@@ -377,6 +385,19 @@
                             <TextBlock Text="Tồn kho" />
                         </StackPanel>
                     </ListBoxItem>
+                    <ListBoxItem x:Name="ucReplenish" Visibility="{Binding CanReplenish, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <StackPanel
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            Orientation="Horizontal">
+                            <materialDesign:PackIcon
+                                Width="24"
+                                Height="24"
+                                Margin="10,0,10,0"
+                                Kind="BasketFill" />
+                            <TextBlock Text="Luật bổ sung" />
+                        </StackPanel>
+                    </ListBoxItem>
                     <ListBoxItem x:Name="ucReservation" Visibility="{Binding CanReservation, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <StackPanel
                             HorizontalAlignment="Left"
@@ -485,6 +506,7 @@
                         <ListBoxItem.Visibility>
                             <MultiBinding Converter="{StaticResource AllFalseToVisibilityConverter}">
                                 <Binding Path="CanInventory" />
+                                <Binding Path="CanReservation" />
                                 <Binding Path="CanStockIn" />
                                 <Binding Path="CanStockOut" />
                                 <Binding Path="CanTransfer" />
@@ -517,7 +539,6 @@
                         </StackPanel>
                     </ListBoxItem>
                 </ListBox>
-                <!--  Settings  -->
                 <ListBox
                     x:Name="LogOut"
                     Grid.Row="2"
@@ -543,7 +564,6 @@
                 </ListBox>
             </Grid>
         </Border>
-        <!--  Main Content Area  -->
         <Border
             Grid.Column="1"
             BorderBrush="#E0E0E0"
@@ -563,6 +583,7 @@
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
@@ -589,8 +610,79 @@
                                 FontSize="14"
                                 Foreground="#718096"
                                 Text="{Binding CurrentDateTime}" />
-                            <Border
+                            <Button
+                                x:Name="NotificationButton"
                                 Grid.Column="3"
+                                Margin="0,0,10,0"
+                                Background="Transparent"
+                                Click="NotificationButton_Click"
+                                Style="{StaticResource MaterialDesignFloatingActionMiniButton}">
+                                <Grid>
+                                    <materialDesign:PackIcon
+                                        Width="20"
+                                        Height="20"
+                                        Foreground="Gray"
+                                        Kind="Bell" />
+                                    <Border
+                                        Width="16"
+                                        Height="16"
+                                        Margin="10,-5,0,0"
+                                        HorizontalAlignment="Right"
+                                        VerticalAlignment="Top"
+                                        Background="Red"
+                                        CornerRadius="8"
+                                        Visibility="{Binding WarningCount, Converter={StaticResource IntGreaterThanZeroToVisibilityConverter}}">
+                                        <TextBlock
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            FontSize="10"
+                                            Foreground="White"
+                                            Text="{Binding WarningCount}" />
+                                    </Border>
+                                </Grid>
+                            </Button>
+                            <Popup
+                                x:Name="NotificationPopup"
+                                MouseLeave="NotificationPopup_MouseLeave"
+                                Placement="Bottom"
+                                PlacementTarget="{Binding ElementName=NotificationButton}"
+                                StaysOpen="False">
+                                <Border
+                                    Width="220"
+                                    MaxHeight="300"
+                                    Background="White"
+                                    CornerRadius="5">
+                                    <ScrollViewer Background="White" VerticalScrollBarVisibility="Auto">
+                                        <Border
+                                            Padding="2"
+                                            Background="White"
+                                            BorderBrush="Gray"
+                                            BorderThickness="1"
+                                            CornerRadius="8">
+                                            <!--  Nên có background để hiển thị đúng bo góc  -->
+                                            <ListBox
+                                                x:Name="NotificationListBox"
+                                                Background="Transparent"
+                                                BorderThickness="0"
+                                                ItemContainerStyle="{StaticResource NotificationItemStyle}"
+                                                ItemsSource="{Binding ReplenishWarnings}">
+                                                <ListBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock
+                                                            FontSize="10"
+                                                            Foreground="#333333"
+                                                            Text="{Binding}"
+                                                            TextWrapping="Wrap" />
+                                                    </DataTemplate>
+                                                </ListBox.ItemTemplate>
+                                            </ListBox>
+                                        </Border>
+
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                            <Border
+                                Grid.Column="4"
                                 Width="Auto"
                                 Padding="5,5,30,5"
                                 Background="#ECF0F1"
@@ -633,14 +725,9 @@
                                                 Foreground="Gray"
                                                 Text=")" />
                                         </StackPanel>
-
                                     </StackPanel>
                                 </StackPanel>
-
                             </Border>
-
-
-
                         </Grid>
                     </StackPanel>
                 </Border>

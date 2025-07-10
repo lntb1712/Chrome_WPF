@@ -39,7 +39,7 @@ namespace Chrome_WPF.Views.UserControls.Dashboard
 
         private void UserControl_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            if (e.NewSize.Width < 1400)
+            if (e.NewSize.Width < 1500)
                 VisualStateManager.GoToState(this, "SmallScreen", true);
             else
                 VisualStateManager.GoToState(this, "LargeScreen", true);

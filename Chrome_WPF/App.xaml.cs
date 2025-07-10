@@ -26,6 +26,7 @@ using Chrome_WPF.Services.ProductSupplierService;
 using Chrome_WPF.Services.PutAwayDetailService;
 using Chrome_WPF.Services.PutAwayRulesService;
 using Chrome_WPF.Services.PutAwayService;
+using Chrome_WPF.Services.ReplenishService;
 using Chrome_WPF.Services.ReservationDetailService;
 using Chrome_WPF.Services.ReservationService;
 using Chrome_WPF.Services.StockInDetailService;
@@ -44,6 +45,7 @@ using Chrome_WPF.ViewModels.BOMMasterViewModel;
 using Chrome_WPF.ViewModels.CustomerMasterViewModel;
 using Chrome_WPF.ViewModels.GroupManagementViewModel;
 using Chrome_WPF.ViewModels.InventoryViewModel;
+using Chrome_WPF.ViewModels.MainWindowViewModel;
 using Chrome_WPF.ViewModels.ManufacturingOrderViewModel;
 using Chrome_WPF.ViewModels.MovementViewModel;
 using Chrome_WPF.ViewModels.PickListViewModel;
@@ -69,6 +71,7 @@ using Chrome_WPF.Views.UserControls.Movement;
 using Chrome_WPF.Views.UserControls.PickList;
 using Chrome_WPF.Views.UserControls.ProductMaster;
 using Chrome_WPF.Views.UserControls.PutAway;
+using Chrome_WPF.Views.UserControls.Replenish;
 using Chrome_WPF.Views.UserControls.Reservation;
 using Chrome_WPF.Views.UserControls.StockIn;
 using Chrome_WPF.Views.UserControls.StockOut;
@@ -154,6 +157,7 @@ namespace Chrome_WPF
             services.AddSingleton<IManufacturingOrderService,ManufacturingOrderService>();
             services.AddSingleton<IManufacturingOrderDetailService, ManufacturingOrderDetailService>();
             services.AddSingleton<IDashboardService ,DashboardService>();
+            services.AddSingleton<IReplenishService, ReplenishService>();
 
             // Register IServiceProvider
             services.AddSingleton(sp => sp);
@@ -212,6 +216,8 @@ namespace Chrome_WPF
             services.AddTransient<ForecastTooltipViewModel>();
             services.AddTransient<ForecastManufacturingTooltipViewModel>();
             services.AddTransient<DashboardViewModel>();
+            services.AddTransient<ReplenishViewModel>();
+            services.AddTransient<MainWindowViewModel>();
 
             // Register Views
             services.AddTransient<LoginWindow>(provider =>
@@ -223,7 +229,8 @@ namespace Chrome_WPF
                 new MainWindow(
                     provider.GetRequiredService<AuthViewModel>(),
                     provider.GetRequiredService<INotificationService>(),
-                    provider.GetRequiredService<INavigationService>()));
+                    provider.GetRequiredService<INavigationService>(),
+                    provider.GetRequiredService<MainWindowViewModel>()));
 
             services.AddTransient<ucAccountManagement>(provider =>
                 new ucAccountManagement(
@@ -429,6 +436,11 @@ namespace Chrome_WPF
             services.AddTransient<ucDashboard>(provider =>
                 new ucDashboard(
                     provider.GetRequiredService<DashboardViewModel>(),
+                    provider.GetRequiredService<INotificationService>()));
+
+            services.AddTransient<ucReplenish>(provider =>
+                new ucReplenish(
+                    provider.GetRequiredService<ReplenishViewModel>(),
                     provider.GetRequiredService<INotificationService>()));
 
         }

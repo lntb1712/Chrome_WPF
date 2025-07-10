@@ -1,7 +1,9 @@
 ﻿using Chrome_WPF.Helpers;
 using Chrome_WPF.Services.NavigationService;
 using Chrome_WPF.Services.NotificationService;
+using Chrome_WPF.Services.ReplenishService;
 using Chrome_WPF.ViewModels;
+using Chrome_WPF.ViewModels.MainWindowViewModel;
 using Chrome_WPF.Views.UserControls;
 using Chrome_WPF.Views.UserControls.BOMMaster;
 using Chrome_WPF.Views.UserControls.CustomerMaster;
@@ -13,6 +15,7 @@ using Chrome_WPF.Views.UserControls.Movement;
 using Chrome_WPF.Views.UserControls.PickList;
 using Chrome_WPF.Views.UserControls.ProductMaster;
 using Chrome_WPF.Views.UserControls.PutAway;
+using Chrome_WPF.Views.UserControls.Replenish;
 using Chrome_WPF.Views.UserControls.Reservation;
 using Chrome_WPF.Views.UserControls.StockIn;
 using Chrome_WPF.Views.UserControls.StockOut;
@@ -22,9 +25,14 @@ using Chrome_WPF.Views.UserControls.Transfer;
 using Chrome_WPF.Views.UserControls.WarehouseMaster;
 using MaterialDesignThemes.Wpf;
 using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media.Animation;
 
 namespace Chrome_WPF.Views
@@ -34,24 +42,47 @@ namespace Chrome_WPF.Views
         private readonly AuthViewModel _authViewModel;
         private readonly INotificationService _notificationService;
         private readonly INavigationService _navigationService;
+        private readonly MainWindowViewModel _viewModel;
         private bool isSidebarCollapsed = false;
         private readonly double sidebarExpandedWidth = 270;
         private readonly double sidebarCollapsedWidth = 60;
 
-        public MainWindow(AuthViewModel authViewModel, INotificationService notificationService, INavigationService navigationService)
+        public MainWindow(
+            AuthViewModel authViewModel,
+            INotificationService notificationService,
+            INavigationService navigationService,
+            MainWindowViewModel viewModel)
         {
             InitializeComponent();
-            _authViewModel = authViewModel;
-            _notificationService = notificationService;
-            _navigationService = navigationService; // Sử dụng thể hiện từ DI
-            DataContext = _authViewModel;
+            _authViewModel = authViewModel ?? throw new ArgumentNullException(nameof(authViewModel));
+            _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
+            _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
+            _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
+            DataContext = _authViewModel; // Khôi phục DataContext về AuthViewModel
+            NotificationListBox.DataContext = _viewModel;
+            NotificationButton.DataContext = _viewModel;
             _notificationService.RegisterSnackbar(MainSnackbar);
-            // Gán MainContent cho NavigationService
             if (_navigationService is NavigationService navService)
             {
                 navService.SetContentControl(MainContent);
                 navService.NavigateTo<ucDashboard>();
             }
+            Loaded += MainWindow_Loaded;
+        }
+
+        private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            await _viewModel.InitializeAsync();
+        }
+
+        private void NotificationButton_Click(object sender, RoutedEventArgs e)
+        {
+            NotificationPopup.IsOpen = !NotificationPopup.IsOpen;
+        }
+
+        private void NotificationPopup_MouseLeave(object sender, MouseEventArgs e)
+        {
+            NotificationPopup.IsOpen = false;
         }
 
         private void ToggleSideBar_Click(object sender, RoutedEventArgs e)
@@ -78,7 +109,6 @@ namespace Chrome_WPF.Views
         {
             if (listBox == null) return;
 
-            // Lấy các mục con cho từng nhóm
             var overviewItems = new List<ListBoxItem>
             {
                 listBox.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Name == "ucDashboard")!
@@ -87,37 +117,37 @@ namespace Chrome_WPF.Views
             var accountItems = new List<ListBoxItem>
             {
                 listBox.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Name == "ucAccountManagement")!,
-                listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucGroupManagement") !
+                listBox.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Name == "ucGroupManagement")!
             }.Where(item => item != null).ToList();
 
             var dataItems = new List<ListBoxItem>
             {
                 listBox.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Name == "ucProductMaster")!,
-                listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucSupplierMaster") !,
-                listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucCustomerMaster") !,
-                listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucWarehouseMaster") !,
-                listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucBOMMaster") !
+                listBox.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Name == "ucSupplierMaster")!,
+                listBox.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Name == "ucCustomerMaster")!,
+                listBox.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Name == "ucWarehouseMaster")!,
+                listBox.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Name == "ucBOMMaster")!
             }.Where(item => item != null).ToList();
 
             var commandItems = new List<ListBoxItem>
             {
-                listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucInventory") ! ,
-                 listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucReservation") !,
-                listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucStockIn") !,
-                listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucStockOut") !,
-                listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucTransfer") !,
-                listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucMovement") !,
+                listBox.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Name == "ucInventory")!,
+                listBox.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Name == "ucReplenish")!,
+                listBox.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Name == "ucReservation")!,
+                listBox.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Name == "ucStockIn")!,
+                listBox.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Name == "ucStockOut")!,
+                listBox.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Name == "ucTransfer")!,
+                listBox.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Name == "ucMovement")!,
                 listBox.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Name == "ucPickList")!,
-                listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucPutAway") !,
-                listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucStockTake") !
+                listBox.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Name == "ucPutAway")!,
+                listBox.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Name == "ucStockTake")!
             }.Where(item => item != null).ToList();
 
             var productionItems = new List<ListBoxItem>
             {
-                listBox.Items.OfType < ListBoxItem >().FirstOrDefault(item => item.Name == "ucManufacturingOrder") !
+                listBox.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Name == "ucManufacturingOrder")!
             }.Where(item => item != null).ToList();
 
-            // Kiểm tra trạng thái hiển thị của các mục con
             bool hasVisibleOverviewItem = overviewItems.Any(item => item.Visibility == Visibility.Visible);
             bool hasVisibleAccountItem = accountItems.Any(item => item.Visibility == Visibility.Visible);
             bool hasVisibleDataItem = dataItems.Any(item => item.Visibility == Visibility.Visible);
@@ -130,7 +160,6 @@ namespace Chrome_WPF.Views
                 {
                     if (listBoxItem.Style == (Style)FindResource("TitleItemStyle"))
                     {
-                        // Xử lý từng tiêu đề
                         if (listBoxItem.Name == "OverviewTitle")
                         {
                             listBoxItem.Visibility = hasVisibleOverviewItem
@@ -163,13 +192,11 @@ namespace Chrome_WPF.Views
                         }
                         else
                         {
-                            // Các tiêu đề không xác định (nếu có)
                             listBoxItem.Visibility = isSidebarCollapsed ? Visibility.Visible : Visibility.Collapsed;
                         }
                     }
                     else if (listBoxItem.Style == (Style)FindResource("SeparatorItemStyle"))
                     {
-                        // Xử lý thanh phân cách
                         bool hasVisibleAdjacentItems = false;
                         int itemIndex = listBox.Items.IndexOf(item);
                         if (itemIndex > 0 && itemIndex < listBox.Items.Count - 1)
@@ -226,6 +253,9 @@ namespace Chrome_WPF.Views
                     case "ucBOMMaster":
                         _navigationService.NavigateTo<ucBOMMaster>();
                         break;
+                    case "ucReplenish":
+                        _navigationService.NavigateTo<ucReplenish>();
+                        break;
                     case "ucInventory":
                         _navigationService.NavigateTo<ucInventory>();
                         break;
@@ -256,7 +286,6 @@ namespace Chrome_WPF.Views
                     case "ucManufacturingOrder":
                         _navigationService.NavigateTo<ucManufacturingOrder>();
                         break;
-
                     default:
                         break;
                 }
@@ -271,10 +300,8 @@ namespace Chrome_WPF.Views
             if (selectedItem.Name != "LogOutItem")
                 return;
 
-
             try
             {
-                // Xóa thông tin đăng nhập
                 Properties.Settings.Default.AccessToken = string.Empty;
                 Properties.Settings.Default.UserName = string.Empty;
                 Properties.Settings.Default.FullName = string.Empty;
@@ -282,7 +309,6 @@ namespace Chrome_WPF.Views
                 Properties.Settings.Default.WarehousePermission = new StringCollection();
                 Properties.Settings.Default.Save();
 
-                // Đóng các cửa sổ khác
                 foreach (Window window in Application.Current.Windows)
                 {
                     if (window != this && window.IsVisible)
@@ -301,14 +327,9 @@ namespace Chrome_WPF.Views
                     }
                 }
 
-                // Reset ServiceProvider để tạo mới các dịch vụ
                 App.ResetServiceProvider();
-
-                // Hiển thị LoginWindow với ServiceProvider mới
                 var loginWindow = App.ServiceProvider!.GetRequiredService<LoginWindow>();
                 loginWindow.Show();
-
-                // Đóng cửa sổ hiện tại
                 Close();
             }
             catch (Exception ex)
@@ -317,10 +338,8 @@ namespace Chrome_WPF.Views
                     $"Lỗi khi đăng xuất: {ex.Message}",
                     "OK",
                     isError: true);
-                LogOut.SelectedItem = null; // Bỏ chọn mục
+                LogOut.SelectedItem = null;
             }
         }
-
     }
-
 }
