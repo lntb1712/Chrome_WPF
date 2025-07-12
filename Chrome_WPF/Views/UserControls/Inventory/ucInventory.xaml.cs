@@ -32,5 +32,14 @@ namespace Chrome_WPF.Views.UserControls.Inventory
             DataContext = _viewModel;
             _notificationService.RegisterSnackbar(InventorySnackbar);
         }
+
+        private void MenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem menuItem)
+            {
+                var viewMode = menuItem.Header.ToString() == "Vật lý" ? 0 : 1;
+                _viewModel.ViewMode = viewMode; // Giả sử ViewModel có thuộc tính ViewMode
+            }
+        }
     }
 }

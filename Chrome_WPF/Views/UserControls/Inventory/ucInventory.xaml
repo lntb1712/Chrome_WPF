@@ -9,6 +9,7 @@
     xmlns:local="clr-namespace:Chrome_WPF.Views.UserControls.Inventory"
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib"
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
@@ -16,6 +17,57 @@
         <!--  Converters  -->
         <converters:PageEqualityConverter x:Key="PageEqualityConverter" />
         <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <converters:IndexToVisibilityConverter x:Key="IndexToVisibilityConverter" />
+        <converters:PercentageToWidthConverter x:Key="PercentageToWidthConverter" />
+        <converters:PercentageToColorConverter x:Key="PercentageToColorConverter" />
+        <converters:BoolToViewModeConverter x:Key="BoolToViewModeConverter" />
+        <Style x:Key="iOSSwitchToggleStyle" TargetType="ToggleButton">
+            <Setter Property="Width" Value="150" />
+            <Setter Property="Height" Value="40" />
+            <Setter Property="Background" Value="#DDD" />
+            <Setter Property="BorderBrush" Value="#CCC" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Grid>
+                            <Border
+                                x:Name="SwitchBackground"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="20" />
+                            <Border
+                                x:Name="Thumb"
+                                Width="70"
+                                Height="30"
+                                Margin="5,0,0,0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Background="White"
+                                CornerRadius="15">
+                                <TextBlock
+                                    x:Name="ThumbLabel"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    FontSize="12"
+                                    FontWeight="Bold"
+                                    Foreground="Black"
+                                    Text="Vật lý" />
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="SwitchBackground" Property="Background" Value="Gray" />
+                                <Setter TargetName="Thumb" Property="Margin" Value="75,0,0,0" />
+                                <Setter TargetName="ThumbLabel" Property="Text" Value="Trực quan" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
         <!--  PageItemTemplateSelector for pagination  -->
         <helper:PageItemTemplateSelector x:Key="PageItemTemplateSelector">
@@ -144,7 +196,12 @@
 
         <!--  Header Section  -->
         <Grid Grid.Row="0" Margin="20,20,0,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
             <TextBlock
+                Grid.Column="0"
                 FontSize="24"
                 FontWeight="Bold"
                 Foreground="#2D3748"
@@ -154,9 +211,14 @@
                 <Run Text="{Binding ApplicableLocation}" />
                 <Run Text=")" />
             </TextBlock>
+            <ToggleButton
+                Grid.Column="1"
+                Margin="0,0,20,0"
+                IsChecked="{Binding ViewMode, Converter={StaticResource BoolToViewModeConverter}, Mode=TwoWay}"
+                Style="{StaticResource iOSSwitchToggleStyle}" />
         </Grid>
 
-        <!--  Filters and DataGrid Section  -->
+        <!--  Filters and DataGrid/Visual Grid Section  -->
         <Grid Grid.Row="1" Margin="10">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -165,7 +227,10 @@
             </Grid.RowDefinitions>
 
             <!--  Filters  -->
-            <StackPanel Margin="0,0,0,10">
+            <StackPanel
+                Grid.Row="0"
+                Margin="0,0,0,10"
+                Visibility="{Binding ViewMode, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=0}">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -217,8 +282,6 @@
                     </Button>
                     <Button
                         Grid.Column="3"
-                        HorizontalAlignment="Right"
-                        Background="Transparent"
                         Command="{Binding RefreshCommand}"
                         Style="{StaticResource FilterButtonStyle}"
                         ToolTip="Làm mới">
@@ -232,67 +295,199 @@
                 </Grid>
             </StackPanel>
 
-            <!--  DataGrid  -->
-            <DataGrid
-                Grid.Row="1"
-                AutoGenerateColumns="False"
-                CanUserAddRows="False"
-                IsReadOnly="True"
-                ItemsSource="{Binding InventoryList, UpdateSourceTrigger=PropertyChanged}"
-                SelectionMode="Single"
-                Style="{StaticResource ModernDataGridStyle}"
-                VirtualizingPanel.IsVirtualizing="True">
-                <i:Interaction.Triggers>
-                    <i:EventTrigger EventName="MouseDoubleClick">
-                        <i:InvokeCommandAction Command="{Binding ViewDetailCommand}" CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=DataGrid}}" />
-                    </i:EventTrigger>
-                </i:Interaction.Triggers>
-                <DataGrid.Columns>
-                    <DataGridTextColumn
-                        Width="1.5*"
-                        Binding="{Binding ProductCode}"
-                        Header="Mã sản phẩm" />
-                    <DataGridTextColumn
-                        Width="3*"
-                        Binding="{Binding ProductName}"
-                        Header="Tên sản phẩm" />
-                    <DataGridTextColumn
-                        Width="2*"
-                        Binding="{Binding CategoryName}"
-                        Header="Danh mục" />
-                    <DataGridTextColumn
-                        Width="100"
-                        Binding="{Binding BaseQuantity, StringFormat={}{0:N2}}"
-                        Header="Số lượng">
-                        <DataGridTextColumn.ElementStyle>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="HorizontalAlignment" Value="Right" />
-                            </Style>
-                        </DataGridTextColumn.ElementStyle>
-                    </DataGridTextColumn>
+            <!--  DataGrid or Visual Grid  -->
+            <Grid Grid.Row="1">
+                <!--  DataGrid for Physical View  -->
+                <DataGrid
+                    x:Name="PhysicalDataGrid"
+                    AutoGenerateColumns="False"
+                    CanUserAddRows="False"
+                    IsReadOnly="True"
+                    ItemsSource="{Binding InventoryList, UpdateSourceTrigger=PropertyChanged}"
+                    SelectionMode="Single"
+                    Style="{StaticResource ModernDataGridStyle}"
+                    VirtualizingPanel.IsVirtualizing="True"
+                    Visibility="{Binding ViewMode, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=0}">
+                    <i:Interaction.Triggers>
+                        <i:EventTrigger EventName="MouseDoubleClick">
+                            <i:InvokeCommandAction Command="{Binding ViewDetailCommand}" CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=DataGrid}}" />
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn
+                            Width="1.5*"
+                            Binding="{Binding ProductCode}"
+                            Header="Mã sản phẩm" />
+                        <DataGridTextColumn
+                            Width="3*"
+                            Binding="{Binding ProductName}"
+                            Header="Tên sản phẩm" />
+                        <DataGridTextColumn
+                            Width="2*"
+                            Binding="{Binding CategoryName}"
+                            Header="Danh mục" />
+                        <DataGridTextColumn
+                            Width="100"
+                            Binding="{Binding BaseQuantity, StringFormat={}{0:N2}}"
+                            Header="Số lượng">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Right" />
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn
+                            Width="1*"
+                            Binding="{Binding BaseUOM}"
+                            Header="Đơn vị" />
+                        <DataGridTextColumn
+                            Width="130"
+                            Binding="{Binding Quantity}"
+                            Header="Số lượng cơ bản">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Right" />
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn
+                            Width="1*"
+                            Binding="{Binding UOM}"
+                            Header="Đơn vị cơ bản" />
+                    </DataGrid.Columns>
+                </DataGrid>
 
-                    <DataGridTextColumn
-                        Width="1*"
-                        Binding="{Binding BaseUOM}"
-                        Header="Đơn vị" />
-                    <DataGridTextColumn
-                        Width="130"
-                        Binding="{Binding Quantity}"
-                        Header="Số lượng cơ bản">
-                        <DataGridTextColumn.ElementStyle>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="HorizontalAlignment" Value="Right" />
-                            </Style>
-                        </DataGridTextColumn.ElementStyle>
-                    </DataGridTextColumn>
+                <!--  Visual Grid for Trực quan View  -->
+                <Grid Margin="12" Visibility="{Binding ViewMode, Converter={StaticResource IndexToVisibilityConverter}, ConverterParameter=1}">
+                    <ItemsControl ItemsSource="{Binding WarehouseRegions}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border
+                                    Margin="8"
+                                    Padding="12"
+                                    Background="#FFFFFF"
+                                    BorderBrush="#D1D5DB"
+                                    BorderThickness="1"
+                                    CornerRadius="8">
 
-                    <DataGridTextColumn
-                        Width="1*"
-                        Binding="{Binding UOM}"
-                        Header="Đơn vị cơ bản" />
+                                    <StackPanel>
+                                        <TextBlock
+                                            Margin="0,0,0,8"
+                                            FontSize="18"
+                                            FontWeight="SemiBold"
+                                            Foreground="#1F2937"
+                                            Text="{Binding WarehouseName}" />
+                                        <ItemsControl ItemsSource="{Binding locationUsageDTOs}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <UniformGrid Columns="5" />
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border
+                                                        Width="Auto"
+                                                        Height="40"
+                                                        Margin="6"
+                                                        Background="#FFFFFF"
+                                                        BorderBrush="#D1D5DB"
+                                                        BorderThickness="1"
+                                                        CornerRadius="6"
+                                                        Cursor="Hand">
+                                                        <Border.Triggers>
+                                                            <EventTrigger RoutedEvent="MouseEnter">
+                                                                <BeginStoryboard>
+                                                                    <Storyboard>
+                                                                        <ColorAnimation
+                                                                            Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                                            To="#F9FAFB"
+                                                                            Duration="0:0:0.2" />
+                                                                    </Storyboard>
+                                                                </BeginStoryboard>
+                                                            </EventTrigger>
+                                                            <EventTrigger RoutedEvent="MouseLeave">
+                                                                <BeginStoryboard>
+                                                                    <Storyboard>
+                                                                        <ColorAnimation
+                                                                            Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                                            To="#FFFFFF"
+                                                                            Duration="0:0:0.2" />
+                                                                    </Storyboard>
+                                                                </BeginStoryboard>
+                                                            </EventTrigger>
+                                                        </Border.Triggers>
 
-                </DataGrid.Columns>
-            </DataGrid>
+                                                        <Border.Effect>
+                                                            <DropShadowEffect
+                                                                BlurRadius="6"
+                                                                Opacity="0.15"
+                                                                ShadowDepth="1"
+                                                                Color="#000000" />
+                                                        </Border.Effect>
+
+                                                        <!--  Progress bar full height + text overlay  -->
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto" />
+                                                                <ColumnDefinition Width="*" />
+                                                            </Grid.ColumnDefinitions>
+
+                                                            <!--  LocationCode bên trái có đường kẻ  -->
+                                                            <Border
+                                                                Grid.Column="0"
+                                                                Padding="8,0"
+                                                                VerticalAlignment="Center"
+                                                                BorderBrush="#E5E7EB"
+                                                                BorderThickness="0,0,1,0">
+                                                                <TextBlock
+                                                                    FontSize="13"
+                                                                    FontWeight="SemiBold"
+                                                                    Foreground="Black"
+                                                                    Text="{Binding LocationCode}" />
+                                                            </Border>
+
+                                                            <!--  Phần progress bar + phần trăm nằm bên phải  -->
+                                                            <Grid Grid.Column="1" VerticalAlignment="Center">
+                                                                <!--  Thanh progress  -->
+                                                                <Rectangle
+                                                                    Width="{Binding UsedPercentage, Converter={StaticResource PercentageToWidthConverter}, ConverterParameter=150}"
+                                                                    Height="60"
+                                                                    HorizontalAlignment="Left"
+                                                                    Fill="{Binding UsedPercentage, Converter={StaticResource PercentageToColorConverter}}">
+                                                                    <Rectangle.ToolTip>
+                                                                        <StackPanel>
+                                                                            <TextBlock Text="{Binding LocationName}" />
+                                                                            <TextBlock>
+                                                                                <Run Text="Tổng số lượng: " />
+                                                                                <Run Text="{Binding Quantity}" />
+                                                                            </TextBlock>
+                                                                        </StackPanel>
+                                                                    </Rectangle.ToolTip>
+                                                                </Rectangle>
+
+                                                                <!--  Text phần trăm ở giữa progress  -->
+                                                                <TextBlock
+                                                                    Margin="8,0"
+                                                                    HorizontalAlignment="Center"
+                                                                    VerticalAlignment="Center"
+                                                                    FontSize="13"
+                                                                    FontWeight="SemiBold"
+                                                                    Foreground="Black"
+                                                                    Text="{Binding UsedPercentage, StringFormat={}{0:N2}%}" />
+                                                            </Grid>
+                                                        </Grid>
+
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+            </Grid>
 
             <!--  Pagination  -->
             <StackPanel

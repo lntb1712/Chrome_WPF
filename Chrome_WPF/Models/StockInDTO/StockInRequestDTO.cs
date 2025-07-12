@@ -13,7 +13,7 @@ namespace Chrome_WPF.Models.StockInDTO
         private string _stockInCode = string.Empty;
         private string _orderTypeCode = string.Empty;
         private string _warehouseCode = string.Empty;
-        private string _supplierCode = string.Empty;
+        private string _purchaseOrderCode = string.Empty;
         private string _responsible = string.Empty;
         private int _statusId = 1;
         private string _orderDeadLine = string.Empty;
@@ -57,14 +57,14 @@ namespace Chrome_WPF.Models.StockInDTO
                 OnPropertyChanged(nameof(WarehouseCode));
             }
         }
-        [Required(ErrorMessage = "Mã nhà cung cấp không được để trống")]
-        public string SupplierCode
+        [Required(ErrorMessage = "Mã phiếu đặt hàng không được để trống")]
+        public string PurchaseOrderCode
         {
-            get => _supplierCode;
+            get => _purchaseOrderCode;
             set
             {
-                _supplierCode = value;
-                OnPropertyChanged(nameof(SupplierCode));
+                _purchaseOrderCode = value;
+                OnPropertyChanged(nameof(PurchaseOrderCode));
             }
         }
 
@@ -136,7 +136,7 @@ namespace Chrome_WPF.Models.StockInDTO
             OnPropertyChanged(nameof(StockInCode));
             OnPropertyChanged(nameof(OrderTypeCode));
             OnPropertyChanged(nameof(WarehouseCode));
-            OnPropertyChanged(nameof(SupplierCode));
+            OnPropertyChanged(nameof(PurchaseOrderCode));
             OnPropertyChanged(nameof(Responsible));
             OnPropertyChanged(nameof(OrderDeadLine));
         }
@@ -147,7 +147,7 @@ namespace Chrome_WPF.Models.StockInDTO
             OnPropertyChanged(nameof(StockInCode));
             OnPropertyChanged(nameof(OrderTypeCode));
             OnPropertyChanged(nameof(WarehouseCode));
-            OnPropertyChanged(nameof(SupplierCode));
+            OnPropertyChanged(nameof(PurchaseOrderCode));
             OnPropertyChanged(nameof(Responsible));
             OnPropertyChanged(nameof(OrderDeadLine));
         }

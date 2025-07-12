@@ -2,6 +2,7 @@
 using Chrome_WPF.Models.APIResult;
 using Chrome_WPF.Models.OrderTypeDTO;
 using Chrome_WPF.Models.PagedResponse;
+using Chrome_WPF.Models.PurchaseOrderDTO;
 using Chrome_WPF.Models.StatusMasterDTO;
 using Chrome_WPF.Models.StockInDTO;
 using Chrome_WPF.Models.SupplierMasterDTO;
@@ -21,7 +22,7 @@ namespace Chrome_WPF.Services.StockInService
         Task<ApiResult<PagedResponse<StockInResponseDTO>>> GetAllStockInsWithStatus( int statusId, int page, int pageSize);
         Task<ApiResult<PagedResponse<StockInResponseDTO>>> SearchStockInAsync(string textToSearch, int page, int pageSize);
         Task<ApiResult<List<OrderTypeResponseDTO>>> GetListOrderType(string prefix);
-        Task<ApiResult<List<SupplierMasterResponseDTO>>> GetListSupplierMasterAsync();
+        Task<ApiResult<List<PurchaseOrderResponseDTO>>> GetListPurchaseOrder(int[]? statusFilters);
         Task<ApiResult<List<AccountManagementResponseDTO>>> GetListResponsibleAsync(string warehouseCode);
         Task<ApiResult<List<StatusMasterResponseDTO>>> GetListStatusMaster();
         Task<ApiResult<List<WarehouseMasterResponseDTO>>> GetListWarehousePermission();

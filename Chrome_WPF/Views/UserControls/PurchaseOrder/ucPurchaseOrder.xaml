@@ -1,12 +1,12 @@
 ﻿<UserControl
-    x:Class="Chrome_WPF.Views.UserControls.StockIn.ucStockIn"
+    x:Class="Chrome_WPF.Views.UserControls.PurchaseOrder.ucPurchaseOrder"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="clr-namespace:Chrome_WPF.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:helper="clr-namespace:Chrome_WPF.Helpers"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-    xmlns:local="clr-namespace:Chrome_WPF.Views.UserControls.StockIn"
+    xmlns:local="clr-namespace:Chrome_WPF.Views.UserControls.PurchaseOrder"
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DesignHeight="450"
@@ -149,7 +149,7 @@
                 FontWeight="Bold"
                 Foreground="#2D3748"
                 Style="{StaticResource MaterialDesignHeadline6TextBlock}">
-                <Run Text="Quản lý nhập kho" />
+                <Run Text="Quản lý đơn đặt hàng" />
                 <Run Text="(" />
                 <Run Text="{Binding ApplicableLocation}" />
                 <Run Text=")" />
@@ -178,7 +178,7 @@
                         Grid.Column="1"
                         Margin="0,0,10,0"
                         Padding="8"
-                        materialDesign:HintAssist.Hint="Tìm kiếm nhập kho ..."
+                        materialDesign:HintAssist.Hint="Tìm kiếm đơn đặt hàng ..."
                         Foreground="#A0AEC0"
                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
@@ -213,7 +213,7 @@
                             <TextBlock
                                 VerticalAlignment="Center"
                                 Foreground="#2D3748"
-                                Text="Thêm phiếu nhập mới" />
+                                Text="Thêm đơn đặt hàng mới" />
                         </StackPanel>
                     </Button>
                     <Button
@@ -255,7 +255,7 @@
                 AutoGenerateColumns="False"
                 CanUserAddRows="False"
                 IsReadOnly="True"
-                ItemsSource="{Binding StockInList, UpdateSourceTrigger=PropertyChanged}"
+                ItemsSource="{Binding PurchaseOrderList, UpdateSourceTrigger=PropertyChanged}"
                 SelectionMode="Single"
                 Style="{StaticResource ModernDataGridStyle}"
                 VirtualizingPanel.IsVirtualizing="True">
@@ -266,17 +266,9 @@
                 </i:Interaction.Triggers>
                 <DataGrid.Columns>
                     <DataGridTextColumn
-                        Width="1.5*"
-                        Binding="{Binding StockInCode}"
-                        Header="Mã nhập kho" />
-                    <DataGridTextColumn
                         Width="2*"
                         Binding="{Binding PurchaseOrderCode}"
-                        Header="Mã đặt hàng" />
-                    <DataGridTextColumn
-                        Width="2*"
-                        Binding="{Binding OrderTypeName}"
-                        Header="Loại lệnh" />
+                        Header="Mã đơn đặt hàng" />
                     <DataGridTextColumn
                         Width="2*"
                         Binding="{Binding WarehouseName}"
@@ -285,10 +277,6 @@
                         Width="2*"
                         Binding="{Binding SupplierName}"
                         Header="Nhà cung cấp" />
-                    <DataGridTextColumn
-                        Width="2*"
-                        Binding="{Binding FullNameResponsible}"
-                        Header="Người phụ trách" />
                     <DataGridTextColumn
                         Width="1.5*"
                         Binding="{Binding StatusName}"
@@ -300,17 +288,14 @@
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding StatusId}" Value="1">
                                         <Setter Property="Background" Value="#FF9999" />
-                                        <!--  Red  -->
                                         <Setter Property="Foreground" Value="White" />
                                     </DataTrigger>
                                     <DataTrigger Binding="{Binding StatusId}" Value="2">
                                         <Setter Property="Background" Value="#FFFF99" />
-                                        <!--  Yellow  -->
                                         <Setter Property="Foreground" Value="Black" />
                                     </DataTrigger>
                                     <DataTrigger Binding="{Binding StatusId}" Value="3">
                                         <Setter Property="Background" Value="#99FF99" />
-                                        <!--  Green  -->
                                         <Setter Property="Foreground" Value="Black" />
                                     </DataTrigger>
                                 </Style.Triggers>
@@ -319,8 +304,12 @@
                     </DataGridTextColumn>
                     <DataGridTextColumn
                         Width="1.5*"
-                        Binding="{Binding OrderDeadline}"
-                        Header="Hạn nhập hàng" />
+                        Binding="{Binding OrderDate}"
+                        Header="Ngày đặt hàng" />
+                    <DataGridTextColumn
+                        Width="1.5*"
+                        Binding="{Binding ExpectedDate}"
+                        Header="Ngày dự kiến" />
                     <DataGridTemplateColumn Width="80" IsReadOnly="True">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
@@ -384,7 +373,7 @@
 
             <!--  Snackbar  -->
             <materialDesign:Snackbar
-                x:Name="StockInSnackbar"
+                x:Name="PurchaseOrderSnackbar"
                 Grid.Row="2"
                 Width="Auto"
                 Margin="16"

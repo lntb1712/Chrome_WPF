@@ -23,6 +23,8 @@ using Chrome_WPF.Services.PickListService;
 using Chrome_WPF.Services.ProductCustomerService;
 using Chrome_WPF.Services.ProductMasterService;
 using Chrome_WPF.Services.ProductSupplierService;
+using Chrome_WPF.Services.PurchaseOrderDetailService;
+using Chrome_WPF.Services.PurchaseOrderService;
 using Chrome_WPF.Services.PutAwayDetailService;
 using Chrome_WPF.Services.PutAwayRulesService;
 using Chrome_WPF.Services.PutAwayService;
@@ -50,6 +52,7 @@ using Chrome_WPF.ViewModels.ManufacturingOrderViewModel;
 using Chrome_WPF.ViewModels.MovementViewModel;
 using Chrome_WPF.ViewModels.PickListViewModel;
 using Chrome_WPF.ViewModels.ProductMasterViewModel;
+using Chrome_WPF.ViewModels.PurchaseOrderViewModel;
 using Chrome_WPF.ViewModels.PutAwayViewModel;
 using Chrome_WPF.ViewModels.ReservationViewModel;
 using Chrome_WPF.ViewModels.StockInViewModel;
@@ -70,6 +73,7 @@ using Chrome_WPF.Views.UserControls.ManufacturingOrder;
 using Chrome_WPF.Views.UserControls.Movement;
 using Chrome_WPF.Views.UserControls.PickList;
 using Chrome_WPF.Views.UserControls.ProductMaster;
+using Chrome_WPF.Views.UserControls.PurchaseOrder;
 using Chrome_WPF.Views.UserControls.PutAway;
 using Chrome_WPF.Views.UserControls.Replenish;
 using Chrome_WPF.Views.UserControls.Reservation;
@@ -158,6 +162,9 @@ namespace Chrome_WPF
             services.AddSingleton<IManufacturingOrderDetailService, ManufacturingOrderDetailService>();
             services.AddSingleton<IDashboardService ,DashboardService>();
             services.AddSingleton<IReplenishService, ReplenishService>();
+            services.AddSingleton<IPurchaseOrderService, PurchaseOrderService>();
+            services.AddSingleton<IPurchaseOrderDetailService, PurchaseOrderDetailService>();
+
 
             // Register IServiceProvider
             services.AddSingleton(sp => sp);
@@ -218,6 +225,9 @@ namespace Chrome_WPF
             services.AddTransient<DashboardViewModel>();
             services.AddTransient<ReplenishViewModel>();
             services.AddTransient<MainWindowViewModel>();
+            services.AddTransient<PurchaseOrderViewModel>();
+            services.AddTransient<PurchaseOrderDetailViewModel>();
+            services.AddTransient<ViewModels.PurchaseOrderViewModel.BackOrderDialogViewModel>();
 
             // Register Views
             services.AddTransient<LoginWindow>(provider =>
@@ -442,6 +452,20 @@ namespace Chrome_WPF
                 new ucReplenish(
                     provider.GetRequiredService<ReplenishViewModel>(),
                     provider.GetRequiredService<INotificationService>()));
+
+            services.AddTransient<ucPurchaseOrder>(provider =>
+                new ucPurchaseOrder(
+                    provider.GetRequiredService<PurchaseOrderViewModel>(),
+                    provider.GetRequiredService<INotificationService>()));
+
+            services.AddTransient<ucPurchaseOrderDetail>(provider =>
+                new ucPurchaseOrderDetail(
+                    provider.GetRequiredService<PurchaseOrderDetailViewModel>(),
+                    provider.GetRequiredService<INotificationService>()));
+
+            services.AddTransient<Views.UserControls.PurchaseOrder.BackOrderDialog>(provider =>
+                new Views.UserControls.PurchaseOrder.BackOrderDialog(
+                    provider.GetRequiredService<ViewModels.PurchaseOrderViewModel.BackOrderDialogViewModel>()));
 
         }
 

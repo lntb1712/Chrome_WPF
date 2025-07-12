@@ -22,7 +22,7 @@ namespace Chrome.Services.ManufacturingOrderService
         Task<ApiResult<bool>> UpdateManufacturingOrderAsync(ManufacturingOrderRequestDTO manufacturingOrder);
         Task<ApiResult<bool>> DeleteManufacturingOrderAsync(string manufacturingCode);
         Task<ApiResult<bool>> ConfirmManufacturingOrder(string manufacturingCode);
-        Task<ApiResult<bool>> CreateBackOrder(string manufacturingCode);
+        Task<ApiResult<bool>> CreateBackOrder(string manufacturingCode,string scheduleDateBackOrder, string deadLineBackOrder);
         Task<ApiResult<bool>> CheckAndUpdateBackOrderStatus(string manufacturingCode);
         Task<ApiResult<List<OrderTypeResponseDTO>>> GetListOrderTypeAsync(string prefix);
         Task<ApiResult<List<AccountManagementResponseDTO>>> GetListResponsibleAsync(string warehouseCode);

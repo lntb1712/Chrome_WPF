@@ -1,29 +1,33 @@
 ﻿using Chrome_WPF.Helpers;
-using Chrome_WPF.Models.ManufacturingOrderDTO;
+using Chrome_WPF.Models.PurchaseOrderDetailDTO;
+using Chrome_WPF.Models.StockInDetailDTO;
 using Chrome_WPF.Services.NotificationService;
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 
-namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
+namespace Chrome_WPF.ViewModels.PurchaseOrderViewModel
 {
     public class BackOrderDialogViewModel : BaseViewModel
     {
         private readonly INotificationService _notificationService;
-        private ManufacturingOrderRequestDTO _manufacturing;
+        private ObservableCollection<PurchaseOrderDetailResponseDTO> _purchaseOrderDetails;
         private bool _createBackorder;
         private bool _noBackorder;
         private bool _isClosed;
-        private DateTime? _scheduleDate;
-        private DateTime? _deadline;
+        private DateTime? _selectedDate;
 
-        public ManufacturingOrderRequestDTO Manufacturing
+        public ObservableCollection<PurchaseOrderDetailResponseDTO> PurchaseOrderDetails
         {
-            get => _manufacturing;
+            get => _purchaseOrderDetails;
             set
             {
-                _manufacturing = value;
+                _purchaseOrderDetails = value;
                 OnPropertyChanged();
             }
         }
@@ -35,7 +39,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
             {
                 _createBackorder = value;
                 OnPropertyChanged();
-                OnPropertyChanged(nameof(NoBackorder));
+                OnPropertyChanged(nameof(NoBackorder)); // Update to ensure mutual exclusivity
             }
         }
 
@@ -46,7 +50,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
             {
                 _noBackorder = value;
                 OnPropertyChanged();
-                OnPropertyChanged(nameof(CreateBackorder));
+                OnPropertyChanged(nameof(CreateBackorder)); // Update to ensure mutual exclusivity
             }
         }
 
@@ -60,22 +64,12 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
             }
         }
 
-        public DateTime? ScheduleDate
+        public DateTime? SelectedDate
         {
-            get => _scheduleDate;
+            get => _selectedDate;
             set
             {
-                _scheduleDate = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public DateTime? Deadline
-        {
-            get => _deadline;
-            set
-            {
-                _deadline = value;
+                _selectedDate = value;
                 OnPropertyChanged();
             }
         }
@@ -86,13 +80,11 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
 
         public BackOrderDialogViewModel(
             INotificationService notificationService,
-            ManufacturingOrderRequestDTO manufacturing)
+            ObservableCollection<PurchaseOrderDetailResponseDTO> PurchaseOrderDetails)
         {
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
-            _manufacturing = manufacturing ?? throw new ArgumentNullException(nameof(manufacturing));
-
-            _scheduleDate = DateTime.Now;
-            _deadline = DateTime.Now.AddDays(7);
+            _purchaseOrderDetails = PurchaseOrderDetails ?? throw new ArgumentNullException(nameof(PurchaseOrderDetails));
+            _selectedDate = DateTime.Now; // Default to current date
 
             CreateBackorderCommand = new RelayCommand(_ => ExecuteCreateBackorder(), CanExecuteCreateBackorder);
             NoBackorderCommand = new RelayCommand(_ => ExecuteNoBackorder());
@@ -101,11 +93,11 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
 
         private void ExecuteCreateBackorder()
         {
-            if (Manufacturing.QuantityProduced < Manufacturing.Quantity)
+            if (PurchaseOrderDetails.Any(d => d.QuantityReceived < d.Quantity))
             {
-                if (!ScheduleDate.HasValue || !Deadline.HasValue || Deadline < ScheduleDate)
+                if (!SelectedDate.HasValue || SelectedDate.Value < DateTime.Today)
                 {
-                    _notificationService.ShowMessage("Vui lòng chọn ngày bắt đầu và hạn hoàn thành hợp lệ.", "OK", isError: true);
+                    _notificationService.ShowMessage("Vui lòng chọn ngày dự kiến hoàn thành hợp lệ (từ hôm nay trở đi).", "OK", isError: true);
                     return;
                 }
 
@@ -116,13 +108,13 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
             }
             else
             {
-                _notificationService.ShowMessage("Không cần tạo backorder vì tất cả sản phẩm đã được sản xuất đủ.", "OK", isError: true);
+                _notificationService.ShowMessage("Không cần tạo backorder vì tất cả sản phẩm đã đủ số lượng.", "OK", isError: true);
             }
         }
 
         private bool CanExecuteCreateBackorder(object parameter)
         {
-            return ScheduleDate.HasValue && Deadline.HasValue && Deadline.Value >= ScheduleDate.Value;
+            return SelectedDate.HasValue && SelectedDate.Value >= DateTime.Today;
         }
 
         private void ExecuteNoBackorder()

@@ -4,6 +4,7 @@ using Chrome_WPF.Models.APIResult;
 using Chrome_WPF.Models.InventoryDTO;
 using Chrome_WPF.Models.OrderTypeDTO;
 using Chrome_WPF.Models.PagedResponse;
+using Chrome_WPF.Models.PurchaseOrderDTO;
 using Chrome_WPF.Models.StatusMasterDTO;
 using Chrome_WPF.Models.StockInDTO;
 using Chrome_WPF.Models.SupplierMasterDTO;
@@ -282,60 +283,7 @@ namespace Chrome_WPF.Services.StockInService
             }
         }
 
-        public async Task<ApiResult<List<SupplierMasterResponseDTO>>> GetListSupplierMasterAsync()
-        {
-            try
-            {
-                var response = await _httpClient.GetAsync("StockIn/GetListSupplierMasterAsync").ConfigureAwait(false);
-                var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = JsonConvert.DeserializeObject<ApiResult<List<SupplierMasterResponseDTO>>>(jsonResponse);
-                    if (result == null || !result.Success)
-                    {
-                        return new ApiResult<List<SupplierMasterResponseDTO>>(result?.Message ?? "Không thể phân tích phản hồi", false);
-                    }
-                    return result;
-                }
-                var errorResult = JsonConvert.DeserializeObject<ApiResult<List<SupplierMasterResponseDTO>>>(jsonResponse);
-                var errorMessage = errorResult?.Message ?? "Không thể lấy danh sách nhà cung cấp";
-                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-                {
-                    return new ApiResult<List<SupplierMasterResponseDTO>>(errorMessage, false);
-                }
-                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
-                {
-                    return new ApiResult<List<SupplierMasterResponseDTO>>(errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không có quyền truy cập"
-                }
-                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    return new ApiResult<List<SupplierMasterResponseDTO>>(errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không tồn tại"
-                }
-                else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
-                {
-                    return new ApiResult<List<SupplierMasterResponseDTO>>(errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Lỗi máy chủ nội bộ"
-                }
-                else
-                {
-                    return new ApiResult<List<SupplierMasterResponseDTO>>(errorMessage, false); // Trả về thông điệp lỗi chung
-                }
-            }
-            catch (HttpRequestException ex)
-            {
-                // Lỗi mạng
-                return new ApiResult<List<SupplierMasterResponseDTO>>($"Lỗi mạng: {ex.Message}", false);
-            }
-            catch (JsonException ex)
-            {
-                // Lỗi phân tích JSON
-                return new ApiResult<List<SupplierMasterResponseDTO>>($"Lỗi phân tích phản hồi: {ex.Message}", false);
-            }
-            catch (Exception ex)
-            {
-                // Lỗi không xác định
-                return new ApiResult<List<SupplierMasterResponseDTO>>($"Lỗi không xác định: {ex.Message}", false);
-            }
-        }
+        
 
         public async Task<ApiResult<List<AccountManagementResponseDTO>>> GetListResponsibleAsync(string warehouseCode)
         {
@@ -742,6 +690,64 @@ namespace Chrome_WPF.Services.StockInService
             {
                 // Lỗi không xác định
                 return new ApiResult<StockInResponseDTO>($"Lỗi không xác định: {ex.Message}", false);
+            }
+        }
+
+        public async Task<ApiResult<List<PurchaseOrderResponseDTO>>> GetListPurchaseOrder(int[]? statusFilters)
+        {
+            try
+            {
+                UpdateWarehousePermissions();
+                var queryWarehousePermission = string.Join("&", warehousePermissions.Select(id => $"warehouseCodes={Uri.EscapeDataString(id)}"));
+                var queryStatus = string.Join("&", statusFilters!.Select(id1 => $"statusFilters={Uri.EscapeDataString(id1.ToString())}"));
+                var response = await _httpClient.GetAsync($"StockIn/GetListPurchaseOrder?{queryWarehousePermission}&{queryStatus}").ConfigureAwait(false);
+                var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = JsonConvert.DeserializeObject<ApiResult<List<PurchaseOrderResponseDTO>>>(jsonResponse);
+                    if (result == null || !result.Success)
+                    {
+                        return new ApiResult<List<PurchaseOrderResponseDTO>>(result?.Message ?? "Không thể phân tích phản hồi", false);
+                    }
+                    return result;
+                }
+                var errorResult = JsonConvert.DeserializeObject<ApiResult<List<PurchaseOrderResponseDTO>>>(jsonResponse);
+                var errorMessage = errorResult?.Message ?? "Không thể lấy danh sách đơn hàng";
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    return new ApiResult<List<PurchaseOrderResponseDTO>>(errorMessage, false);
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    return new ApiResult<List<PurchaseOrderResponseDTO>>(errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không có quyền truy cập"
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return new ApiResult<List<PurchaseOrderResponseDTO>>(errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không tồn tại"
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+                {
+                    return new ApiResult<List<PurchaseOrderResponseDTO>>(errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Lỗi máy chủ nội bộ"
+                }
+                else
+                {
+                    return new ApiResult<List<PurchaseOrderResponseDTO>>(errorMessage, false); // Trả về thông điệp lỗi chung
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                // Lỗi mạng
+                return new ApiResult<List<PurchaseOrderResponseDTO>>($"Lỗi mạng: {ex.Message}", false);
+            }
+            catch (JsonException ex)
+            {
+                // Lỗi phân tích JSON
+                return new ApiResult<List<PurchaseOrderResponseDTO>>($"Lỗi phân tích phản hồi: {ex.Message}", false);
+            }
+            catch (Exception ex)
+            {
+                // Lỗi không xác định
+                return new ApiResult<List<PurchaseOrderResponseDTO>>($"Lỗi không xác định: {ex.Message}", false);
             }
         }
     }

@@ -36,6 +36,7 @@ namespace Chrome_WPF.ViewModels
         private bool _canInventory;
         private bool _canReservation;
         private bool _canReplenish;
+        private bool _canPurchaseOrder;
         private string _currentDateTime;
         private readonly DispatcherTimer _timer;
 
@@ -94,6 +95,15 @@ namespace Chrome_WPF.ViewModels
             {
                 _canGroupManagement = value;
                 OnPropertyChanged(nameof(CanGroupManagement));
+            }
+        }
+        public bool CanPurchaseOrder
+        {
+            get => _canPurchaseOrder;
+            set
+            {
+                _canPurchaseOrder = value;
+                OnPropertyChanged(nameof(CanPurchaseOrder));
             }
         }
         public bool CanReplenish
@@ -276,6 +286,8 @@ namespace Chrome_WPF.ViewModels
                 if (userInfo != null)
                 {
                     UserInformationDTO = userInfo.Data;
+                    Properties.Settings.Default.RoleName = userInfo.Data!.GroupName;
+                    Properties.Settings.Default.Save();
                 }
             }
             catch
@@ -320,6 +332,7 @@ namespace Chrome_WPF.ViewModels
             CanInventory = Permission.Contains("ucInventory");
             CanReservation = Permission.Contains("ucReservation");
             CanReplenish = Permission.Contains("ucReplenish");
+            CanPurchaseOrder = Permission.Contains("ucPurchaseOrder");
         }
     }
 }

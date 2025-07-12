@@ -499,7 +499,7 @@ namespace Chrome_WPF.Services.ManufacturingOrderService
             }
         }
 
-        public async Task<ApiResult<bool>> CreateBackOrder(string manufacturingCode)
+        public async Task<ApiResult<bool>> CreateBackOrder(string manufacturingCode, string scheduleDateBackOrder, string deadLineBackOrder)
         {
             if (string.IsNullOrEmpty(manufacturingCode))
             {
@@ -507,7 +507,7 @@ namespace Chrome_WPF.Services.ManufacturingOrderService
             }
             try
             {
-                var response = await _httpClient.PostAsync($"ManufacturingOrder/CreateBackOrder?manufacturingCode={Uri.EscapeDataString(manufacturingCode)}", null).ConfigureAwait(false);
+                var response = await _httpClient.PostAsync($"ManufacturingOrder/CreateBackOrder?manufacturingCode={Uri.EscapeDataString(manufacturingCode)}&scheduleDateBackOrder={Uri.EscapeDataString(scheduleDateBackOrder)} &deadLineBackOrder={Uri.EscapeDataString(deadLineBackOrder)}", null).ConfigureAwait(false);
                 var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 if (response.IsSuccessStatusCode)
                 {

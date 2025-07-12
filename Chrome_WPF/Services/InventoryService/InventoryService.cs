@@ -4,6 +4,7 @@ using Chrome_WPF.Models.CategoryDTO;
 using Chrome_WPF.Models.InventoryDTO;
 using Chrome_WPF.Models.PagedResponse;
 using Chrome_WPF.Models.ProductMasterDTO;
+using DocumentFormat.OpenXml.Wordprocessing;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -326,6 +327,61 @@ namespace Chrome_WPF.Services.InventoryService
             catch (Exception ex)
             {
                 return new ApiResult<PagedResponse<InventorySummaryDTO>>($"Lỗi không xác định: {ex.Message}", false);
+            }
+        }
+
+        public async Task<ApiResult<List<WarehouseUsageDTO>>> GetInventoryUsedPercent()
+        {
+            try
+            {
+                UpdateWarehousePermissions();
+                var queryWarehousePermission = string.Join("&", warehousePermissions.Select(id => $"warehouseCodes={Uri.EscapeDataString(id)}"));
+                var response = await _httpClient.GetAsync($"Inventory/GetInventoryUsedPercent?{queryWarehousePermission}").ConfigureAwait(false);
+                var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = JsonConvert.DeserializeObject<ApiResult<List<WarehouseUsageDTO>>>(jsonResponse);
+                    if (result == null || !result.Success)
+                    {
+                        return new ApiResult<List<WarehouseUsageDTO>>(result?.Message ?? "Không thể phân tích phản hồi", false);
+                    }
+                    return result;
+                }
+                var errorResult = JsonConvert.DeserializeObject<ApiResult<List<LocationUsageDTO>>>(jsonResponse);
+                var errorMessage = errorResult?.Message ?? "Không thể lấy thông tin phần trăm sử dụng kho";
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    return new ApiResult<List<WarehouseUsageDTO>>(errorMessage, false);
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    return new ApiResult<List<WarehouseUsageDTO>>(errorMessage, false);
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return new ApiResult<List<WarehouseUsageDTO>>(errorMessage, false);
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+                {
+                    return new ApiResult<List<WarehouseUsageDTO>>(errorMessage, false);
+                }
+                else
+                {
+                    return new ApiResult<List<WarehouseUsageDTO>>(errorMessage, false);
+                }
+            }
+            catch(HttpRequestException ex)
+            {
+                return new ApiResult<List<WarehouseUsageDTO>>($"Lỗi mạng: {ex.Message}", false);
+            }
+            
+            catch (JsonException ex)
+            {
+                return new ApiResult<List<WarehouseUsageDTO>>($"Lỗi phân tích phản hồi: {ex.Message}", false);
+            }
+            catch (Exception ex)
+            {
+                return new ApiResult<List<WarehouseUsageDTO>>($"Lỗi không xác định: {ex.Message}", false);
             }
         }
     }

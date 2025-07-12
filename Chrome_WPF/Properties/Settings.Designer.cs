@@ -81,6 +81,20 @@ namespace Chrome_WPF.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string RoleName
+        {
+            get
+            {
+                return ((string)(this["RoleName"]));
+            }
+            set
+            {
+                this["RoleName"] = value;
+            }
+        }
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
         public global::System.Collections.Specialized.StringCollection WarehousePermission
         {
             get

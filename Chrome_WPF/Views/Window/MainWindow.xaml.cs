@@ -14,6 +14,7 @@ using Chrome_WPF.Views.UserControls.ManufacturingOrder;
 using Chrome_WPF.Views.UserControls.Movement;
 using Chrome_WPF.Views.UserControls.PickList;
 using Chrome_WPF.Views.UserControls.ProductMaster;
+using Chrome_WPF.Views.UserControls.PurchaseOrder;
 using Chrome_WPF.Views.UserControls.PutAway;
 using Chrome_WPF.Views.UserControls.Replenish;
 using Chrome_WPF.Views.UserControls.Reservation;
@@ -132,6 +133,7 @@ namespace Chrome_WPF.Views
             var commandItems = new List<ListBoxItem>
             {
                 listBox.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Name == "ucInventory")!,
+                listBox.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Name == "ucPurchaseOrder")!,
                 listBox.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Name == "ucReplenish")!,
                 listBox.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Name == "ucReservation")!,
                 listBox.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Name == "ucStockIn")!,
@@ -255,6 +257,9 @@ namespace Chrome_WPF.Views
                         break;
                     case "ucReplenish":
                         _navigationService.NavigateTo<ucReplenish>();
+                        break;
+                    case "ucPurchaseOrder":
+                        _navigationService.NavigateTo<ucPurchaseOrder>();
                         break;
                     case "ucInventory":
                         _navigationService.NavigateTo<ucInventory>();

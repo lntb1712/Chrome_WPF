@@ -898,7 +898,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
                 {
                     if (viewModel.CreateBackorder)
                     {
-                        var backOrderResult = await _manufacturingOrderService.CreateBackOrder(ManufacturingOrderRequestDTO.ManufacturingOrderCode);
+                        var backOrderResult = await _manufacturingOrderService.CreateBackOrder(ManufacturingOrderRequestDTO.ManufacturingOrderCode, viewModel.ScheduleDate.ToString()!, viewModel.Deadline.ToString()!);
                         if (!backOrderResult.Success)
                         {
                             _notificationService.ShowMessage(backOrderResult.Message ?? "Không thể tạo backorder.", "OK", isError: true);

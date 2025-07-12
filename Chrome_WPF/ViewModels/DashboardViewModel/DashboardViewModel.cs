@@ -31,6 +31,8 @@ namespace Chrome_WPF.ViewModels
         [ObservableProperty] private string[] statusBarLabels;
         [ObservableProperty] private SeriesCollection dailyStockSeries;
         [ObservableProperty] private string[] dailyStockLabels;
+        public Func<double, string> YLabelFormatter => value => value.ToString("0.##");
+
         private List<string> _progressBarLabels;
         public List<string> ProgressBarLabels
         {

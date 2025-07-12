@@ -385,28 +385,19 @@
                         <TextBlock
                             Width="120"
                             VerticalAlignment="Center"
-                            Text="Nhà cung cấp" />
+                            Text="Mã đặt hàng" />
                         <ComboBox
                             x:Name="SupplierComboBox"
                             Width="250"
                             Margin="8,0,0,0"
                             Padding="12,8"
-                            materialDesign:HintAssist.Hint="Chọn nhà cung cấp"
+                            materialDesign:HintAssist.Hint="Chọn mã đặt hàng"
                             materialDesign:HintAssist.IsFloating="True"
+                            DisplayMemberPath="PurchaseOrderCode"
                             FontSize="14"
-                            ItemsSource="{Binding LstSuppliers}"
-                            SelectedValue="{Binding StockInRequestDTO.SupplierCode, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True}"
-                            SelectedValuePath="SupplierCode">
-                            <ComboBox.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock>
-                                        <Run Text="{Binding SupplierCode}" />
-                                        <Run Text=" - " />
-                                        <Run Text="{Binding SupplierName}" />
-                                    </TextBlock>
-                                </DataTemplate>
-                            </ComboBox.ItemTemplate>
-                        </ComboBox>
+                            ItemsSource="{Binding LstPurchaseOrder}"
+                            SelectedValue="{Binding StockInRequestDTO.PurchaseOrderCode, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True}"
+                            SelectedValuePath="PurchaseOrderCode" />
                     </StackPanel>
                     <StackPanel
                         Grid.Row="1"
@@ -518,7 +509,7 @@
                                 AutoGenerateColumns="False"
                                 CanUserAddRows="False"
                                 CanUserDeleteRows="True"
-                                IsReadOnly="False"
+                                IsReadOnly="True"
                                 ItemsSource="{Binding LstStockInDetails, UpdateSourceTrigger=PropertyChanged}"
                                 Style="{StaticResource ModernDataGridStyle}">
                                 <DataGrid.Columns>
@@ -567,15 +558,7 @@
                                     </DataGridTemplateColumn>
                                 </DataGrid.Columns>
                             </DataGrid>
-                            <Button
-                                Grid.Row="1"
-                                Margin="0,0,0,8"
-                                Padding="8,4"
-                                HorizontalAlignment="Left"
-                                Command="{Binding AddDetailLineCommand}"
-                                Content="Thêm dòng"
-                                Style="{StaticResource MaterialDesignFlatButton}"
-                                ToolTip="Thêm chi tiết nhập kho mới" />
+
                             <StackPanel
                                 Grid.Row="2"
                                 Margin="0,10,0,0"
@@ -658,7 +641,8 @@
                             <DataGrid
                                 x:Name="ParentDataGrid"
                                 Grid.Row="0"
-                                MaxHeight="300"
+                                Width="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=ActualWidth, Converter={StaticResource SubtractTenConverter}}"
+                                MaxHeight="320"
                                 AutoGenerateColumns="False"
                                 CanUserAddRows="False"
                                 IsReadOnly="True"
@@ -714,7 +698,10 @@
                                 </DataGrid.Columns>
                                 <DataGrid.RowDetailsTemplate>
                                     <DataTemplate>
-                                        <Border BorderBrush="#DDD" BorderThickness="1">
+                                        <Border
+                                            Margin="20,0,0,0"
+                                            BorderBrush="#DDD"
+                                            BorderThickness="1">
                                             <DataGrid
                                                 Width="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=ActualWidth, Converter={StaticResource SubtractTenConverter}}"
                                                 HorizontalAlignment="Stretch"

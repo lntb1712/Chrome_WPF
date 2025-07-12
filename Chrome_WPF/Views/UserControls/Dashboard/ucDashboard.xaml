@@ -187,7 +187,8 @@
                         <lvc:Axis
                             Title="Số lượng"
                             FontSize="12"
-                            Foreground="{StaticResource TextPrimary}" />
+                            Foreground="{StaticResource TextPrimary}"
+                            LabelFormatter="{Binding YLabelFormatter}" />
                     </lvc:CartesianChart.AxisY>
                 </lvc:CartesianChart>
             </StackPanel>
@@ -219,7 +220,8 @@
                         <lvc:Axis
                             Title="Số phiếu"
                             FontSize="12"
-                            Foreground="{StaticResource TextPrimary}" />
+                            Foreground="{StaticResource TextPrimary}"
+                            LabelFormatter="{Binding YLabelFormatter}" />
                     </lvc:CartesianChart.AxisY>
                 </lvc:CartesianChart>
             </StackPanel>

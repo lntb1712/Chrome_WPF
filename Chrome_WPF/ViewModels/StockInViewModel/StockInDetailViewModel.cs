@@ -3,6 +3,7 @@ using Chrome_WPF.Models.AccountManagementDTO;
 using Chrome_WPF.Models.APIResult;
 using Chrome_WPF.Models.OrderTypeDTO;
 using Chrome_WPF.Models.ProductMasterDTO;
+using Chrome_WPF.Models.PurchaseOrderDTO;
 using Chrome_WPF.Models.PutAwayDTO;
 using Chrome_WPF.Models.StockInDetailDTO;
 using Chrome_WPF.Models.StockInDTO;
@@ -39,7 +40,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
         private ObservableCollection<ProductMasterResponseDTO> _lstProducts;
         private ObservableCollection<OrderTypeResponseDTO> _lstOrderTypes;
         private ObservableCollection<WarehouseMasterResponseDTO> _lstWarehouses;
-        private ObservableCollection<SupplierMasterResponseDTO> _lstSuppliers;
+        private ObservableCollection<PurchaseOrderResponseDTO> _lstPurchaseOrderDTO;
         private ObservableCollection<AccountManagementResponseDTO> _lstResponsiblePersons;
         private ObservableCollection<PutAwayAndDetailResponseDTO> _lstPutAway;
         private ObservableCollection<object> _displayPages;
@@ -121,12 +122,12 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
             }
         }
 
-        public ObservableCollection<SupplierMasterResponseDTO> LstSuppliers
+        public ObservableCollection<PurchaseOrderResponseDTO> LstPurchaseOrder
         {
-            get => _lstSuppliers;
+            get => _lstPurchaseOrderDTO;
             set
             {
-                _lstSuppliers = value;
+                _lstPurchaseOrderDTO = value;
                 OnPropertyChanged();
             }
         }
@@ -252,7 +253,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                 _lstProducts = new ObservableCollection<ProductMasterResponseDTO>();
                 _lstOrderTypes = new ObservableCollection<OrderTypeResponseDTO>();
                 _lstWarehouses = new ObservableCollection<WarehouseMasterResponseDTO>();
-                _lstSuppliers = new ObservableCollection<SupplierMasterResponseDTO>();
+                _lstPurchaseOrderDTO = new ObservableCollection<PurchaseOrderResponseDTO>();
                 _lstResponsiblePersons = new ObservableCollection<AccountManagementResponseDTO>();
                 _lstPutAway = new ObservableCollection<PutAwayAndDetailResponseDTO>();
                 _displayPages = new ObservableCollection<object>();
@@ -269,7 +270,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                     StockInCode = stockIn.StockInCode ?? string.Empty,
                     OrderTypeCode = stockIn.OrderTypeCode ?? string.Empty,
                     WarehouseCode = stockIn.WarehouseCode ?? string.Empty,
-                    SupplierCode = stockIn.SupplierCode ?? string.Empty,
+                    PurchaseOrderCode = stockIn.PurchaseOrderCode ?? string.Empty,
                     Responsible = stockIn.Responsible ?? string.Empty,
                     OrderDeadLine = stockIn.OrderDeadline!,
                     StockInDescription = stockIn.StockInDescription ?? string.Empty
@@ -361,12 +362,12 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                         StockInRequestDTO!.WarehouseCode = LstWarehouses.First().WarehouseCode;
                     }
                 }
-                if (!LstSuppliers.Any())
+                if (IsAddingNew)
                 {
-                    await LoadSuppliersAsync();
-                    if (IsAddingNew && LstSuppliers.Any())
+                    await LoadPurchaseOrder(new int[] {1});
+                    if (IsAddingNew && LstPurchaseOrder.Any())
                     {
-                        StockInRequestDTO!.SupplierCode = LstSuppliers.First().SupplierCode;
+                        StockInRequestDTO!.PurchaseOrderCode = LstPurchaseOrder.First().PurchaseOrderCode;
                     }
                 }
                 if (!IsAddingNew)
@@ -377,7 +378,8 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                     }
                     await LoadStockInDetailsAsync();
                     await LoadResponsiblePersonsAsync();
-                    await CheckPutAwayHasValue();
+                    await CheckPutAwayHasValue(); 
+                    await LoadPurchaseOrder(new int[] { 2,3});
                     if (HasPutAway)
                     {
                         await LoadPutAway();
@@ -654,29 +656,29 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
             }
         }
 
-        private async Task LoadSuppliersAsync()
+        private async Task LoadPurchaseOrder(int[] statusId)
         {
             try
             {
-                var result = await _stockInService.GetListSupplierMasterAsync();
+                var result = await _stockInService.GetListPurchaseOrder(statusId);
                 if (result.Success && result.Data != null)
                 {
-                    LstSuppliers.Clear();
+                    LstPurchaseOrder.Clear();
                     foreach (var supplier in result.Data)
                     {
-                        LstSuppliers.Add(supplier);
+                        LstPurchaseOrder.Add(supplier);
                     }
                 }
                 else
                 {
-                    _notificationService.ShowMessage(result.Message ?? "Không thể tải danh sách nhà cung cấp.", "OK", isError: true);
-                    LstSuppliers.Clear();
+                    _notificationService.ShowMessage(result.Message ?? "Không thể tải danh sách phiếu đặt hàng.", "OK", isError: true);
+                    LstPurchaseOrder.Clear();
                 }
             }
             catch (Exception ex)
             {
-                _notificationService.ShowMessage($"Lỗi khi tải danh sách nhà cung cấp: {ex.Message}", "OK", isError: true);
-                LstSuppliers.Clear();
+                _notificationService.ShowMessage($"Lỗi khi tải danh sách phiếu đặt hàng: {ex.Message}", "OK", isError: true);
+                LstPurchaseOrder.Clear();
             }
         }
 
@@ -819,7 +821,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
         private bool CanSave(object parameter)
         {
             var dto = StockInRequestDTO;
-            var propertiesToValidate = new[] { nameof(dto.StockInCode), nameof(dto.OrderTypeCode), nameof(dto.WarehouseCode), nameof(dto.SupplierCode), nameof(dto.Responsible), nameof(dto.OrderDeadLine) };
+            var propertiesToValidate = new[] { nameof(dto.StockInCode), nameof(dto.OrderTypeCode), nameof(dto.WarehouseCode), nameof(dto.PurchaseOrderCode), nameof(dto.Responsible), nameof(dto.OrderDeadLine) };
             foreach (var prop in propertiesToValidate)
             {
                 if (!string.IsNullOrEmpty(dto[prop]?.ToString()))
@@ -970,7 +972,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                 await LoadResponsiblePersonsAsync();
             }
             else if (new[] { nameof(StockInRequestDTO.StockInCode), nameof(StockInRequestDTO.OrderTypeCode),
-                             nameof(StockInRequestDTO.WarehouseCode), nameof(StockInRequestDTO.SupplierCode),
+                             nameof(StockInRequestDTO.WarehouseCode), nameof(StockInRequestDTO.PurchaseOrderCode),
                              nameof(StockInRequestDTO.Responsible), nameof(StockInRequestDTO.OrderDeadLine) }
                      .Contains(e.PropertyName))
             {

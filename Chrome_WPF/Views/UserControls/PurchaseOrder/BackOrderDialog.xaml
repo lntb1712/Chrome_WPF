@@ -1,11 +1,12 @@
 ﻿<Window
-    x:Class="Chrome_WPF.Views.UserControls.ManufacturingOrder.BackOrderDialog"
+    x:Class="Chrome_WPF.Views.UserControls.PurchaseOrder.BackOrderDialog"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:local="clr-namespace:Chrome_WPF.Views.UserControls.ManufacturingOrder"
+    xmlns:local="clr-namespace:Chrome_WPF.Views.UserControls.StockIn"
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:Chrome_WPF.ViewModels.StockInViewModel"
     Title="Tạo Backorder?"
     Width="500"
     Height="250"
@@ -34,7 +35,7 @@
             Grid.Row="1"
             Margin="0,0,0,10"
             FontSize="12"
-            Text="Bạn đã sản xuất ít sản phẩm hơn so với số lượng yêu cầu ban đầu." />
+            Text="Bạn đã xử lý ít sản phẩm hơn so với yêu cầu ban đầu." />
 
         <!--  Lựa chọn  -->
         <StackPanel
@@ -44,28 +45,19 @@
             <TextBlock
                 Margin="0,0,20,0"
                 FontSize="12"
-                Text="Tạo backorder nếu bạn dự kiến sản xuất các sản phẩm còn lại sau này." />
-            <TextBlock FontSize="12" Text="Không tạo backorder nếu bạn sẽ không sản xuất các sản phẩm còn lại." />
-        </StackPanel>
-        <!--  DatePicker  -->
-        <StackPanel
-            Grid.Row="2"
-            Grid.RowSpan="2"
-            Orientation="Horizontal">
-            <DatePicker
-                Width="200"
-                Margin="0,42,0,10"
-                HorizontalAlignment="Center"
-                materialDesign:HintAssist.Hint="Ngày bắt đầu sản xuất"
-                SelectedDate="{Binding ScheduleDate}" />
-            <DatePicker
-                Width="200"
-                Margin="20,42,0,10"
-                HorizontalAlignment="Center"
-                materialDesign:HintAssist.Hint="Ngày hết hạn sản xuất"
-                SelectedDate="{Binding Deadline}" />
+                Text="Tạo backorder nếu bạn dự kiến xử lý các sản phẩm còn lại sau này." />
+            <TextBlock FontSize="12" Text="Không tạo backorder nếu bạn sẽ không xử lý các sản phẩm còn lại." />
         </StackPanel>
 
+        <!--  DatePicker  -->
+        <DatePicker
+            Grid.Row="2"
+            Grid.RowSpan="2"
+            Width="372"
+            Margin="0,42,0,10"
+            HorizontalAlignment="Center"
+            materialDesign:HintAssist.Hint="Ngày dự kiến giao hàng"
+            SelectedDate="{Binding SelectedDate}" />
 
         <!--  Nút điều khiển  -->
         <StackPanel
