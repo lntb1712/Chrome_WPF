@@ -266,7 +266,7 @@
                 </i:Interaction.Triggers>
                 <DataGrid.Columns>
                     <DataGridTextColumn
-                        Width="1.5*"
+                        Width="2*"
                         Binding="{Binding ManufacturingOrderCode}"
                         Header="Mã lệnh sản xuất" />
                     <DataGridTextColumn

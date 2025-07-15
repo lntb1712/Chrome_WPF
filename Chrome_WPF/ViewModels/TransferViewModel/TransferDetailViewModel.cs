@@ -23,10 +23,12 @@ using Chrome_WPF.Services.TransferDetailService;
 using Chrome_WPF.Services.TransferService;
 using Chrome_WPF.Views.UserControls.StockIn;
 using Chrome_WPF.Views.UserControls.Transfer;
+using ClosedXML.Excel;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -278,6 +280,7 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
         public ICommand PreviousPageCommand { get; }
         public ICommand SelectPageCommand { get; }
         public ICommand ConfirmCommand { get; }
+        public ICommand ExportTransferExcelCommand { get; }
 
         public TransferDetailViewModel(
             ITransferService transferService,
@@ -343,6 +346,7 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
             NextPageCommand = new RelayCommand(_ => NextPage());
             SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
             ConfirmCommand = new RelayCommand(async parameter => await ConfirmTransferAsync(parameter), CanConfirm);
+            ExportTransferExcelCommand = new RelayCommand(async _ => await ExportTransferExcel());
 
             _transferRequestDTO.PropertyChanged += OnTransferRequestDTOPropertyChanged!;
             _ = InitializeAsync();
@@ -1105,5 +1109,59 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
                 }
             }
         }
+        private async Task ExportTransferExcel()
+        {
+            try
+            {
+                string templatePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "PhieuChuyenKho.xlsx");
+                if (!File.Exists(templatePath))
+                {
+                    _notificationService.ShowMessage("Không tìm thấy file mẫu PhieuChuyenKho.xlsx.", "OK", isError: true);
+                    return;
+                }
+
+                string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                string exportPath = Path.Combine(desktopPath, $"PhieuChuyenKho_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
+
+                using (var workbook = new XLWorkbook(templatePath))
+                {
+                    var worksheet = workbook.Worksheet(1); // Sheet đầu tiên
+
+                    // Ghi ngày in vào tiêu đề
+                    worksheet.Cell(3, 7).Value = $"Ngày {DateTime.Now.ToString("dd/MM/yyyy")}";
+                    worksheet.Cell(4, 5).Value = Properties.Settings.Default.FullName; // Người in
+                    worksheet.Cell(5, 5).Value = Properties.Settings.Default.RoleName; // Chức vụ
+                    worksheet.Cell(6, 5).Value = TransferRequestDTO.TransferDescription ?? "";
+                    worksheet.Cell(1, 8).Value += TransferRequestDTO.TransferCode;
+                    worksheet.Cell(4, 8).Value = LstWarehouses.FirstOrDefault(w => w.WarehouseCode == TransferRequestDTO.FromWarehouseCode)?.WarehouseName ?? ""; // Tên kho
+                    worksheet.Cell(5, 8).Value = LstWarehouses.FirstOrDefault(w => w.WarehouseCode == TransferRequestDTO.ToWarehouseCode)?.WarehouseName ?? ""; // Tên kho
+                    worksheet.Cell(6, 8).Value = TransferRequestDTO.TransferDate; // Ngày dự kiến giao
+                    int startRow = 10;
+                    int stt = 1;
+
+                    foreach (var item in LstTransferDetails)
+                    {
+                        worksheet.Cell(startRow, 2).Value = stt; // STT
+                        worksheet.Cell(startRow, 3).Value = item.ProductCode; // Mã sản phẩm
+                        worksheet.Cell(startRow, 5).Value = item.ProductName; // Tên sản phẩm
+                        worksheet.Cell(startRow, 6).Value = item.Demand;
+                        startRow++;
+                        stt++;
+                    }
+
+                    workbook.SaveAs(exportPath);
+
+                    _notificationService.ShowMessage($"In phiếu chuyển kho thành công!\nFile được lưu tại: {exportPath}", "OK", isError: false);
+
+
+                }
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi xuất in phiếu chuyển kho: {ex.Message}", "OK", isError: true);
+
+            }
+        }
+    
     }
 }

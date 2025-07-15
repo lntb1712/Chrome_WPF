@@ -1017,8 +1017,8 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
                         // Load new locations
                         await Task.WhenAll(
                             LoadFromLocationsAsync(),
-                            LoadResponsiblePersonsAsync(),
-                            LoadProductsAsync());
+                            LoadResponsiblePersonsAsync()
+                            );
                     }
                     else if (e.PropertyName == nameof(MovementRequestDTO.FromLocation))
                     {

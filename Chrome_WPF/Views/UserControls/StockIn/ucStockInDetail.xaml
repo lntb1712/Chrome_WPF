@@ -17,6 +17,7 @@
         <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <converters:StringToDateTimeConverter x:Key="StringToDateTimeConverter" />
         <converters:SubtractTenConverter x:Key="SubtractTenConverter" />
+        <converters:SubtractBOMConverter x:Key="SubtractBOMConverter" />
 
         <!--  Styles  -->
         <SolidColorBrush x:Key="BorderNormalColor" Color="#E0E0E0" />
@@ -203,6 +204,7 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <StackPanel
                         Grid.Column="0"
@@ -237,8 +239,26 @@
                             Text="{Binding StockInRequestDTO.StockInCode}" />
                     </StackPanel>
                     <Button
-                        x:Name="SaveButton"
+                        x:Name="ExportExcelButton"
                         Grid.Column="2"
+                        Margin="0,0,20,0"
+                        materialDesign:ButtonAssist.CornerRadius="8"
+                        Background="AliceBlue"
+                        Command="{Binding ExportStockInExcelCommand}"
+                        Style="{StaticResource MaterialDesignFlatButton}"
+                        ToolTip="In phiếu nhập kho">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon
+                                Width="24"
+                                Height="24"
+                                Margin="0,0,10,0"
+                                Kind="MicrosoftExcel" />
+                            <TextBlock VerticalAlignment="Center" Text="In phiếu nhập" />
+                        </StackPanel>
+                    </Button>
+                    <Button
+                        x:Name="SaveButton"
+                        Grid.Column="3"
                         Margin="0,0,20,0"
                         materialDesign:ButtonAssist.CornerRadius="8"
                         Background="AliceBlue"
@@ -256,7 +276,7 @@
                     </Button>
                     <Button
                         x:Name="ConfirmButton"
-                        Grid.Column="3"
+                        Grid.Column="4"
                         materialDesign:ButtonAssist.CornerRadius="8"
                         Background="AliceBlue"
                         Command="{Binding ConfirmQuantityCommand}"
@@ -531,11 +551,11 @@
                                         IsReadOnly="True" />
                                     <DataGridTextColumn
                                         Width="*"
-                                        Binding="{Binding Demand}"
+                                        Binding="{Binding Demand, StringFormat={}{0:N2}}"
                                         Header="Số lượng yêu cầu" />
                                     <DataGridTextColumn
                                         Width="*"
-                                        Binding="{Binding Quantity}"
+                                        Binding="{Binding Quantity, StringFormat={}{0:N2}}"
                                         Header="Số lượng thực nhận"
                                         IsReadOnly="True" />
                                     <DataGridTemplateColumn Width="80" IsReadOnly="True">
@@ -655,7 +675,7 @@
                                 VirtualizingPanel.VirtualizationMode="Recycling">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn
-                                        Width="1.5*"
+                                        Width="2*"
                                         Binding="{Binding PutAwayCode}"
                                         Header="Mã phiếu cất hàng" />
                                     <DataGridTextColumn
@@ -698,12 +718,9 @@
                                 </DataGrid.Columns>
                                 <DataGrid.RowDetailsTemplate>
                                     <DataTemplate>
-                                        <Border
-                                            Margin="20,0,0,0"
-                                            BorderBrush="#DDD"
-                                            BorderThickness="1">
+                                        <Border BorderBrush="#DDD" BorderThickness="1">
                                             <DataGrid
-                                                Width="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=ActualWidth, Converter={StaticResource SubtractTenConverter}}"
+                                                Width="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=ActualWidth, Converter={StaticResource SubtractBOMConverter}}"
                                                 HorizontalAlignment="Stretch"
                                                 AutoGenerateColumns="False"
                                                 CanUserAddRows="False"

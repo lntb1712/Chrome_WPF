@@ -18,10 +18,12 @@ using Chrome_WPF.Services.ReservationService;
 using Chrome_WPF.Services.StockOutDetailService;
 using Chrome_WPF.Services.StockOutService;
 using Chrome_WPF.Views.UserControls.StockOut;
+using ClosedXML.Excel;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -264,6 +266,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
         public ICommand CreateReservationCommand { get; }
         public ICommand CreatePicklistCommand { get; }
         public ICommand RowMouseEnterCommand { get; }
+        public ICommand ExportStockOutExcelCommand { get; }
 
         public StockOutDetailViewModel(
             IStockOutDetailService stockOutDetailService,
@@ -324,6 +327,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             CreateReservationCommand = new RelayCommand(async parameter => await CreateReservationAsync(parameter), CanCreateReservation);
             CreatePicklistCommand = new RelayCommand(async parameter => await CreatePicklistAsync(parameter), CanCreatePicklist);
             RowMouseEnterCommand = new RelayCommand(async parameter => await LoadForecastDataForTooltipAsync((StockOutDetailResponseDTO)parameter));
+            ExportStockOutExcelCommand = new RelayCommand(async _ => await ExportStockOutExcel());
 
             // Fix for CS0019: Operator '+=' cannot be applied to operands of type 'StockOutRequestDTO' and 'method group'
             // The issue is that the code is attempting to use the '+=' operator on an object of type 'StockOutRequestDTO'.
@@ -337,6 +341,60 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
 
 
             _ = InitializeAsync();
+        }
+
+        private async Task ExportStockOutExcel()
+        {
+            try
+            {
+                string templatePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "PhieuXuatKho.xlsx");
+                if (!File.Exists(templatePath))
+                {
+                    _notificationService.ShowMessage("Không tìm thấy file mẫu PhieuXuatKho.xlsx.", "OK", isError: true);
+                    return;
+                }
+
+                string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                string exportPath = Path.Combine(desktopPath, $"PhieuXuatKho_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
+
+                using (var workbook = new XLWorkbook(templatePath))
+                {
+                    var worksheet = workbook.Worksheet(1); // Sheet đầu tiên
+
+                    // Ghi ngày in vào tiêu đề
+                    worksheet.Cell(3, 7).Value = $"Ngày {DateTime.Now.ToString("dd/MM/yyyy")}";
+                    worksheet.Cell(4, 5).Value = Properties.Settings.Default.FullName; // Người in
+                    worksheet.Cell(5, 5).Value = Properties.Settings.Default.RoleName; // Chức vụ
+                    worksheet.Cell(6, 5).Value = StockOutRequestDTO.StockOutDescription ?? "";
+                    worksheet.Cell(1, 8).Value += StockOutRequestDTO.StockOutCode;
+                    worksheet.Cell(4, 8).Value = LstWarehouses.FirstOrDefault(w => w.WarehouseCode == StockOutRequestDTO.WarehouseCode)?.WarehouseName ?? ""; // Tên kho
+                    worksheet.Cell(5, 8).Value = LstCustomers.FirstOrDefault(s => s.CustomerCode == StockOutRequestDTO.CustomerCode)?.CustomerName ?? ""; // Tên nhà cung cấp
+                    worksheet.Cell(6, 8).Value = StockOutRequestDTO.StockOutDate; // Ngày dự kiến giao
+                    int startRow = 10;
+                    int stt = 1;
+
+                    foreach (var item in LstStockOutDetails)
+                    {
+                        worksheet.Cell(startRow, 2).Value = stt; // STT
+                        worksheet.Cell(startRow, 3).Value = item.ProductCode; // Mã sản phẩm
+                        worksheet.Cell(startRow, 5).Value = item.ProductName; // Tên sản phẩm
+                        worksheet.Cell(startRow, 6).Value = item.Quantity;
+
+                        startRow++;
+                        stt++;
+                    }
+
+                    workbook.SaveAs(exportPath);
+
+                    _notificationService.ShowMessage($"In phiếu xuất thành công!\nFile được lưu tại: {exportPath}", "OK", isError: false);
+
+
+                }
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi xuất in phiếu xuất: {ex.Message}", "OK", isError: true);
+            }
         }
 
         private void StockOutDetails_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)

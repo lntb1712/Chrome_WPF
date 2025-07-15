@@ -268,7 +268,7 @@
                                         Header="Tên vị trí" />
                                     <DataGridTextColumn
                                         Width="*"
-                                        Binding="{Binding BaseQuantity}"
+                                        Binding="{Binding BaseQuantity, StringFormat={}{0:N2}}"
                                         Header="Số lượng" />
                                     <DataGridTextColumn
                                         Width="*"

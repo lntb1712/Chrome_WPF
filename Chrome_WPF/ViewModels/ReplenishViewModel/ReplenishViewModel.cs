@@ -37,6 +37,7 @@ namespace Chrome_WPF.ViewModels.WarehouseMasterViewModel
         private readonly RelayCommand _selectPageCommand;
         private readonly RelayCommand _searchCommand;
         private readonly RelayCommand _clearSearchCommand;
+        private readonly RelayCommand _refreshCommand;
 
         private ReplenishRequestDTO _replenishRequestDTO;
         private ObservableCollection<ReplenishResponseDTO> _lstReplenishRules;
@@ -177,6 +178,7 @@ namespace Chrome_WPF.ViewModels.WarehouseMasterViewModel
         public RelayCommand SelectPageCommand => _selectPageCommand;
         public RelayCommand SearchCommand => _searchCommand;
         public RelayCommand ClearSearchCommand => _clearSearchCommand;
+        public RelayCommand RefreshCommand => _refreshCommand;
 
         public ReplenishViewModel(
             IReplenishService replenishService,
@@ -209,6 +211,7 @@ namespace Chrome_WPF.ViewModels.WarehouseMasterViewModel
             _selectPageCommand = new RelayCommand(page => SelectPage((int)page));
             _searchCommand = new RelayCommand(async _ => await LoadSearchReplenishRulesAsync());
             _clearSearchCommand = new RelayCommand(_ => ClearSearch());
+            _refreshCommand = new RelayCommand(async _ => await  LoadReplenishRulesAsync());
 
             var savedPermissions = Properties.Settings.Default.WarehousePermission;
             if (savedPermissions != null)

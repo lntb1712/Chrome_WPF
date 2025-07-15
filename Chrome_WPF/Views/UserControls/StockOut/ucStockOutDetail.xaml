@@ -216,6 +216,7 @@
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
                         <Button
@@ -249,7 +250,7 @@
                     <Button
                         x:Name="ReservationButton"
                         Grid.Column="2"
-                        Margin="0,0,20,0"
+                        Margin="0,0,10,0"
                         materialDesign:ButtonAssist.CornerRadius="8"
                         Background="AliceBlue"
                         Command="{Binding CreateReservationCommand}"
@@ -268,7 +269,7 @@
                     <Button
                         x:Name="PicklistButton"
                         Grid.Column="3"
-                        Margin="0,0,20,0"
+                        Margin="0,0,10,0"
                         materialDesign:ButtonAssist.CornerRadius="8"
                         Background="AliceBlue"
                         Command="{Binding CreatePicklistCommand}"
@@ -284,9 +285,27 @@
                         </StackPanel>
                     </Button>
                     <Button
-                        x:Name="SaveButton"
+                        x:Name="ExportExcelButton"
                         Grid.Column="4"
-                        Margin="0,0,20,0"
+                        Margin="0,0,10,0"
+                        materialDesign:ButtonAssist.CornerRadius="8"
+                        Background="AliceBlue"
+                        Command="{Binding ExportStockOutExcelCommand}"
+                        Style="{StaticResource MaterialDesignFlatButton}"
+                        ToolTip="In phiếu xuất kho">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon
+                                Width="24"
+                                Height="24"
+                                Margin="0,0,10,0"
+                                Kind="MicrosoftExcel" />
+                            <TextBlock VerticalAlignment="Center" Text="In phiếu" />
+                        </StackPanel>
+                    </Button>
+                    <Button
+                        x:Name="SaveButton"
+                        Grid.Column="5"
+                        Margin="0,0,10,0"
                         materialDesign:ButtonAssist.CornerRadius="8"
                         Background="AliceBlue"
                         Command="{Binding SaveCommand}"
@@ -303,7 +322,7 @@
                     </Button>
                     <Button
                         x:Name="ConfirmButton"
-                        Grid.Column="5"
+                        Grid.Column="6"
                         materialDesign:ButtonAssist.CornerRadius="8"
                         Background="AliceBlue"
                         Command="{Binding ConfirmQuantityCommand}"

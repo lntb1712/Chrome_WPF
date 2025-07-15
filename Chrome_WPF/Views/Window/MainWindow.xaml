@@ -536,7 +536,7 @@
                                 <Binding Path="CanProductionOrder" />
                             </MultiBinding>
                         </ListBoxItem.Visibility>
-                        Quản lí Sản xuất
+                        Quản lí sản xuất
                     </ListBoxItem>
                     <ListBoxItem x:Name="ucManufacturingOrder" Visibility="{Binding CanProductionOrder, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <StackPanel

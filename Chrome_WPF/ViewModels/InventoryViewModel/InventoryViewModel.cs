@@ -3,15 +3,19 @@ using Chrome_WPF.Models.APIResult;
 using Chrome_WPF.Models.CategoryDTO;
 using Chrome_WPF.Models.InventoryDTO;
 using Chrome_WPF.Models.PagedResponse;
+using Chrome_WPF.Models.PurchaseOrderDTO;
 using Chrome_WPF.Services.InventoryService;
 using Chrome_WPF.Services.MessengerService;
 using Chrome_WPF.Services.NavigationService;
 using Chrome_WPF.Services.NotificationService;
 using Chrome_WPF.Views.UserControls.Inventory;
+using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -184,7 +188,7 @@ namespace Chrome_WPF.ViewModels.InventoryViewModel
         public ICommand PreviousPageCommand { get; }
         public ICommand SelectPageCommand { get; }
         public ICommand ViewDetailCommand { get; }
-
+        public ICommand ExportExcelCommand { get; }
         public InventoryViewModel(
             IInventoryService inventoryService,
             INotificationService notificationService,
@@ -212,6 +216,7 @@ namespace Chrome_WPF.ViewModels.InventoryViewModel
             NextPageCommand = new RelayCommand(_ => NextPage());
             SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
             ViewDetailCommand = new RelayCommand(product => OpenDetail((InventorySummaryDTO)product));
+            ExportExcelCommand = new RelayCommand(async _ => await ExportInventoryToExcel());
 
             List<string> warehousePermissions = new List<string>();
             var savedPermissions = Properties.Settings.Default.WarehousePermission;
@@ -434,6 +439,59 @@ namespace Chrome_WPF.ViewModels.InventoryViewModel
                 SelectedCategoryIds.Add(Categories[SelectedCategoryIndex].CategoryId);
             }
         }
+        private async Task ExportInventoryToExcel()
+        {
+            try
+            {
+                string templatePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "BaoCaoTonKho.xlsx");
+                if (!File.Exists(templatePath))
+                {
+                    _notificationService.ShowMessage("Không tìm thấy file mẫu BaoCaoTonKho.xlsx.", "OK", isError: true);
+                    return;
+                }
+                
+                string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                string exportPath = Path.Combine(desktopPath, $"BaoCaoTonKho_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
+
+                using (var workbook = new XLWorkbook(templatePath))
+                {
+                    var worksheet = workbook.Worksheet(1); // Sheet đầu tiên
+
+                    // Ghi ngày in vào tiêu đề
+                    worksheet.Cell(3, 7).Value = $"Ngày {DateTime.Now.ToString("dd/MM/yyyy")}";
+                    worksheet.Cell(4, 5).Value = Properties.Settings.Default.FullName; // Người in
+                    worksheet.Cell(5, 5).Value = Properties.Settings.Default.RoleName; // Chức vụ
+                    worksheet.Cell(6, 5).Value = $"Báo cáo tồn kho- Tháng {DateTime.Now.Month.ToString()}";
+                    worksheet.Cell(1, 8).Value += ApplicableLocation;
+                    int startRow = 10;
+                    int stt = 1;
+
+                    foreach (var item in InventoryList)
+                    {
+                        worksheet.Cell(startRow, 2).Value = stt; // STT
+                        worksheet.Cell(startRow, 3).Value = item.ProductCode; // Mã sản phẩm
+                        worksheet.Cell(startRow, 5).Value = item.ProductName; // Tên sản phẩm
+                        worksheet.Cell(startRow, 6).Value = item.Quantity; // Số lượng đặt hàng
+                        worksheet.Cell(startRow, 7).Value = item.UOM;
+                        worksheet.Cell(startRow, 8).Value = item.BaseQuantity;
+                        worksheet.Cell(startRow, 9).Value = item.BaseUOM;
+                        startRow++;
+                        stt++;
+                    }
+
+                    workbook.SaveAs(exportPath);
+
+                    _notificationService.ShowMessage($"Xuất báo cáo tồn kho thành công!\nFile được lưu tại: {exportPath}", "OK", isError: false);
+
+                    
+                }
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi xuất báo cáo tồn kho: {ex.Message}", "OK", isError: true);
+            }
+        }
+
     }
 
 }

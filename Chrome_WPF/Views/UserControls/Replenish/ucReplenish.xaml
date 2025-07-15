@@ -118,6 +118,7 @@
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
                         <TextBlock
@@ -128,6 +129,23 @@
                     </StackPanel>
                     <Button
                         Grid.Column="2"
+                        Margin="0,0,10,0"
+                        materialDesign:ButtonAssist.CornerRadius="8"
+                        Background="AliceBlue"
+                        Command="{Binding RefreshCommand}"
+                        Style="{StaticResource MaterialDesignFlatButton}"
+                        ToolTip="Lưu">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon
+                                Width="24"
+                                Height="24"
+                                Margin="0,0,10,0"
+                                Kind="Refresh" />
+                            <TextBlock VerticalAlignment="Center" Text="Làm mới" />
+                        </StackPanel>
+                    </Button>
+                    <Button
+                        Grid.Column="3"
                         materialDesign:ButtonAssist.CornerRadius="8"
                         Background="AliceBlue"
                         Command="{Binding SaveCommand}"
@@ -225,15 +243,15 @@
 
                             <DataGridTextColumn
                                 Width="*"
-                                Binding="{Binding MinQuantity, UpdateSourceTrigger=PropertyChanged}"
+                                Binding="{Binding MinQuantity, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N2}}"
                                 Header="Số lượng tối thiểu" />
                             <DataGridTextColumn
                                 Width="*"
-                                Binding="{Binding MaxQuantity, UpdateSourceTrigger=PropertyChanged}"
+                                Binding="{Binding MaxQuantity, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N2}}"
                                 Header="Số lượng tối đa" />
                             <DataGridTextColumn
                                 Width="*"
-                                Binding="{Binding TotalOnHand, UpdateSourceTrigger=PropertyChanged}"
+                                Binding="{Binding TotalOnHand, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N2}}"
                                 Header="Tổng tồn kho"
                                 IsReadOnly="True" />
                             <DataGridTemplateColumn Width="80" IsReadOnly="True">

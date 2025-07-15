@@ -16,11 +16,13 @@ using Chrome_WPF.Services.PutAwayService;
 using Chrome_WPF.Services.StockInDetailService;
 using Chrome_WPF.Services.StockInService;
 using Chrome_WPF.Views.UserControls.StockIn;
+using ClosedXML.Excel;
 using DocumentFormat.OpenXml.VariantTypes;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -244,6 +246,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
         public ICommand PreviousPageCommand { get; }
         public ICommand SelectPageCommand { get; }
         public ICommand ConfirmQuantityCommand { get; }
+        public ICommand ExportStockInExcelCommand { get; }
 
         public StockInDetailViewModel(
             IStockInDetailService stockInDetailService,
@@ -298,6 +301,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
             NextPageCommand = new RelayCommand(_ => NextPage());
             SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
             ConfirmQuantityCommand = new RelayCommand(async parameter => await CheckQuantityAsync(parameter), CanConfirmQuantity);
+            ExportStockInExcelCommand = new RelayCommand(async _ => await ExportStockInExcel());
 
             _stockInRequestDTO.PropertyChanged += OnPropertyChangedHandler!;
             _ = InitializeAsync();
@@ -993,6 +997,60 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                 DisplayPages.Add("...");
             if (endPage < TotalPages)
                 DisplayPages.Add(TotalPages);
+        }
+        private async Task ExportStockInExcel()
+        {
+            try
+            {
+                string templatePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "PhieuNhapKho.xlsx");
+                if (!File.Exists(templatePath))
+                {
+                    _notificationService.ShowMessage("Không tìm thấy file mẫu PhieuNhapKho.xlsx.", "OK", isError: true);
+                    return;
+                }
+
+                string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                string exportPath = Path.Combine(desktopPath, $"PhieuNhapKho_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
+
+                using (var workbook = new XLWorkbook(templatePath))
+                {
+                    var worksheet = workbook.Worksheet(1); // Sheet đầu tiên
+
+                    // Ghi ngày in vào tiêu đề
+                    worksheet.Cell(3, 7).Value = $"Ngày {DateTime.Now.ToString("dd/MM/yyyy")}";
+                    worksheet.Cell(4, 5).Value = Properties.Settings.Default.FullName; // Người in
+                    worksheet.Cell(5, 5).Value = Properties.Settings.Default.RoleName; // Chức vụ
+                    worksheet.Cell(6, 5).Value = StockInRequestDTO.StockInDescription??"";
+                    worksheet.Cell(1, 8).Value += StockInRequestDTO.StockInCode;
+                    worksheet.Cell(4, 8).Value = LstWarehouses.FirstOrDefault(w => w.WarehouseCode == StockInRequestDTO.WarehouseCode)?.WarehouseName ?? ""; // Tên kho
+                    worksheet.Cell(5, 8).Value = LstPurchaseOrder.FirstOrDefault(s => s.PurchaseOrderCode == StockInRequestDTO.PurchaseOrderCode)?.PurchaseOrderCode??""; // Tên nhà cung cấp
+                    worksheet.Cell(6, 8).Value = StockInRequestDTO.OrderDeadLine; // Ngày dự kiến giao
+                    int startRow = 10;
+                    int stt = 1;
+
+                    foreach (var item in LstStockInDetails)
+                    {
+                        worksheet.Cell(startRow, 2).Value = stt; // STT
+                        worksheet.Cell(startRow, 3).Value = item.ProductCode; // Mã sản phẩm
+                        worksheet.Cell(startRow, 5).Value = item.ProductName; // Tên sản phẩm
+                        worksheet.Cell(startRow, 6).Value = item.LotNo; 
+                        worksheet.Cell(startRow, 7).Value = item.Quantity;
+                      
+                        startRow++;
+                        stt++;
+                    }
+
+                    workbook.SaveAs(exportPath);
+
+                    _notificationService.ShowMessage($"In phiếu nhập thành công!\nFile được lưu tại: {exportPath}", "OK", isError: false);
+
+
+                }
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi xuất in phiếu nhập: {ex.Message}", "OK", isError: true);
+            }
         }
 
         private async void OnPropertyChangedHandler(object sender, PropertyChangedEventArgs e)

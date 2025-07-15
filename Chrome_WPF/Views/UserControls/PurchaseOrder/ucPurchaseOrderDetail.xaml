@@ -167,7 +167,7 @@
                         Background="AliceBlue"
                         Command="{Binding ExportExcelCommand}"
                         Style="{StaticResource MaterialDesignFlatButton}"
-                        ToolTip="Lưu">
+                        ToolTip="Xuất excel">
                         <StackPanel Orientation="Horizontal">
                             <materialDesign:PackIcon
                                 Width="24"
