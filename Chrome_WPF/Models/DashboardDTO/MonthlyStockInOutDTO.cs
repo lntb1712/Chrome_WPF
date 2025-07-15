@@ -6,10 +6,12 @@ using System.Threading.Tasks;
 
 namespace Chrome_WPF.Models.DashboardDTO
 {
-    public class DailyStockInOutDTO
+    public class MonthlyStockInOutDTO
     {
-        public string Date { get; set; } = null!;
+        public string Month { get; set; }
         public int StockInCount { get; set; }
         public int StockOutCount { get; set; }
+        public int PurchaseOrderCount { get; set; }
+        public int StocktakeCount { get; set; }
     }
 }

@@ -10,7 +10,7 @@ namespace Chrome_WPF.Services.DashboardService
 {
     public interface IDashboardService
     {
-        Task<ApiResult<DashboardResponseDTO>> GetDashboardInformation(string[] warehouseCodes);
-        Task<ApiResult<DashboardStockInOutSummaryDTO>> GetStockInOutSummaryAsync(string[] warehouseCodes);
+        Task<ApiResult<DashboardResponseDTO>> GetDashboardInformation(DashboardRequestDTO dashboardRequest);
+        Task<ApiResult<DashboardStockInOutSummaryDTO>> GetStockInOutSummaryAsync(DashboardRequestDTO dashboardRequest);
     }
 }

@@ -42,6 +42,75 @@
             FontWeight="Bold"
             Foreground="{StaticResource PrimaryColor}"
             Text="Bảng điều khiển" />
+        <!--  Filter Section  -->
+        <StackPanel
+            Grid.Row="0"
+            Margin="8"
+            HorizontalAlignment="Right"
+            Orientation="Horizontal">
+            <ComboBox
+                Width="150"
+                Margin="6,0"
+                materialDesign:HintAssist.Hint="Chọn kho"
+                DisplayMemberPath="."
+                FontSize="11"
+                ItemsSource="{Binding AvailableWarehouseCodes}"
+                SelectedItem="{Binding SelectedWarehouseCode}"
+                Style="{StaticResource MaterialDesignFloatingHintComboBox}" />
+            <ComboBox
+                Width="120"
+                Margin="6,0"
+                materialDesign:HintAssist.Hint="Chọn năm"
+                FontSize="11"
+                ItemsSource="{Binding AvailableYears}"
+                SelectedItem="{Binding SelectedYear}"
+                Style="{StaticResource MaterialDesignFloatingHintComboBox}" />
+            <ComboBox
+                Width="120"
+                Margin="6,0"
+                materialDesign:HintAssist.Hint="Chọn quý"
+                FontSize="11"
+                ItemsSource="{Binding AvailableQuarters}"
+                SelectedItem="{Binding SelectedQuarter}"
+                Style="{StaticResource MaterialDesignFloatingHintComboBox}" />
+            <ComboBox
+                Width="120"
+                Margin="6,0"
+                materialDesign:HintAssist.Hint="Chọn tháng"
+                FontSize="11"
+                ItemsSource="{Binding AvailableMonths}"
+                SelectedItem="{Binding SelectedMonth}"
+                Style="{StaticResource MaterialDesignFloatingHintComboBox}" />
+            <Button
+                Background="Transparent"
+                BorderBrush="Transparent"
+                Command="{Binding FilterCommand}">
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon
+                        Margin="0,0,2,0"
+                        VerticalAlignment="Center"
+                        Kind="Filter" />
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        FontSize="11"
+                        Text="Lọc" />
+
+                </StackPanel>
+            </Button>
+            <Button
+                Background="Transparent"
+                BorderBrush="Transparent"
+                Command="{Binding ClearFilterCommand}"
+                ToolTip="Xóa bộ lọc">
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon
+                        Margin="0,0,2,0"
+                        VerticalAlignment="Center"
+                        Kind="Close" />
+
+                </StackPanel>
+            </Button>
+        </StackPanel>
 
         <!--  PieChart + Card + BarChart  -->
         <Grid Grid.Row="1">
@@ -80,43 +149,46 @@
                     Series="{Binding InventoryPieSeries}"
                     ToolTip="{x:Null}" />
             </Grid>
-
-            <!--  Warning Card  -->
             <materialDesign:Card
                 Grid.Row="1"
                 Grid.Column="0"
                 Width="Auto"
                 Margin="0,2,0,0"
-                Padding="5"
+                Padding="4"
                 Background="{StaticResource CardBackground}"
-                Effect="{StaticResource MaterialDesignShadowDepth2}"
-                UniformCornerRadius="12">
+                Effect="{StaticResource MaterialDesignShadowDepth1}"
+                UniformCornerRadius="8">
+
                 <StackPanel>
                     <materialDesign:ColorZone
-                        Margin="5"
-                        Padding="5"
+                        Margin="2"
+                        Padding="4"
                         Background="{StaticResource AccentColor}"
-                        CornerRadius="8"
+                        CornerRadius="4"
                         Mode="PrimaryMid">
                         <TextBlock
                             HorizontalAlignment="Center"
-                            FontSize="12"
+                            FontSize="10"
                             FontWeight="Bold"
                             Foreground="White"
-                            Text="Lệnh chưa xác nhận hoàn thành" />
+                            Text="Lệnh chưa xác nhận" />
                     </materialDesign:ColorZone>
-                    <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
-                        <StackPanel Margin="5,0">
+                    <StackPanel Margin="0,4" Orientation="Horizontal">
+                        <!--  Giảm margin  -->
+                        <StackPanel
+                            Margin="8,0,0,0"
+                            HorizontalAlignment="Center"
+                            Orientation="Vertical">
                             <TextBlock
                                 HorizontalAlignment="Center"
-                                FontSize="12"
+                                FontSize="10"
                                 FontWeight="SemiBold"
                                 Foreground="{StaticResource TextPrimary}"
                                 Text="Phiếu nhập" />
                             <TextBlock
-                                Margin="0,8"
+                                Margin="0,2"
                                 HorizontalAlignment="Center"
-                                FontSize="18"
+                                FontSize="14"
                                 FontWeight="Bold"
                                 Foreground="{StaticResource AccentColor}"
                                 Text="{Binding QuantityToCompleteStockIn}" />
@@ -126,17 +198,17 @@
                             Margin="15,8"
                             VerticalAlignment="Stretch"
                             Background="{StaticResource TextSecondary}" />
-                        <StackPanel Margin="5,0">
+                        <StackPanel HorizontalAlignment="Center" Orientation="Vertical">
                             <TextBlock
                                 HorizontalAlignment="Center"
-                                FontSize="12"
+                                FontSize="10"
                                 FontWeight="SemiBold"
                                 Foreground="{StaticResource TextPrimary}"
                                 Text="Phiếu xuất" />
                             <TextBlock
-                                Margin="0,8"
+                                Margin="0,2"
                                 HorizontalAlignment="Center"
-                                FontSize="18"
+                                FontSize="14"
                                 FontWeight="Bold"
                                 Foreground="{StaticResource AccentColor}"
                                 Text="{Binding QuantityToCompleteStockOut}" />
@@ -146,24 +218,65 @@
                             Margin="15,8"
                             VerticalAlignment="Stretch"
                             Background="{StaticResource TextSecondary}" />
-                        <StackPanel Margin="5,0">
+                        <StackPanel HorizontalAlignment="Center" Orientation="Vertical">
                             <TextBlock
                                 HorizontalAlignment="Center"
-                                FontSize="12"
+                                FontSize="10"
                                 FontWeight="SemiBold"
                                 Foreground="{StaticResource TextPrimary}"
                                 Text="Lệnh sản xuất" />
                             <TextBlock
-                                Margin="0,8"
+                                Margin="0,2"
                                 HorizontalAlignment="Center"
-                                FontSize="18"
+                                FontSize="14"
                                 FontWeight="Bold"
                                 Foreground="{StaticResource AccentColor}"
                                 Text="{Binding QuantityToCompleteManufacturingOrder}" />
                         </StackPanel>
+                        <Border
+                            Width="1"
+                            Margin="15,8"
+                            VerticalAlignment="Stretch"
+                            Background="{StaticResource TextSecondary}" />
+                        <StackPanel HorizontalAlignment="Center" Orientation="Vertical">
+                            <TextBlock
+                                HorizontalAlignment="Center"
+                                FontSize="10"
+                                FontWeight="SemiBold"
+                                Foreground="{StaticResource TextPrimary}"
+                                Text="Đơn đặt hàng" />
+                            <TextBlock
+                                Margin="0,2"
+                                HorizontalAlignment="Center"
+                                FontSize="14"
+                                FontWeight="Bold"
+                                Foreground="{StaticResource AccentColor}"
+                                Text="{Binding QuantityToCompletePurchaseOrder}" />
+                        </StackPanel>
+                        <Border
+                            Width="1"
+                            Margin="15,8"
+                            VerticalAlignment="Stretch"
+                            Background="{StaticResource TextSecondary}" />
+                        <StackPanel HorizontalAlignment="Center" Orientation="Vertical">
+                            <TextBlock
+                                HorizontalAlignment="Center"
+                                FontSize="10"
+                                FontWeight="SemiBold"
+                                Foreground="{StaticResource TextPrimary}"
+                                Text="Kiểm kho" />
+                            <TextBlock
+                                Margin="0,2"
+                                HorizontalAlignment="Center"
+                                FontSize="14"
+                                FontWeight="Bold"
+                                Foreground="{StaticResource AccentColor}"
+                                Text="{Binding QuantityToCompleteStocktake}" />
+                        </StackPanel>
                     </StackPanel>
                 </StackPanel>
             </materialDesign:Card>
+
 
             <!--  Bar Chart  -->
             <StackPanel
@@ -174,14 +287,16 @@
                 <TextBlock Style="{StaticResource ChartTitleStyle}" Text="Trạng thái đơn hàng" />
                 <lvc:CartesianChart
                     Height="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Grid}, Converter={StaticResource HeightMinusTenConverter}}"
-                    LegendLocation="Right"
+                    LegendLocation="Bottom"
                     Series="{Binding StatusBarSeries}">
                     <lvc:CartesianChart.AxisX>
                         <lvc:Axis
                             Title="Loại lệnh"
-                            FontSize="12"
+                            FontSize="10"
                             Foreground="{StaticResource TextPrimary}"
-                            Labels="{Binding StatusBarLabels}" />
+                            Labels="{Binding StatusBarLabels}"
+                            MinRange="0.3" />
+                        <!--  Thu nhỏ phạm vi trục X  -->
                     </lvc:CartesianChart.AxisX>
                     <lvc:CartesianChart.AxisY>
                         <lvc:Axis
@@ -203,17 +318,17 @@
 
             <!--  Daily Stock Chart  -->
             <StackPanel Grid.Column="0">
-                <TextBlock Style="{StaticResource ChartTitleStyle}" Text="Nhập/Xuất kho 7 ngày" />
+                <TextBlock Style="{StaticResource ChartTitleStyle}" Text="Đơn đặt hàng,nhập,xuất và kiểm kho trong 7 ngày" />
                 <lvc:CartesianChart
                     Height="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Grid}, Converter={StaticResource HeightMinusTenConverter}}"
                     LegendLocation="Top"
-                    Series="{Binding DailyStockSeries}">
+                    Series="{Binding MonthlyStockSeries}">
                     <lvc:CartesianChart.AxisX>
                         <lvc:Axis
                             Title="Ngày"
                             FontSize="12"
                             Foreground="{StaticResource TextPrimary}"
-                            Labels="{Binding DailyStockLabels}"
+                            Labels="{Binding MonthlyStockLabels}"
                             Position="LeftBottom" />
                     </lvc:CartesianChart.AxisX>
                     <lvc:CartesianChart.AxisY>

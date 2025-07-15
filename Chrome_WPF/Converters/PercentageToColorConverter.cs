@@ -15,9 +15,9 @@ namespace Chrome_WPF.Converters
         {
             if (value is double percentage)
             {
-                if (percentage <= 10) return new SolidColorBrush(Color.FromRgb(255, 0, 0)); 
-                else if (percentage <= 30) return new SolidColorBrush(Color.FromRgb(255, 165, 0)); // Cam
-                else return new SolidColorBrush(Color.FromRgb(0, 128, 0)); 
+                if (percentage <= 10) return new SolidColorBrush(Color.FromRgb(255, 153, 153)); 
+                else if (percentage <= 30) return new SolidColorBrush(Color.FromRgb(255, 216, 168)); // Cam
+                else return new SolidColorBrush(Color.FromRgb(126, 200, 169)); 
             }
             return new SolidColorBrush(Colors.Gray);
         }

@@ -33,7 +33,7 @@ namespace Chrome_WPF.Views.UserControls.Dashboard
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             DataContext= _viewModel;
             _refreshTimer.Interval = TimeSpan.FromSeconds(30);
-            _refreshTimer.Tick += async (s, e) => await _viewModel.LoadDashboardDataAsync();
+            _refreshTimer.Tick += async (s, e) => await _viewModel.LoadDashboardDataAsyncCommand();
             _refreshTimer.Start();
         }
 
