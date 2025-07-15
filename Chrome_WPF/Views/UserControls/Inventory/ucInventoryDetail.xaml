@@ -268,11 +268,11 @@
                                         Header="Tên vị trí" />
                                     <DataGridTextColumn
                                         Width="*"
-                                        Binding="{Binding Quantity}"
+                                        Binding="{Binding BaseQuantity}"
                                         Header="Số lượng" />
                                     <DataGridTextColumn
                                         Width="*"
-                                        Binding="{Binding UOM}"
+                                        Binding="{Binding BaseUOM}"
                                         Header="Đơn vị" />
                                 </DataGrid.Columns>
                             </DataGrid>

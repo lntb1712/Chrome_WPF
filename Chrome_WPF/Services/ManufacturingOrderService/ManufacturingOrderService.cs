@@ -932,6 +932,111 @@ namespace Chrome_WPF.Services.ManufacturingOrderService
             }
         }
 
-       
+        public async Task<ApiResult<bool>> CheckInventory(ManufacturingOrderRequestDTO manufacturingOrder)
+        {
+            if (manufacturingOrder == null)
+            {
+                return new ApiResult<bool>("Dữ liệu lệnh sản xuất không được để trống", false);
+            }
+            try
+            {
+                var json = JsonConvert.SerializeObject(manufacturingOrder);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync("ManufacturingOrder/CheckInventory", content).ConfigureAwait(false);
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    var result = JsonConvert.DeserializeObject<ApiResult<bool>>(jsonResponse);
+                    return result ?? new ApiResult<bool>("Không thể phân tích phản hồi", false);
+                }
+                var errorResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                var errorResult = JsonConvert.DeserializeObject<ApiResult<bool>>(errorResponse);
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    return new ApiResult<bool>(errorResult?.Message ?? "Không có quyền truy cập", false);
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    return new ApiResult<bool>(errorResult?.Message ?? "Truy cập bị cấm", false);
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return new ApiResult<bool>(errorResult?.Message ?? "Không tìm thấy tài nguyên", false);
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+                {
+                    return new ApiResult<bool>(errorResult?.Message ?? "Lỗi máy chủ nội bộ", false);
+                }
+                else
+                {
+                    return new ApiResult<bool>(errorResult?.Message ?? "Lỗi không xác định", false);
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                return new ApiResult<bool>($"Lỗi mạng: {ex.Message}", false);
+            }
+            catch (JsonException ex)
+            {
+                return new ApiResult<bool>($"Lỗi phân tích phản hồi: {ex.Message}", false);
+            }
+            catch (Exception ex)
+            {
+                return new ApiResult<bool>($"Lỗi không xác định: {ex.Message}", false);
+            }
+        }
+        public async Task<ApiResult<bool>> CheckQuantityWithBase(ManufacturingOrderRequestDTO manufacturingOrder)
+        {
+            if(manufacturingOrder == null)
+            {
+                return new ApiResult<bool>("Dữ liệu lệnh sản xuất không được để trống", false);
+            }
+            try
+            {
+                var json = JsonConvert.SerializeObject(manufacturingOrder);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync("ManufacturingOrder/CheckQuantityWithBase", content).ConfigureAwait(false);
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    var result = JsonConvert.DeserializeObject<ApiResult<bool>>(jsonResponse);
+                    return result ?? new ApiResult<bool>("Không thể phân tích phản hồi", false);
+                }
+                var errorResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                var errorResult = JsonConvert.DeserializeObject<ApiResult<bool>>(errorResponse);
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    return new ApiResult<bool>(errorResult?.Message ?? "Không có quyền truy cập", false);
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    return new ApiResult<bool>(errorResult?.Message ?? "Truy cập bị cấm", false);
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return new ApiResult<bool>(errorResult?.Message ?? "Không tìm thấy tài nguyên", false);
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+                {
+                    return new ApiResult<bool>(errorResult?.Message ?? "Lỗi máy chủ nội bộ", false);
+                }
+                else
+                {
+                    return new ApiResult<bool>(errorResult?.Message ?? "Lỗi không xác định", false);
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                return new ApiResult<bool>($"Lỗi mạng: {ex.Message}", false);
+            }
+            catch (JsonException ex)
+            {
+                return new ApiResult<bool>($"Lỗi phân tích phản hồi: {ex.Message}", false);
+            }
+            catch (Exception ex)
+            {
+                return new ApiResult<bool>($"Lỗi không xác định: {ex.Message}", false);
+            }
+        }
     }
 }

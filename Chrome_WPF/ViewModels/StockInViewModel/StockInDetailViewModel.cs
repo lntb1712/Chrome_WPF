@@ -16,6 +16,7 @@ using Chrome_WPF.Services.PutAwayService;
 using Chrome_WPF.Services.StockInDetailService;
 using Chrome_WPF.Services.StockInService;
 using Chrome_WPF.Views.UserControls.StockIn;
+using DocumentFormat.OpenXml.VariantTypes;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.ObjectModel;
@@ -52,6 +53,18 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
         private int _lastLoadedPage;
         private bool _isSaving;
         private bool _hasPutAway;
+        private bool _allCompletedPutAway;
+
+        public bool AllCompletedPutAway
+        {
+            get => _allCompletedPutAway;
+            set
+            {
+                _allCompletedPutAway = value;
+                OnPropertyChanged();
+                ((RelayCommand)ConfirmQuantityCommand)?.RaiseCanExecuteChanged();
+            }
+        }
 
         public bool HasPutAway
         {
@@ -169,7 +182,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                 OnPropertyChanged();
                 _ = LoadStockInDetailsAsync();
                 _ = CheckPutAwayHasValue();
-            }
+                _ = CheckAllCompletedPutAway();            }
         }
 
         public bool IsAddingNew
@@ -232,62 +245,63 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
         public ICommand SelectPageCommand { get; }
         public ICommand ConfirmQuantityCommand { get; }
 
-            public StockInDetailViewModel(
-                IStockInDetailService stockInDetailService,
-                IStockInService stockInService,
-                INotificationService notificationService,
-                INavigationService navigationService,
-                IMessengerService messengerService,
-                IPutAwayService putAwayService,
-                StockInResponseDTO? stockIn = null)
+        public StockInDetailViewModel(
+            IStockInDetailService stockInDetailService,
+            IStockInService stockInService,
+            INotificationService notificationService,
+            INavigationService navigationService,
+            IMessengerService messengerService,
+            IPutAwayService putAwayService,
+            StockInResponseDTO? stockIn = null)
+        {
+            _stockInDetailService = stockInDetailService ?? throw new ArgumentNullException(nameof(stockInDetailService));
+            _stockInService = stockInService ?? throw new ArgumentNullException(nameof(stockInService));
+            _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
+            _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
+            _messengerService = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
+            _putAwayService = putAwayService ?? throw new ArgumentNullException(nameof(putAwayService));
+
+            _lstStockInDetails = new ObservableCollection<StockInDetailResponseDTO>();
+            _lstStockInDetails.CollectionChanged += StockInDetails_CollectionChanged!;
+            _lstProducts = new ObservableCollection<ProductMasterResponseDTO>();
+            _lstOrderTypes = new ObservableCollection<OrderTypeResponseDTO>();
+            _lstWarehouses = new ObservableCollection<WarehouseMasterResponseDTO>();
+            _lstPurchaseOrderDTO = new ObservableCollection<PurchaseOrderResponseDTO>();
+            _lstResponsiblePersons = new ObservableCollection<AccountManagementResponseDTO>();
+            _lstPutAway = new ObservableCollection<PutAwayAndDetailResponseDTO>();
+            _displayPages = new ObservableCollection<object>();
+            _isAddingNew = stockIn == null;
+            _currentPage = 1;
+            _lastLoadedPage = 0;
+            _isSaving = false;
+            _hasPutAway = false;
+            _allCompletedPutAway = false;
+            _stockInRequestDTO = stockIn == null ? new StockInRequestDTO
             {
-                _stockInDetailService = stockInDetailService ?? throw new ArgumentNullException(nameof(stockInDetailService));
-                _stockInService = stockInService ?? throw new ArgumentNullException(nameof(stockInService));
-                _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
-                _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
-                _messengerService = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
-                _putAwayService = putAwayService ?? throw new ArgumentNullException(nameof(putAwayService));
+                OrderDeadLine = DateTime.Now.ToString("dd/MM/yyyy")
+            } : new StockInRequestDTO
+            {
+                StockInCode = stockIn.StockInCode ?? string.Empty,
+                OrderTypeCode = stockIn.OrderTypeCode ?? string.Empty,
+                WarehouseCode = stockIn.WarehouseCode ?? string.Empty,
+                PurchaseOrderCode = stockIn.PurchaseOrderCode ?? string.Empty,
+                Responsible = stockIn.Responsible ?? string.Empty,
+                OrderDeadLine = stockIn.OrderDeadline!,
+                StockInDescription = stockIn.StockInDescription ?? string.Empty
+            };
 
-                _lstStockInDetails = new ObservableCollection<StockInDetailResponseDTO>();
-                _lstStockInDetails.CollectionChanged += StockInDetails_CollectionChanged!;
-                _lstProducts = new ObservableCollection<ProductMasterResponseDTO>();
-                _lstOrderTypes = new ObservableCollection<OrderTypeResponseDTO>();
-                _lstWarehouses = new ObservableCollection<WarehouseMasterResponseDTO>();
-                _lstPurchaseOrderDTO = new ObservableCollection<PurchaseOrderResponseDTO>();
-                _lstResponsiblePersons = new ObservableCollection<AccountManagementResponseDTO>();
-                _lstPutAway = new ObservableCollection<PutAwayAndDetailResponseDTO>();
-                _displayPages = new ObservableCollection<object>();
-                _isAddingNew = stockIn == null;
-                _currentPage = 1;
-                _lastLoadedPage = 0;
-                _isSaving = false;
-                _hasPutAway = false;
-                _stockInRequestDTO = stockIn == null ? new StockInRequestDTO
-                {
-                    OrderDeadLine = DateTime.Now.ToString("dd/MM/yyyy")
-                } : new StockInRequestDTO
-                {
-                    StockInCode = stockIn.StockInCode ?? string.Empty,
-                    OrderTypeCode = stockIn.OrderTypeCode ?? string.Empty,
-                    WarehouseCode = stockIn.WarehouseCode ?? string.Empty,
-                    PurchaseOrderCode = stockIn.PurchaseOrderCode ?? string.Empty,
-                    Responsible = stockIn.Responsible ?? string.Empty,
-                    OrderDeadLine = stockIn.OrderDeadline!,
-                    StockInDescription = stockIn.StockInDescription ?? string.Empty
-                };
+            SaveCommand = new RelayCommand(async parameter => await SaveStockInAsync(parameter), CanSave);
+            BackCommand = new RelayCommand(_ => NavigateBack());
+            AddDetailLineCommand = new RelayCommand(_ => AddDetailLine(), CanAddDetailLine);
+            DeleteDetailLineCommand = new RelayCommand(async detail => await DeleteDetailLineAsync((StockInDetailResponseDTO)detail));
+            PreviousPageCommand = new RelayCommand(_ => PreviousPage());
+            NextPageCommand = new RelayCommand(_ => NextPage());
+            SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
+            ConfirmQuantityCommand = new RelayCommand(async parameter => await CheckQuantityAsync(parameter), CanConfirmQuantity);
 
-                SaveCommand = new RelayCommand(async parameter => await SaveStockInAsync(parameter), CanSave);
-                BackCommand = new RelayCommand(_ => NavigateBack());
-                AddDetailLineCommand = new RelayCommand(_ => AddDetailLine(), CanAddDetailLine);
-                DeleteDetailLineCommand = new RelayCommand(async detail => await DeleteDetailLineAsync((StockInDetailResponseDTO)detail));
-                PreviousPageCommand = new RelayCommand(_ => PreviousPage());
-                NextPageCommand = new RelayCommand(_ => NextPage());
-                SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
-                ConfirmQuantityCommand = new RelayCommand(async parameter => await CheckQuantityAsync(parameter), CanConfirmQuantity);
-
-                _stockInRequestDTO.PropertyChanged += OnPropertyChangedHandler!;
-                _ = InitializeAsync();
-            }
+            _stockInRequestDTO.PropertyChanged += OnPropertyChangedHandler!;
+            _ = InitializeAsync();
+        }
 
         private void StockInDetails_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
@@ -323,7 +337,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                     var detail = (StockInDetailResponseDTO)sender;
                     if (detail?.SelectedProduct != null)
                     {
-                        _= Task.Delay(500); // Consider replacing with proper debouncing if needed
+                        _ = Task.Delay(500); // Consider replacing with proper debouncing if needed
                         // Add logic for handling selected product change if necessary
                     }
                 }
@@ -364,7 +378,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                 }
                 if (IsAddingNew)
                 {
-                    await LoadPurchaseOrder(new int[] {1});
+                    await LoadPurchaseOrder(new int[] { 1 });
                     if (IsAddingNew && LstPurchaseOrder.Any())
                     {
                         StockInRequestDTO!.PurchaseOrderCode = LstPurchaseOrder.First().PurchaseOrderCode;
@@ -378,14 +392,15 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                     }
                     await LoadStockInDetailsAsync();
                     await LoadResponsiblePersonsAsync();
-                    await CheckPutAwayHasValue(); 
-                    await LoadPurchaseOrder(new int[] { 2,3});
+                    await CheckPutAwayHasValue();
+                    await CheckAllCompletedPutAway();
+                    await LoadPurchaseOrder(new int[] { 2, 3 });
                     if (HasPutAway)
                     {
                         await LoadPutAway();
                     }
                 }
-                
+
             }
             catch (Exception ex)
             {
@@ -411,8 +426,27 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                 _notificationService.ShowMessage($"Lỗi khi kiểm tra putaway: {ex.Message}", "OK", isError: true);
                 HasPutAway = false;
             }
+
         }
 
+        private async Task CheckAllCompletedPutAway()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(StockInRequestDTO.StockInCode))
+                {
+                    HasPutAway = false;
+                    return;
+                }
+                var putAwayResult = await _putAwayService.GetListPutAwayContainsCodeAsync(StockInRequestDTO.StockInCode);
+                    AllCompletedPutAway = putAwayResult.Success && putAwayResult.Data != null && putAwayResult.Data.All(x => x.StatusId == 3);
+                
+            }catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi kiểm tra putaway: {ex.Message}", "OK", isError: true);
+                AllCompletedPutAway = false;
+            }
+        }
         private async Task LoadPutAway()
         {
             try
@@ -427,7 +461,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                 if (result.Success && result.Data != null)
                 {
                     LstPutAway.Clear();
-                    foreach(var item in result.Data)
+                    foreach (var item in result.Data)
                     {
                         LstPutAway.Add(item);
                     }
@@ -541,7 +575,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
         {
             try
             {
-                
+
 
                 if (string.IsNullOrEmpty(StockInRequestDTO.StockInCode))
                 {
@@ -803,6 +837,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                 // Refresh only necessary data
                 await LoadStockInDetailsAsync();
                 await CheckPutAwayHasValue();
+                await CheckAllCompletedPutAway();
                 if (HasPutAway)
                 {
                     await LoadPutAway();
@@ -834,7 +869,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
 
         private bool CanConfirmQuantity(object parameter)
         {
-            return !string.IsNullOrEmpty(StockInRequestDTO?.StockInCode) && HasPutAway && string.IsNullOrEmpty(StockInRequestDTO?.Error);
+            return !string.IsNullOrEmpty(StockInRequestDTO?.StockInCode) && HasPutAway && string.IsNullOrEmpty(StockInRequestDTO?.Error) && AllCompletedPutAway;
         }
 
         private bool CanAddDetailLine(object parameter)

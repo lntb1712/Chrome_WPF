@@ -500,6 +500,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
                 HasReservation = false;
             }
         }
+
         private async Task LoadReservationsAsync()
         {
             try
@@ -801,6 +802,23 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
                 {
                     _notificationService.ShowMessage("Vui lòng kiểm tra lại thông tin nhập vào.", "OK", isError: true);
                     return;
+                }
+                var checkInventoryResult = await _manufacturingOrderService.CheckInventory(ManufacturingOrderRequestDTO);
+                if (!checkInventoryResult.Success)
+                {
+                    MessageBox.Show(checkInventoryResult.Message ?? "Không thể kiểm tra tồn kho","Cảnh báo",MessageBoxButton.OK,MessageBoxImage.Warning);
+                    return;
+                }
+
+                var checkQuantityWithBase = await _manufacturingOrderService.CheckQuantityWithBase(ManufacturingOrderRequestDTO);
+                if (!checkQuantityWithBase.Success)
+                {
+                    MessageBoxResult result = MessageBox.Show(checkQuantityWithBase.Message ?? "Không thể kiểm tra số lượng với cơ sở sản xuất.", "Xác nhận", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                    if (result == MessageBoxResult.No)
+                    {
+                        return;
+                    }
+                    
                 }
 
                 ApiResult<bool> manufacturingOrderResult;

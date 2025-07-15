@@ -55,7 +55,7 @@ namespace Chrome_WPF.ViewModels.BOMMasterViewModel
         private const string ProductsCacheKeyPrefix = "Products_";
         private const string ComponentsCacheKeyPrefix = "Components_";
         private const string BOMComponentsCacheKeyPrefix = "BOMComponents_";
-        private static readonly TimeSpan CacheExpiration = TimeSpan.FromMinutes(5);
+        private static readonly TimeSpan CacheExpiration = TimeSpan.FromSeconds(20);
 
         public BOMMasterRequestDTO BOMMasterRequestDTO
         {
