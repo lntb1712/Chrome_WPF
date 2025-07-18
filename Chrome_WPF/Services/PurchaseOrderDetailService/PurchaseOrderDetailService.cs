@@ -89,7 +89,7 @@ namespace Chrome_WPF.Services.PurchaseOrderDetailService
             }
             try
             {
-                var response = await _httpClient.PostAsync($"PurchaseOrder/{Uri.UnescapeDataString(purchaseOrderCode)}/PurchaseOrderDetail/CheckAndUpdateStockBackOrderStatus",null).ConfigureAwait(false);
+                var response = await _httpClient.PostAsync($"PurchaseOrder/{Uri.EscapeDataString(purchaseOrderCode)}/PurchaseOrderDetail/CheckAndUpdateStockBackOrderStatus",null).ConfigureAwait(false);
                 var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 if (response.IsSuccessStatusCode)
                 {

@@ -602,7 +602,7 @@ namespace Chrome_WPF.Services.StockOutService
             }
             try
             {
-                var response = await _httpClient.DeleteAsync($"StockOut/DeleteStockOutAsync?stockOutCode={stockOutCode}").ConfigureAwait(false);
+                var response = await _httpClient.DeleteAsync($"StockOut/DeleteStockOutAsync?stockOutCode={Uri.EscapeDataString(stockOutCode)}").ConfigureAwait(false);
                 var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 if (response.IsSuccessStatusCode)
                 {

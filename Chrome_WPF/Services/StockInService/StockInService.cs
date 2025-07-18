@@ -525,7 +525,7 @@ namespace Chrome_WPF.Services.StockInService
             }
             try
             {
-                var response = await _httpClient.DeleteAsync($"StockIn/DeleteStockInAsync?stockInCode={stockInCode}").ConfigureAwait(false);
+                var response = await _httpClient.DeleteAsync($"StockIn/DeleteStockInAsync?stockInCode={Uri.EscapeDataString(stockInCode)}").ConfigureAwait(false);
                 var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 if (response.IsSuccessStatusCode)
                 {
@@ -642,7 +642,7 @@ namespace Chrome_WPF.Services.StockInService
             try
             {
                
-                var response = await _httpClient.GetAsync($"StockIn/GetStockInByCode?stockInCode={stockInCode}").ConfigureAwait(false);
+                var response = await _httpClient.GetAsync($"StockIn/GetStockInByCode?stockInCode={Uri.EscapeDataString(stockInCode)}").ConfigureAwait(false);
                 var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 if (response.IsSuccessStatusCode)
                 {

@@ -106,7 +106,7 @@ namespace Chrome_WPF.Services.PurchaseOrderService
             }
             try
             {
-                var response = await _httpClient.DeleteAsync($"PurchaseOrder/DeletePurchaseOrderAsync?purchaseOrderCode={purchaseOrderCode}").ConfigureAwait(false);
+                var response = await _httpClient.DeleteAsync($"PurchaseOrder/DeletePurchaseOrderAsync?purchaseOrderCode={Uri.EscapeDataString(purchaseOrderCode)}").ConfigureAwait(false);
                 var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 if (response.IsSuccessStatusCode)
                 {
