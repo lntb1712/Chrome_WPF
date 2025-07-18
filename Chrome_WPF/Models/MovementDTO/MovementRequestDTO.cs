@@ -27,7 +27,6 @@ namespace Chrome_WPF.Models.MovementDTO
         }
 
         [Required(ErrorMessage = "Mã di chuyển không được để trống")]
-        [RegularExpression(@"^[a-zA-Z0-9_]+$", ErrorMessage = "Mã di chuyển chỉ được chứa chữ, số và dấu gạch dưới")]
         public string MovementCode
         {
             get => _movementCode;

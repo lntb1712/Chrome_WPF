@@ -1,10 +1,15 @@
-﻿using Chrome_WPF.Services.ReplenishService;
+﻿using Chrome_WPF.Helpers;
+using Chrome_WPF.Services.BOMComponentService;
+using Chrome_WPF.Services.InventoryService;
+using Chrome_WPF.Services.ReplenishService;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Input;
 
 namespace Chrome_WPF.ViewModels.MainWindowViewModel
 {
@@ -12,9 +17,21 @@ namespace Chrome_WPF.ViewModels.MainWindowViewModel
     {
         private readonly AuthViewModel _authViewModel;
         private readonly IReplenishService _replenishService;
+        private readonly IBOMComponentService _bOMComponentService;
+        private readonly IInventoryService _inventoryService;
         private List<string> _replenishWarnings = new List<string>();
         private int _warningCount;
 
+        private string _selectedWarning;
+        public string SelectedWarning
+        {
+            get => _selectedWarning;
+            set
+            {
+                _selectedWarning = value;
+                OnPropertyChanged(nameof(SelectedWarning));
+            }
+        }
         public List<string> ReplenishWarnings
         {
             get => _replenishWarnings;
@@ -34,11 +51,15 @@ namespace Chrome_WPF.ViewModels.MainWindowViewModel
                 OnPropertyChanged(nameof(WarningCount));
             }
         }
-
-        public MainWindowViewModel(AuthViewModel authViewModel, IReplenishService replenishService)
+        public ICommand CreateReplenishCommand { get;  }
+        public MainWindowViewModel(AuthViewModel authViewModel, IReplenishService replenishService , IBOMComponentService bOMComponentService , IInventoryService inventoryService)
         {
             _authViewModel = authViewModel ?? throw new ArgumentNullException(nameof(authViewModel));
             _replenishService = replenishService ?? throw new ArgumentNullException(nameof(replenishService));
+            _bOMComponentService = bOMComponentService ?? throw new ArgumentNullException(nameof(bOMComponentService));
+            _inventoryService = inventoryService ?? throw new ArgumentNullException(nameof(inventoryService));
+            _selectedWarning = "";
+            CreateReplenishCommand = new RelayCommand(async p => await ExecuteCreateReplenishmentOrderAsync(p), CanExecuteCreateReplenishmentOrder);
         }
 
         public async Task InitializeAsync()
@@ -87,6 +108,44 @@ namespace Chrome_WPF.ViewModels.MainWindowViewModel
             {
                 var errorMessage = "Lỗi khi kiểm tra bổ sung hàng:\n\n" + string.Join("\n", errorMessages);
                 MessageBox.Show(errorMessage, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        private bool CanExecuteCreateReplenishmentOrder(object parameter)
+        {
+            return !string.IsNullOrEmpty(SelectedWarning);
+        }
+        private Task ExecuteCreateReplenishmentOrderAsync(object parameter)
+        {
+            if (SelectedWarning != null)
+            {
+                // Extract product code from the warning string
+                string productCode = ExtractProductCode(SelectedWarning);
+                if (string.IsNullOrEmpty(productCode))
+                {
+                    MessageBox.Show("Không thể xác định mã sản phẩm từ cảnh báo.", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return Task.CompletedTask;
+                }
+
+                //if (productCode.StartsWith("SFG"))
+                //{
+                    
+                //    var 
+
+                //}
+            }
+
+            return Task.CompletedTask;
+        }
+        private string ExtractProductCode(string warning)
+        {
+            try
+            {
+                var match = Regex.Match(warning, @"Mã:\s*(\w+)");
+                return match.Success ? match.Groups[1].Value : null!;
+            }
+            catch
+            {
+                return null!;
             }
         }
     }

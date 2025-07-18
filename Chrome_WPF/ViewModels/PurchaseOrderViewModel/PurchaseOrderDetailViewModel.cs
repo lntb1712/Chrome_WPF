@@ -6,6 +6,7 @@ using Chrome_WPF.Models.PurchaseOrderDetailDTO;
 using Chrome_WPF.Models.PurchaseOrderDTO;
 using Chrome_WPF.Models.SupplierMasterDTO;
 using Chrome_WPF.Models.WarehouseMasterDTO;
+using Chrome_WPF.Services.CodeGeneratorService;
 using Chrome_WPF.Services.MessengerService;
 using Chrome_WPF.Services.NavigationService;
 using Chrome_WPF.Services.NotificationService;
@@ -32,6 +33,7 @@ namespace Chrome_WPF.ViewModels.PurchaseOrderViewModel
         private readonly INotificationService _notificationService;
         private readonly INavigationService _navigationService;
         private readonly IMessengerService _messengerService;
+        private readonly ICodeGenerateService _codeGenerateService;
 
         private ObservableCollection<PurchaseOrderDetailResponseDTO> _lstPurchaseOrderDetails;
         private ObservableCollection<ProductMasterResponseDTO> _lstProducts;
@@ -45,7 +47,7 @@ namespace Chrome_WPF.ViewModels.PurchaseOrderViewModel
         private int _totalPages;
         private int _lastLoadedPage;
         private bool _isSaving;
-
+        private string _applicableLocation;
         public ObservableCollection<PurchaseOrderDetailResponseDTO> LstPurchaseOrderDetails
         {
             get => _lstPurchaseOrderDetails;
@@ -190,6 +192,8 @@ namespace Chrome_WPF.ViewModels.PurchaseOrderViewModel
             INotificationService notificationService,
             INavigationService navigationService,
             IMessengerService messengerService,
+            ICodeGenerateService codeGenerateService,
+            
             PurchaseOrderResponseDTO? purchaseOrder = null)
         {
             _purchaseOrderDetailService = purchaseOrderDetailService ?? throw new ArgumentNullException(nameof(purchaseOrderDetailService));
@@ -197,6 +201,7 @@ namespace Chrome_WPF.ViewModels.PurchaseOrderViewModel
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
             _messengerService = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
+            _codeGenerateService = codeGenerateService ?? throw new ArgumentNullException(nameof(codeGenerateService));
 
             _lstPurchaseOrderDetails = new ObservableCollection<PurchaseOrderDetailResponseDTO>();
             _lstPurchaseOrderDetails.CollectionChanged += PurchaseOrderDetails_CollectionChanged!;
@@ -232,6 +237,13 @@ namespace Chrome_WPF.ViewModels.PurchaseOrderViewModel
             ConfirmQuantityCommand = new RelayCommand(async parameter => await CheckQuantityAsync(parameter), CanConfirmQuantity);
             ExportExcelCommand = new RelayCommand(async parameter => await ExportAndPreview(parameter));
 
+            List<string> warehousePermissions = new List<string>();
+            var savedPermissions = Properties.Settings.Default.WarehousePermission;
+            if (savedPermissions != null)
+            {
+                warehousePermissions = savedPermissions.Cast<string>().ToList();
+            }
+            _applicableLocation = warehousePermissions.First().ToString();
             _purchaseOrderRequestDTO.PropertyChanged += OnPropertyChangedHandler!;
             _ = InitializeAsync();
         }
@@ -279,7 +291,25 @@ namespace Chrome_WPF.ViewModels.PurchaseOrderViewModel
                 _notificationService.ShowMessage($"Lỗi khi xử lý thay đổi chi tiết: {ex.Message}", "OK", isError: true);
             }
         }
-
+        private async Task GenerateCodeAsync()
+        {
+            try
+            {
+                var result = await _codeGenerateService.CodeGeneratorAsync(_applicableLocation,"PO");
+                if (result.Success && !string.IsNullOrEmpty(result.Data))
+                {
+                    PurchaseOrderRequestDTO.PurchaseOrderCode = result.Data;
+                }
+                else
+                {
+                    _notificationService.ShowMessage(result.Message ?? "Không thể tạo mã đơn đặt hàng.", "OK", isError: true);
+                }
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi tạo mã đơn đặt hàng: {ex.Message}", "OK", isError: true);
+            }
+        }
         private async Task InitializeAsync()
         {
             try
@@ -290,7 +320,16 @@ namespace Chrome_WPF.ViewModels.PurchaseOrderViewModel
                     NavigateBack();
                     return;
                 }
+                if (IsAddingNew)
+                {
+                    await GenerateCodeAsync();
+                    if (string.IsNullOrEmpty(PurchaseOrderRequestDTO!.PurchaseOrderCode))
+                    {
+                        _notificationService.ShowMessage("Không thể tạo mã đơn đặt hàng mới.", "OK", isError: true);
 
+                        return;
+                    }
+                }
                 if (!LstWarehouses.Any())
                 {
                     await LoadWarehousesAsync();
@@ -780,7 +819,7 @@ namespace Chrome_WPF.ViewModels.PurchaseOrderViewModel
                 ((RelayCommand)SaveCommand)?.RaiseCanExecuteChanged();
             }
         }
-        private async Task ExportAndPreview(object parameter)
+        private Task ExportAndPreview(object parameter)
         {
             try
             {
@@ -832,6 +871,8 @@ namespace Chrome_WPF.ViewModels.PurchaseOrderViewModel
             {
                 _notificationService.ShowMessage($"Lỗi khi xuất đơn đặt hàng: {ex.Message}", "OK", isError: true);
             }
+
+            return Task.CompletedTask;
         }
     }
 }

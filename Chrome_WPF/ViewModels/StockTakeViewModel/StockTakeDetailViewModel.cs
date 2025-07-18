@@ -3,10 +3,12 @@ using Chrome_WPF.Models.AccountManagementDTO;
 using Chrome_WPF.Models.APIResult;
 using Chrome_WPF.Models.MovementDTO;
 using Chrome_WPF.Models.PagedResponse;
+using Chrome_WPF.Models.PurchaseOrderDTO;
 using Chrome_WPF.Models.StockTakeDetailDTO;
 using Chrome_WPF.Models.StocktakeDTO;
 using Chrome_WPF.Models.StockTakeDTO;
 using Chrome_WPF.Models.WarehouseMasterDTO;
+using Chrome_WPF.Services.CodeGeneratorService;
 using Chrome_WPF.Services.MessengerService;
 using Chrome_WPF.Services.NavigationService;
 using Chrome_WPF.Services.NotificationService;
@@ -31,6 +33,7 @@ namespace Chrome_WPF.ViewModels.StockTakeViewModel
         private readonly INotificationService _notificationService;
         private readonly INavigationService _navigationService;
         private readonly IMessengerService _messengerService;
+        private readonly ICodeGenerateService _codeGenerateService;
 
         private ObservableCollection<StockTakeDetailResponseDTO> _lstStockTakeDetails;
         private ObservableCollection<WarehouseMasterResponseDTO> _lstWarehouses;
@@ -43,6 +46,7 @@ namespace Chrome_WPF.ViewModels.StockTakeViewModel
         private int _totalPages;
         private int _lastLoadedPage;
         private bool _isSaving;
+        private string _applicableLocation;
 
         public ObservableCollection<StockTakeDetailResponseDTO> LstStockTakeDetails
         {
@@ -168,6 +172,7 @@ namespace Chrome_WPF.ViewModels.StockTakeViewModel
             INotificationService notificationService,
             INavigationService navigationService,
             IMessengerService messengerService,
+            ICodeGenerateService codeGenerateService,
             StockTakeResponseDTO stockTake = null!)
         {
             _stockTakeService = stockTakeService ?? throw new ArgumentNullException(nameof(stockTakeService));
@@ -175,6 +180,7 @@ namespace Chrome_WPF.ViewModels.StockTakeViewModel
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
             _messengerService = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
+            _codeGenerateService = codeGenerateService ?? throw new ArgumentNullException(nameof(codeGenerateService));
 
             _lstStockTakeDetails = new ObservableCollection<StockTakeDetailResponseDTO>();
             _lstWarehouses = new ObservableCollection<WarehouseMasterResponseDTO>();
@@ -203,14 +209,49 @@ namespace Chrome_WPF.ViewModels.StockTakeViewModel
             SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
             ConfirmCommand = new RelayCommand(async parameter => await ConfirmStockTakeAsync(parameter), CanConfirm);
 
+            List<string> warehousePermissions = new List<string>();
+            var savedPermissions = Properties.Settings.Default.WarehousePermission;
+            if (savedPermissions != null)
+            {
+                warehousePermissions = savedPermissions.Cast<string>().ToList();
+            }
+            _applicableLocation = warehousePermissions.First().ToString();
+
             _stockTakeRequestDTO.PropertyChanged += OnStockTakeRequestDTOPropertyChanged!;
             _ = InitializeAsync();
         }
-
+        private async Task GenerateCodeAsync()
+        {
+            try
+            {
+                var result = await _codeGenerateService.CodeGeneratorAsync(_applicableLocation, "STK");
+                if (result.Success && !string.IsNullOrEmpty(result.Data))
+                {
+                    StockTakeRequestDTO.StockTakeCode = result.Data;
+                }
+                else
+                {
+                    _notificationService.ShowMessage(result.Message ?? "Không thể tạo mã kiểm kê.", "OK", isError: true);
+                }
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi tạo mã kiểm kê: {ex.Message}", "OK", isError: true);
+            }
+        }
         private async Task InitializeAsync()
         {
             try
             {
+                if (IsAddingNew)
+                {
+                    await GenerateCodeAsync();
+                    if (string.IsNullOrEmpty(StockTakeRequestDTO.StockTakeCode))
+                    {
+                        _notificationService.ShowMessage("Mã lệnh kiểm đếm không hợp lệ. Không thể khởi tạo.", "OK", isError: true);
+                        return;
+                    }    
+                }
                 if (string.IsNullOrEmpty(StockTakeRequestDTO?.StockTakeCode) && !IsAddingNew)
                 {
                     _notificationService.ShowMessage("Mã lệnh kiểm đếm không hợp lệ. Không thể khởi tạo.", "OK", isError: true);
@@ -239,6 +280,7 @@ namespace Chrome_WPF.ViewModels.StockTakeViewModel
                 NavigateBack();
             }
         }
+
 
         private async Task LoadStockTakeDetailsAsync()
         {

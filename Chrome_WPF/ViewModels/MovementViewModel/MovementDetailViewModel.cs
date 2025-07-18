@@ -7,10 +7,12 @@ using Chrome_WPF.Models.MovementDTO;
 using Chrome_WPF.Models.OrderTypeDTO;
 using Chrome_WPF.Models.PickListDTO;
 using Chrome_WPF.Models.ProductMasterDTO;
+using Chrome_WPF.Models.PurchaseOrderDTO;
 using Chrome_WPF.Models.PutAwayDTO;
 using Chrome_WPF.Models.ReservationDTO;
 using Chrome_WPF.Models.TransferDTO;
 using Chrome_WPF.Models.WarehouseMasterDTO;
+using Chrome_WPF.Services.CodeGeneratorService;
 using Chrome_WPF.Services.MessengerService;
 using Chrome_WPF.Services.MovementDetailService;
 using Chrome_WPF.Services.MovementService;
@@ -38,6 +40,7 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
         private readonly IPutAwayService _putAwayService;
         private readonly IPickListService _pickListService;
         private readonly IReservationService _reservationService;
+        private readonly ICodeGenerateService _codeGenerateService;
 
         private ObservableCollection<MovementDetailResponseDTO> _lstMovementDetails;
         private ObservableCollection<ProductMasterResponseDTO> _lstProducts;
@@ -60,6 +63,7 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
         private bool _hasPutAway;
         private bool _hasPicklist;
         private bool _hasReservation;
+        private string _applicableLocation;
         public bool HasPutAway
         {
             get => _hasPutAway;
@@ -281,6 +285,7 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
             IPutAwayService putAwayService,
             IPickListService pickListService,
             IReservationService reservationService,
+            ICodeGenerateService codeGenerateService,
             MovementResponseDTO movement = null!)
         {
             _movementService = movementService ?? throw new ArgumentNullException(nameof(movementService));
@@ -291,6 +296,8 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
             _putAwayService = putAwayService ?? throw new ArgumentNullException(nameof(putAwayService));
             _pickListService = pickListService ?? throw new ArgumentNullException(nameof(pickListService));
             _reservationService = reservationService ?? throw new ArgumentNullException(nameof(reservationService));
+            _codeGenerateService = codeGenerateService ?? throw new ArgumentNullException(nameof(codeGenerateService));
+            
 
             _lstMovementDetails = new ObservableCollection<MovementDetailResponseDTO>();
             _lstProducts = new ObservableCollection<ProductMasterResponseDTO>();
@@ -332,18 +339,52 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
             NextPageCommand = new RelayCommand(_ => NextPage());
             SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
 
+            List<string> warehousePermissions = new List<string>();
+            var savedPermissions = Properties.Settings.Default.WarehousePermission;
+            if (savedPermissions != null)
+            {
+                warehousePermissions = savedPermissions.Cast<string>().ToList();
+            }
+            _applicableLocation = warehousePermissions.First().ToString();
+
             _movementRequestDTO.PropertyChanged += OnMovementRequestDTOPropertyChanged!;
             _ = InitializeAsync();
         }
-
+        private async Task GenerateCodeAsync()
+        {
+            try
+            {
+                var result = await _codeGenerateService.CodeGeneratorAsync(_applicableLocation, "MV");
+                if (result.Success && !string.IsNullOrEmpty(result.Data))
+                {
+                    MovementRequestDTO.MovementCode = result.Data;
+                }
+                else
+                {
+                    _notificationService.ShowMessage(result.Message ?? "Không thể tạo mã đơn chuyển kệ.", "OK", isError: true);
+                }
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi tạo mã đơn chuyển kệ: {ex.Message}", "OK", isError: true);
+            }
+        }
         private async Task InitializeAsync()
         {
             try
             {
+                if (IsAddingNew)
+                {
+                    await GenerateCodeAsync();
+                    if (string.IsNullOrEmpty(MovementRequestDTO.MovementCode))
+                    {
+                        _notificationService.ShowMessage("Mã phiếu di chuyển không hợp lệ. Không thể khởi tạo.", "OK", isError: true);
+                        return;
+                    }
+                }
                 if (string.IsNullOrEmpty(MovementRequestDTO?.MovementCode) && !IsAddingNew)
                 {
                     _notificationService.ShowMessage("Mã phiếu di chuyển không hợp lệ. Không thể khởi tạo.", "OK", isError: true);
-                    NavigateBack();
                     return;
                 }
                 if (!LstOrderTypes.Any())

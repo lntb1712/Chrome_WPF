@@ -439,7 +439,7 @@ namespace Chrome_WPF.ViewModels.InventoryViewModel
                 SelectedCategoryIds.Add(Categories[SelectedCategoryIndex].CategoryId);
             }
         }
-        private async Task ExportInventoryToExcel()
+        private Task ExportInventoryToExcel()
         {
             try
             {
@@ -447,7 +447,7 @@ namespace Chrome_WPF.ViewModels.InventoryViewModel
                 if (!File.Exists(templatePath))
                 {
                     _notificationService.ShowMessage("Không tìm thấy file mẫu BaoCaoTonKho.xlsx.", "OK", isError: true);
-                    return;
+                    return Task.CompletedTask;
                 }
                 
                 string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
@@ -490,6 +490,8 @@ namespace Chrome_WPF.ViewModels.InventoryViewModel
             {
                 _notificationService.ShowMessage($"Lỗi khi xuất báo cáo tồn kho: {ex.Message}", "OK", isError: true);
             }
+
+            return Task.CompletedTask;
         }
 
     }

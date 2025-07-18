@@ -5,6 +5,7 @@ using Chrome_WPF.Services.AuthServices;
 using Chrome_WPF.Services.BOMComponentService;
 using Chrome_WPF.Services.BOMMasterService;
 using Chrome_WPF.Services.CategoryService;
+using Chrome_WPF.Services.CodeGeneratorService;
 using Chrome_WPF.Services.CustomerMasterService;
 using Chrome_WPF.Services.DashboardService;
 using Chrome_WPF.Services.GroupManagementService;
@@ -164,6 +165,7 @@ namespace Chrome_WPF
             services.AddSingleton<IReplenishService, ReplenishService>();
             services.AddSingleton<IPurchaseOrderService, PurchaseOrderService>();
             services.AddSingleton<IPurchaseOrderDetailService, PurchaseOrderDetailService>();
+            services.AddSingleton<ICodeGenerateService, CodeGeneratorService>();
 
 
             // Register IServiceProvider

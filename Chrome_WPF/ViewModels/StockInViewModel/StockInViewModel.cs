@@ -3,6 +3,7 @@ using Chrome_WPF.Models.APIResult;
 using Chrome_WPF.Models.PagedResponse;
 using Chrome_WPF.Models.StatusMasterDTO;
 using Chrome_WPF.Models.StockInDTO;
+using Chrome_WPF.Services.CodeGeneratorService;
 using Chrome_WPF.Services.MessengerService;
 using Chrome_WPF.Services.NavigationService;
 using Chrome_WPF.Services.NotificationService;
@@ -359,6 +360,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                 App.ServiceProvider!.GetRequiredService<INavigationService>(),
                 App.ServiceProvider!.GetRequiredService<IMessengerService>(),
                 App.ServiceProvider!.GetRequiredService<IPutAwayService>(),
+                App.ServiceProvider!.GetRequiredService<ICodeGenerateService>(),
                 stockIn);
 
             stockInDetail.DataContext = viewModel;

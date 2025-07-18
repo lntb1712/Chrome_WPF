@@ -3,6 +3,7 @@ using Chrome_WPF.Models.APIResult;
 using Chrome_WPF.Models.MovementDTO;
 using Chrome_WPF.Models.PagedResponse;
 using Chrome_WPF.Models.StatusMasterDTO;
+using Chrome_WPF.Services.CodeGeneratorService;
 using Chrome_WPF.Services.MessengerService;
 using Chrome_WPF.Services.MovementDetailService;
 using Chrome_WPF.Services.MovementService;
@@ -364,6 +365,7 @@ namespace Chrome_WPF.ViewModels.MovementViewModel
                 App.ServiceProvider!.GetRequiredService<IPutAwayService>(),
                 App.ServiceProvider!.GetRequiredService<IPickListService>(),
                 App.ServiceProvider!.GetRequiredService<IReservationService>(),
+                App.ServiceProvider!.GetRequiredService<ICodeGenerateService>(),
                 movement);
 
             movementDetail.DataContext = viewModel;

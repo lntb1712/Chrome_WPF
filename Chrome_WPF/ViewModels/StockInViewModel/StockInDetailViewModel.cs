@@ -9,6 +9,7 @@ using Chrome_WPF.Models.StockInDetailDTO;
 using Chrome_WPF.Models.StockInDTO;
 using Chrome_WPF.Models.SupplierMasterDTO;
 using Chrome_WPF.Models.WarehouseMasterDTO;
+using Chrome_WPF.Services.CodeGeneratorService;
 using Chrome_WPF.Services.MessengerService;
 using Chrome_WPF.Services.NavigationService;
 using Chrome_WPF.Services.NotificationService;
@@ -38,6 +39,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
         private readonly INavigationService _navigationService;
         private readonly IMessengerService _messengerService;
         private readonly IPutAwayService _putAwayService;
+        private readonly ICodeGenerateService _codeGenerateService;
 
         private ObservableCollection<StockInDetailResponseDTO> _lstStockInDetails;
         private ObservableCollection<ProductMasterResponseDTO> _lstProducts;
@@ -56,7 +58,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
         private bool _isSaving;
         private bool _hasPutAway;
         private bool _allCompletedPutAway;
-
+        private string _applicableLocation;
         public bool AllCompletedPutAway
         {
             get => _allCompletedPutAway;
@@ -255,6 +257,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
             INavigationService navigationService,
             IMessengerService messengerService,
             IPutAwayService putAwayService,
+            ICodeGenerateService codeGenerateService,
             StockInResponseDTO? stockIn = null)
         {
             _stockInDetailService = stockInDetailService ?? throw new ArgumentNullException(nameof(stockInDetailService));
@@ -263,6 +266,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
             _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
             _messengerService = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
             _putAwayService = putAwayService ?? throw new ArgumentNullException(nameof(putAwayService));
+            _codeGenerateService = codeGenerateService ?? throw new ArgumentNullException(nameof(codeGenerateService));
 
             _lstStockInDetails = new ObservableCollection<StockInDetailResponseDTO>();
             _lstStockInDetails.CollectionChanged += StockInDetails_CollectionChanged!;
@@ -301,8 +305,14 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
             NextPageCommand = new RelayCommand(_ => NextPage());
             SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
             ConfirmQuantityCommand = new RelayCommand(async parameter => await CheckQuantityAsync(parameter), CanConfirmQuantity);
-            ExportStockInExcelCommand = new RelayCommand(async _ => await ExportStockInExcel());
-
+            ExportStockInExcelCommand = new RelayCommand(_ => ExportStockInExcel());
+            List<string> warehousePermissions = new List<string>();
+            var savedPermissions = Properties.Settings.Default.WarehousePermission;
+            if (savedPermissions != null)
+            {
+                warehousePermissions = savedPermissions.Cast<string>().ToList();
+            }
+            _applicableLocation = warehousePermissions.First().ToString();
             _stockInRequestDTO.PropertyChanged += OnPropertyChangedHandler!;
             _ = InitializeAsync();
         }
@@ -351,6 +361,25 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                 _notificationService.ShowMessage($"Lỗi khi xử lý thay đổi chi tiết: {ex.Message}", "OK", isError: true);
             }
         }
+        private async Task GenerateCodeAsync()
+        {
+            try
+            {
+                var result = await _codeGenerateService.CodeGeneratorAsync(_applicableLocation,"SI");
+                if (result.Success && !string.IsNullOrEmpty(result.Data))
+                {
+                    StockInRequestDTO.StockInCode = result.Data;
+                }
+                else
+                {
+                    _notificationService.ShowMessage(result.Message ?? "Không thể tạo mã phiếu nhập.", "OK", isError: true);
+                }
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi tạo mã phiếu nhập: {ex.Message}", "OK", isError: true);
+            }
+        }
 
         private async Task InitializeAsync()
         {
@@ -359,7 +388,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                 if (string.IsNullOrEmpty(StockInRequestDTO?.StockInCode) && !IsAddingNew)
                 {
                     _notificationService.ShowMessage("Mã phiếu nhập kho không hợp lệ. Không thể khởi tạo.", "OK", isError: true);
-                    NavigateBack();
+                   
                     return;
                 }
 
@@ -382,6 +411,12 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                 }
                 if (IsAddingNew)
                 {
+                    await GenerateCodeAsync();
+                    if (string.IsNullOrEmpty(StockInRequestDTO!.StockInCode))
+                    {
+                        _notificationService.ShowMessage("Không thể tạo mã phiếu nhập mới.", "OK", isError: true);
+                        return;
+                    }
                     await LoadPurchaseOrder(new int[] { 1 });
                     if (IsAddingNew && LstPurchaseOrder.Any())
                     {
@@ -998,7 +1033,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
             if (endPage < TotalPages)
                 DisplayPages.Add(TotalPages);
         }
-        private async Task ExportStockInExcel()
+        private void ExportStockInExcel()
         {
             try
             {
@@ -1020,10 +1055,10 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                     worksheet.Cell(3, 7).Value = $"Ngày {DateTime.Now.ToString("dd/MM/yyyy")}";
                     worksheet.Cell(4, 5).Value = Properties.Settings.Default.FullName; // Người in
                     worksheet.Cell(5, 5).Value = Properties.Settings.Default.RoleName; // Chức vụ
-                    worksheet.Cell(6, 5).Value = StockInRequestDTO.StockInDescription??"";
+                    worksheet.Cell(6, 5).Value = StockInRequestDTO.StockInDescription ?? "";
                     worksheet.Cell(1, 8).Value += StockInRequestDTO.StockInCode;
                     worksheet.Cell(4, 8).Value = LstWarehouses.FirstOrDefault(w => w.WarehouseCode == StockInRequestDTO.WarehouseCode)?.WarehouseName ?? ""; // Tên kho
-                    worksheet.Cell(5, 8).Value = LstPurchaseOrder.FirstOrDefault(s => s.PurchaseOrderCode == StockInRequestDTO.PurchaseOrderCode)?.PurchaseOrderCode??""; // Tên nhà cung cấp
+                    worksheet.Cell(5, 8).Value = LstPurchaseOrder.FirstOrDefault(s => s.PurchaseOrderCode == StockInRequestDTO.PurchaseOrderCode)?.PurchaseOrderCode ?? ""; // Tên nhà cung cấp
                     worksheet.Cell(6, 8).Value = StockInRequestDTO.OrderDeadLine; // Ngày dự kiến giao
                     int startRow = 10;
                     int stt = 1;
@@ -1033,9 +1068,9 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
                         worksheet.Cell(startRow, 2).Value = stt; // STT
                         worksheet.Cell(startRow, 3).Value = item.ProductCode; // Mã sản phẩm
                         worksheet.Cell(startRow, 5).Value = item.ProductName; // Tên sản phẩm
-                        worksheet.Cell(startRow, 6).Value = item.LotNo; 
+                        worksheet.Cell(startRow, 6).Value = item.LotNo;
                         worksheet.Cell(startRow, 7).Value = item.Quantity;
-                      
+
                         startRow++;
                         stt++;
                     }

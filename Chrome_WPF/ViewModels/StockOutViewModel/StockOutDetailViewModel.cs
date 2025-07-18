@@ -10,6 +10,7 @@ using Chrome_WPF.Models.StockInDTO;
 using Chrome_WPF.Models.StockOutDetailDTO;
 using Chrome_WPF.Models.StockOutDTO;
 using Chrome_WPF.Models.WarehouseMasterDTO;
+using Chrome_WPF.Services.CodeGeneratorService;
 using Chrome_WPF.Services.MessengerService;
 using Chrome_WPF.Services.NavigationService;
 using Chrome_WPF.Services.NotificationService;
@@ -42,6 +43,8 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
         private readonly INotificationService _notificationService;
         private readonly INavigationService _navigationService;
         private readonly IMessengerService _messengerService;
+        private readonly ICodeGenerateService _codeGenerateService;
+
 
         private ObservableCollection<StockOutDetailResponseDTO> _lstStockOutDetails;
         private ObservableCollection<ProductMasterResponseDTO> _lstProducts;
@@ -60,7 +63,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
         private bool _isSaving;
         private bool _hasPicklist;
         private bool _hasReservation;
-
+        private string _applicableLocation;
         public bool HasReservation
         {
             get => _hasReservation;
@@ -276,6 +279,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             INotificationService notificationService,
             INavigationService navigationService,
             IMessengerService messengerService,
+            ICodeGenerateService codeGenerateService,
             StockOutResponseDTO? stockOut = null)
         {
             _stockOutDetailService = stockOutDetailService ?? throw new ArgumentNullException(nameof(stockOutDetailService));
@@ -285,6 +289,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
             _messengerService = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
+            _codeGenerateService = codeGenerateService ?? throw new ArgumentNullException(nameof(codeGenerateService));
 
             _lstStockOutDetails = new ObservableCollection<StockOutDetailResponseDTO>();
             _lstStockOutDetails.CollectionChanged += StockOutDetails_CollectionChanged!;
@@ -327,12 +332,15 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             CreateReservationCommand = new RelayCommand(async parameter => await CreateReservationAsync(parameter), CanCreateReservation);
             CreatePicklistCommand = new RelayCommand(async parameter => await CreatePicklistAsync(parameter), CanCreatePicklist);
             RowMouseEnterCommand = new RelayCommand(async parameter => await LoadForecastDataForTooltipAsync((StockOutDetailResponseDTO)parameter));
-            ExportStockOutExcelCommand = new RelayCommand(async _ => await ExportStockOutExcel());
+            ExportStockOutExcelCommand = new RelayCommand(_ => ExportStockOutExcel());
 
-            // Fix for CS0019: Operator '+=' cannot be applied to operands of type 'StockOutRequestDTO' and 'method group'
-            // The issue is that the code is attempting to use the '+=' operator on an object of type 'StockOutRequestDTO'.
-            // This is incorrect because 'StockOutRequestDTO' does not support event subscription directly.
-            // The correct approach is to subscribe to the 'PropertyChanged' event of the 'StockOutRequestDTO' instance.
+            List<string> warehousePermissions = new List<string>();
+            var savedPermissions = Properties.Settings.Default.WarehousePermission;
+            if (savedPermissions != null)
+            {
+                warehousePermissions = savedPermissions.Cast<string>().ToList();
+            }
+            _applicableLocation = warehousePermissions.First().ToString();
 
             _stockOutRequestDTO.PropertyChanged += OnPropertyChangedHandler!;
             // Fix for CS1002: ; expected
@@ -343,7 +351,7 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             _ = InitializeAsync();
         }
 
-        private async Task ExportStockOutExcel()
+        private void ExportStockOutExcel()
         {
             try
             {
@@ -493,6 +501,26 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
             }
         }
 
+        private async Task GenerateCodeAsync()
+        {
+            try
+            {
+                var result = await _codeGenerateService.CodeGeneratorAsync(_applicableLocation,"SO");
+                if (result.Success && !string.IsNullOrEmpty(result.Data))
+                {
+                    StockOutRequestDTO.StockOutCode = result.Data;
+                }
+                else
+                {
+                    _notificationService.ShowMessage(result.Message ?? "Không thể tạo mã phiếu xuất.", "OK", isError: true);
+                }
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi tạo mã phiếu xuất: {ex.Message}", "OK", isError: true);
+            }
+        }
+
         private async Task InitializeAsync()
         {
             try
@@ -528,6 +556,15 @@ namespace Chrome_WPF.ViewModels.StockOutViewModel
                     {
                         StockOutRequestDTO!.CustomerCode = LstCustomers.First().CustomerCode;
                     }    
+                }
+
+                if (IsAddingNew)
+                {
+                    await GenerateCodeAsync();
+                    if (string.IsNullOrEmpty(StockOutRequestDTO!.StockOutCode))
+                    {
+                        _notificationService.ShowMessage("Không thể tạo mã phiếu xuất", "OK", isError: true);
+                    }
                 }
                 if (!IsAddingNew)
                 {

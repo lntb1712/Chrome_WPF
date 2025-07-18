@@ -299,7 +299,7 @@
                             materialDesign:TextFieldAssist.HasLeadingIcon="True"
                             materialDesign:TextFieldAssist.LeadingIcon="CodeTags"
                             FontSize="14"
-                            IsEnabled="{Binding IsAddingNew}">
+                            IsEnabled="False">
                             <TextBox.Text>
                                 <Binding
                                     Path="StockTakeRequestDTO.StockTakeCode"

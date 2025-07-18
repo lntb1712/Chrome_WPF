@@ -11,29 +11,19 @@ using Chrome_WPF.Models.PickListDTO;
 using Chrome_WPF.Models.ProductMasterDTO;
 using Chrome_WPF.Models.PutAwayDTO;
 using Chrome_WPF.Models.ReservationDTO;
-using Chrome_WPF.Models.StockInDTO;
-using Chrome_WPF.Models.StockOutDetailDTO;
-using Chrome_WPF.Models.StockOutDTO;
-using Chrome_WPF.Models.TransferDTO;
 using Chrome_WPF.Models.WarehouseMasterDTO;
+using Chrome_WPF.Services.CodeGeneratorService;
 using Chrome_WPF.Services.ManufacturingOrderDetailService;
-using Chrome_WPF.Services.ManufacturingOrderService;
 using Chrome_WPF.Services.MessengerService;
 using Chrome_WPF.Services.NavigationService;
 using Chrome_WPF.Services.NotificationService;
 using Chrome_WPF.Services.PickListService;
 using Chrome_WPF.Services.PutAwayService;
 using Chrome_WPF.Services.ReservationService;
-using Chrome_WPF.ViewModels.StockOutViewModel;
 using Chrome_WPF.Views.UserControls.ManufacturingOrder;
-using Chrome_WPF.Views.UserControls.StockOut;
-using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -50,6 +40,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
         private readonly INavigationService _navigationService;
         private readonly IMessengerService _messengerService;
         private readonly IPutAwayService _putAwayService;
+        private readonly ICodeGenerateService _codeGenerateService;
 
         private ObservableCollection<ManufacturingOrderDetailResponseDTO> _lstManufacturingOrderDetails;
         private ObservableCollection<ProductMasterResponseDTO> _lstProducts;
@@ -72,6 +63,8 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
         private bool _hasPutAway;
         private bool _hasPicklist;
         private bool _hasReservation;
+        private string _applicableLocation;
+
         public bool HasPutAway
         {
             get => _hasPutAway;
@@ -300,6 +293,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
             INotificationService notificationService,
             INavigationService navigationService,
             IMessengerService messengerService,
+            ICodeGenerateService codeGenerateService,
             ManufacturingOrderResponseDTO? manufacturingOrder = null)
         {
             _manufacturingOrderDetailService = manufacturingOrderDetailService ?? throw new ArgumentNullException(nameof(manufacturingOrderDetailService));
@@ -310,6 +304,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
             _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
             _messengerService = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
             _putAwayService = putAwayService ?? throw new ArgumentNullException(nameof(putAwayService));
+            _codeGenerateService = codeGenerateService ?? throw new ArgumentNullException(nameof(codeGenerateService));
 
             _lstManufacturingOrderDetails = new ObservableCollection<ManufacturingOrderDetailResponseDTO>();
             _lstProducts = new ObservableCollection<ProductMasterResponseDTO>();
@@ -329,7 +324,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
             _hasPicklist = false;
             _manufacturingOrderRequestDTO = manufacturingOrder == null ? new ManufacturingOrderRequestDTO
             {
-                ScheduleDate =DateTime.Now.ToString("dd/MM/yyyy"),
+                ScheduleDate = DateTime.Now.ToString("dd/MM/yyyy"),
                 Deadline = DateTime.Today.AddDays(7).ToString("dd/MM/yyyy")
             } : new ManufacturingOrderRequestDTO
             {
@@ -356,6 +351,15 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
             SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
             ConfirmQuantityCommand = new RelayCommand(async parameter => await ConfirmQuantityAsync(parameter), CanConfirmQuantity);
             RowMouseEnterCommand = new RelayCommand(async parameter => await LoadForecastDataForTooltipAsync((ManufacturingOrderDetailResponseDTO)parameter));
+
+            List<string> warehousePermissions = new List<string>();
+            var savedPermissions = Properties.Settings.Default.WarehousePermission;
+            if (savedPermissions != null)
+            {
+                warehousePermissions = savedPermissions.Cast<string>().ToList();
+            }
+            _applicableLocation = warehousePermissions.First().ToString();
+
             _manufacturingOrderRequestDTO.PropertyChanged += OnManufacturingOrderPropertyChanged!;
             _ = InitializeAsync();
         }
@@ -421,11 +425,38 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
                 _notificationService.ShowMessage($"Lỗi khi hiển thị dữ liệu dự báo: {ex.Message}", "OK", isError: true);
             }
         }
-
+        private async Task GenerateCodeAsync()
+        {
+            try
+            {
+                var result = await _codeGenerateService.CodeGeneratorAsync(_applicableLocation, "MO");
+                if (result.Success && !string.IsNullOrEmpty(result.Data))
+                {
+                    ManufacturingOrderRequestDTO.ManufacturingOrderCode = result.Data;
+                }
+                else
+                {
+                    _notificationService.ShowMessage(result.Message ?? "Không thể tạo mã lệnh sản xuất.", "OK", isError: true);
+                }
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi tạo mã lệnh sản xuất: {ex.Message}", "OK", isError: true);
+            }
+        }
         private async Task InitializeAsync()
         {
             try
             {
+                if (IsAddingNew)
+                {
+                    await GenerateCodeAsync();
+                    if (string.IsNullOrEmpty(ManufacturingOrderRequestDTO.ManufacturingOrderCode))
+                    {
+                        _notificationService.ShowMessage("Mã lệnh sản xuất không hợp lệ. Không thể khởi tạo.", "OK", isError: true);
+                        return;
+                    }
+                }
                 if (string.IsNullOrEmpty(ManufacturingOrderRequestDTO?.ManufacturingOrderCode) && !IsAddingNew)
                 {
                     _notificationService.ShowMessage("Mã lệnh sản xuất không hợp lệ. Không thể khởi tạo.", "OK", isError: true);
@@ -806,7 +837,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
                 var checkInventoryResult = await _manufacturingOrderService.CheckInventory(ManufacturingOrderRequestDTO);
                 if (!checkInventoryResult.Success)
                 {
-                    MessageBox.Show(checkInventoryResult.Message ?? "Không thể kiểm tra tồn kho","Cảnh báo",MessageBoxButton.OK,MessageBoxImage.Warning);
+                    MessageBox.Show(checkInventoryResult.Message ?? "Không thể kiểm tra tồn kho", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 
@@ -818,7 +849,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
                     {
                         return;
                     }
-                    
+
                 }
 
                 ApiResult<bool> manufacturingOrderResult;
@@ -1077,7 +1108,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
                     await LoadResponsiblePersonsAsync();
                 }
             }
-            
+
         }
     }
 }

@@ -3,6 +3,7 @@ using Chrome_WPF.Models.APIResult;
 using Chrome_WPF.Models.PagedResponse;
 using Chrome_WPF.Models.StatusMasterDTO;
 using Chrome_WPF.Models.TransferDTO;
+using Chrome_WPF.Services.CodeGeneratorService;
 using Chrome_WPF.Services.MessengerService;
 using Chrome_WPF.Services.NavigationService;
 using Chrome_WPF.Services.NotificationService;
@@ -364,6 +365,7 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
                 App.ServiceProvider!.GetRequiredService<IPutAwayService>(),
                 App.ServiceProvider!.GetRequiredService<IPickListService>(),
                 App.ServiceProvider!.GetRequiredService<IReservationService>(),
+                App.ServiceProvider!.GetRequiredService<ICodeGenerateService>(),
                 transfer);
 
             transferDetail.DataContext = viewModel;

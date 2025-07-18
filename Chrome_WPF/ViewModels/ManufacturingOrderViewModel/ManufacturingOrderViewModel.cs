@@ -4,6 +4,7 @@ using Chrome_WPF.Models.APIResult;
 using Chrome_WPF.Models.ManufacturingOrderDTO;
 using Chrome_WPF.Models.PagedResponse;
 using Chrome_WPF.Models.StatusMasterDTO;
+using Chrome_WPF.Services.CodeGeneratorService;
 using Chrome_WPF.Services.ManufacturingOrderDetailService;
 using Chrome_WPF.Services.ManufacturingOrderService;
 using Chrome_WPF.Services.MessengerService;
@@ -365,6 +366,7 @@ namespace Chrome_WPF.ViewModels.ManufacturingOrderViewModel
                 App.ServiceProvider!.GetRequiredService<INotificationService>(),
                 App.ServiceProvider!.GetRequiredService<INavigationService>(),
                 App.ServiceProvider!.GetRequiredService<IMessengerService>(),
+                App.ServiceProvider!.GetRequiredService<ICodeGenerateService>(),
                 manufacturingOrder);
 
             manufacturingOrderDetail.DataContext = viewModel;

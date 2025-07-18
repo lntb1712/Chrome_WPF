@@ -6,6 +6,7 @@ using Chrome_WPF.Models.OrderTypeDTO;
 using Chrome_WPF.Models.PagedResponse;
 using Chrome_WPF.Models.PickListDTO;
 using Chrome_WPF.Models.ProductMasterDTO;
+using Chrome_WPF.Models.PurchaseOrderDTO;
 using Chrome_WPF.Models.PutAwayDTO;
 using Chrome_WPF.Models.ReservationDTO;
 using Chrome_WPF.Models.StockInDTO;
@@ -13,6 +14,7 @@ using Chrome_WPF.Models.StockOutDTO;
 using Chrome_WPF.Models.TransferDetailDTO;
 using Chrome_WPF.Models.TransferDTO;
 using Chrome_WPF.Models.WarehouseMasterDTO;
+using Chrome_WPF.Services.CodeGeneratorService;
 using Chrome_WPF.Services.MessengerService;
 using Chrome_WPF.Services.NavigationService;
 using Chrome_WPF.Services.NotificationService;
@@ -46,6 +48,8 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
         private readonly IPutAwayService _putAwayService;
         private readonly IPickListService _pickListService;
         private readonly IReservationService _reservationService;
+        private readonly ICodeGenerateService _codeGeneratorService;
+
 
         private ObservableCollection<TransferDetailResponseDTO> _lstTransferDetails;
         private ObservableCollection<InventorySummaryDTO> _lstProducts;
@@ -68,6 +72,7 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
         private bool _hasPutAway;
         private bool _hasPicklist;
         private bool _hasReservation;
+        private string _applicableLocation;
         public bool HasPutAway
         {
             get => _hasPutAway;
@@ -291,6 +296,7 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
             IPutAwayService putAwayService,
             IPickListService pickListService,
             IReservationService reservationService,
+            ICodeGenerateService codeGenerateService,
             TransferResponseDTO transfer = null!)
         {
             _transferService = transferService ?? throw new ArgumentNullException(nameof(transferService));
@@ -301,6 +307,7 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
             _putAwayService = putAwayService ?? throw new ArgumentNullException(nameof(putAwayService));
             _pickListService = pickListService ?? throw new ArgumentNullException(nameof(pickListService));
             _reservationService = reservationService ?? throw new ArgumentNullException(nameof(reservationService));
+            _codeGeneratorService = codeGenerateService ?? throw new ArgumentNullException(nameof(codeGenerateService));
 
             _lstTransferDetails = new ObservableCollection<TransferDetailResponseDTO>();
             _lstProducts = new ObservableCollection<InventorySummaryDTO>();
@@ -346,16 +353,50 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
             NextPageCommand = new RelayCommand(_ => NextPage());
             SelectPageCommand = new RelayCommand(page => SelectPage((int)page));
             ConfirmCommand = new RelayCommand(async parameter => await ConfirmTransferAsync(parameter), CanConfirm);
-            ExportTransferExcelCommand = new RelayCommand(async _ => await ExportTransferExcel());
+            ExportTransferExcelCommand = new RelayCommand(_ => ExportTransferExcel());
+            List<string> warehousePermissions = new List<string>();
+            var savedPermissions = Properties.Settings.Default.WarehousePermission;
+            if (savedPermissions != null)
+            {
+                warehousePermissions = savedPermissions.Cast<string>().ToList();
+            }
+            _applicableLocation = warehousePermissions.First().ToString();
 
             _transferRequestDTO.PropertyChanged += OnTransferRequestDTOPropertyChanged!;
             _ = InitializeAsync();
         }
-
+        private async Task GenerateCodeAsync()
+        {
+            try
+            {
+                var result = await _codeGeneratorService.CodeGeneratorAsync(_applicableLocation, "TF");
+                if (result.Success && !string.IsNullOrEmpty(result.Data))
+                {
+                    TransferRequestDTO.TransferCode = result.Data;
+                }
+                else
+                {
+                    _notificationService.ShowMessage(result.Message ?? "Không thể tạo mã chuyển kho.", "OK", isError: true);
+                }
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi khi tạo mã chuyển kho: {ex.Message}", "OK", isError: true);
+            }
+        }
         private async Task InitializeAsync()
         {
             try
             {
+                if (IsAddingNew)
+                {
+                    await GenerateCodeAsync();
+                    if (string.IsNullOrEmpty(TransferRequestDTO.TransferCode))
+                    {
+                        _notificationService.ShowMessage("Mã phiếu chuyển kho không hợp lệ. Không thể khởi tạo.", "OK", isError: true);
+                        return;
+                    }    
+                }
                 if (string.IsNullOrEmpty(TransferRequestDTO?.TransferCode) && !IsAddingNew)
                 {
                     _notificationService.ShowMessage("Mã phiếu chuyển kho không hợp lệ. Không thể khởi tạo.", "OK", isError: true);
@@ -1109,7 +1150,7 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
                 }
             }
         }
-        private async Task ExportTransferExcel()
+        private void ExportTransferExcel()
         {
             try
             {
@@ -1162,6 +1203,6 @@ namespace Chrome_WPF.ViewModels.TransferViewModel
 
             }
         }
-    
+
     }
 }

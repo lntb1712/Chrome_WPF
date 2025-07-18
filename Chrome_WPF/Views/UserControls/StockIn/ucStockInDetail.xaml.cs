@@ -33,5 +33,6 @@ namespace Chrome_WPF.Views.UserControls.StockIn
             _notificationService.RegisterSnackbar(StockInDetailSnackbar);
 
         }
+
     }
 }

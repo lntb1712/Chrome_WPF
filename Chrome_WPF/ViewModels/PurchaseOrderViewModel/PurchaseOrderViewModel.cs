@@ -3,6 +3,7 @@ using Chrome_WPF.Models.APIResult;
 using Chrome_WPF.Models.PagedResponse;
 using Chrome_WPF.Models.PurchaseOrderDTO;
 using Chrome_WPF.Models.StatusMasterDTO;
+using Chrome_WPF.Services.CodeGeneratorService;
 using Chrome_WPF.Services.MessengerService;
 using Chrome_WPF.Services.NavigationService;
 using Chrome_WPF.Services.NotificationService;
@@ -356,6 +357,7 @@ namespace Chrome_WPF.ViewModels.PurchaseOrderViewModel
                 App.ServiceProvider!.GetRequiredService<INotificationService>(),
                 App.ServiceProvider!.GetRequiredService<INavigationService>(),
                 App.ServiceProvider!.GetRequiredService<IMessengerService>(),
+                App.ServiceProvider!.GetRequiredService<ICodeGenerateService>(),
                 purchaseOrder);
 
             purchaseOrderDetail.DataContext = viewModel;

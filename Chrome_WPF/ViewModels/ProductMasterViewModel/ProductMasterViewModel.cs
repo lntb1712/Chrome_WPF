@@ -248,7 +248,7 @@ namespace Chrome_WPF.ViewModels.ProductMasterViewModel
             FilterByCategoryCommand = new RelayCommand(categoryId => SelectedCategoryId = (string)categoryId);
             ExportExcelCommand = new RelayCommand(async p => await ExportExcelAsync(p));
             FilterAllCommand = new RelayCommand(async _ => await LoadProductAsync());
-            ImportExcelCommand = new RelayCommand(async p => await ImportExcelAsync(p));
+            ImportExcelCommand = new RelayCommand(p => ImportExcel(p));
 
             _= _messengerService.RegisterMessageAsync("ReloadProductList", async (obj) =>
             {
@@ -261,7 +261,7 @@ namespace Chrome_WPF.ViewModels.ProductMasterViewModel
 
         }
 
-        private async Task ImportExcelAsync(object p)
+        private void ImportExcel(object p)
         {
             throw new NotImplementedException();
         }
@@ -312,7 +312,7 @@ namespace Chrome_WPF.ViewModels.ProductMasterViewModel
             }
         }
 
-        private async Task ExportExcelAsync(object p)
+        private Task ExportExcelAsync(object p)
         {
             throw new NotImplementedException();
         }
