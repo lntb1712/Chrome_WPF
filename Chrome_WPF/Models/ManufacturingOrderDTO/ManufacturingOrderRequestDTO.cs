@@ -30,7 +30,7 @@ namespace Chrome_WPF.Models.ManufacturingOrderDTO
         }
 
         [Required(ErrorMessage = "Mã lệnh sản xuất không được để trống")]
-        [RegularExpression(@"^[a-zA-Z0-9_]+$", ErrorMessage = "Mã lệnh sản xuất chỉ được chứa chữ, số và dấu gạch dưới")]
+       
         public string ManufacturingOrderCode
         {
             get => _manufacturingOrderCode;
