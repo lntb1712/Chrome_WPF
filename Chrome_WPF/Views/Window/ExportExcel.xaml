@@ -1,0 +1,64 @@
+﻿<Window
+    x:Class="Chrome_WPF.Views.Windows.ExportExcel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:Chrome_WPF.ViewModels.ExportExcelViewModels"
+    Title="Chọn Tháng/Năm"
+    Width="450"
+    Height="200"
+    WindowStartupLocation="CenterScreen"
+    mc:Ignorable="d">
+    <StackPanel Margin="20" Orientation="Vertical">
+        <TextBlock
+            Margin="0,0,0,15"
+            FontSize="18"
+            FontWeight="Bold"
+            Text="Chọn tháng/năm để xuất báo cáo" />
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <ComboBox
+                Grid.Row="0"
+                Grid.Column="0"
+                Margin="0,0,10,10"
+                materialDesign:HintAssist.Hint="Tháng"
+                ItemsSource="{Binding Months}"
+                SelectedItem="{Binding DialogMonth, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                Style="{StaticResource MaterialDesignComboBox}" />
+            <ComboBox
+                Grid.Row="0"
+                Grid.Column="1"
+                Margin="10,0,0,10"
+                materialDesign:HintAssist.Hint="Năm"
+                ItemsSource="{Binding Years}"
+                SelectedItem="{Binding DialogYear, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                Style="{StaticResource MaterialDesignComboBox}" />
+            <StackPanel
+                Grid.Row="1"
+                Grid.Column="0"
+                Grid.ColumnSpan="2"
+                Margin="0,20,0,0"
+                HorizontalAlignment="Right"
+                Orientation="Horizontal">
+                <Button
+                    Margin="0,0,10,0"
+                    Command="{Binding CancelCommand}"
+                    Content="Hủy"
+                    Style="{StaticResource MaterialDesignFlatButton}" />
+                <Button
+                    Command="{Binding OkCommand}"
+                    Content="OK"
+                    Style="{StaticResource MaterialDesignFlatButton}" />
+            </StackPanel>
+        </Grid>
+    </StackPanel>
+</Window>

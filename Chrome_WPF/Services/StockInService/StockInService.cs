@@ -41,7 +41,7 @@ namespace Chrome_WPF.Services.StockInService
             _httpClient = _baseUrl.GetHttpClient();
             _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", Properties.Settings.Default.AccessToken);
         }
-        public async Task<ApiResult<PagedResponse<StockInResponseDTO>>> GetAllStockIns( int page, int pageSize)
+        public async Task<ApiResult<PagedResponse<StockInResponseDTO>>> GetAllStockIns(int page, int pageSize)
         {
             if (page < 1 || pageSize < 1)
             {
@@ -283,8 +283,6 @@ namespace Chrome_WPF.Services.StockInService
             }
         }
 
-        
-
         public async Task<ApiResult<List<AccountManagementResponseDTO>>> GetListResponsibleAsync(string warehouseCode)
         {
             try
@@ -406,7 +404,7 @@ namespace Chrome_WPF.Services.StockInService
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
                 var response = await _httpClient.PostAsync("StockIn/AddStockIn", content).ConfigureAwait(false);
                 var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                if(response.IsSuccessStatusCode)
+                if (response.IsSuccessStatusCode)
                 {
                     var result = JsonConvert.DeserializeObject<ApiResult<bool>>(jsonResponse);
                     if (result == null || !result.Success)
@@ -519,7 +517,7 @@ namespace Chrome_WPF.Services.StockInService
 
         public async Task<ApiResult<bool>> DeleteStockInAsync(string stockInCode)
         {
-            if(string.IsNullOrEmpty(stockInCode))
+            if (string.IsNullOrEmpty(stockInCode))
             {
                 return new ApiResult<bool>("Mã phiếu nhập không được để trống", false);
             }
@@ -641,7 +639,7 @@ namespace Chrome_WPF.Services.StockInService
             }
             try
             {
-               
+
                 var response = await _httpClient.GetAsync($"StockIn/GetStockInByCode?stockInCode={Uri.EscapeDataString(stockInCode)}").ConfigureAwait(false);
                 var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 if (response.IsSuccessStatusCode)
@@ -750,5 +748,66 @@ namespace Chrome_WPF.Services.StockInService
                 return new ApiResult<List<PurchaseOrderResponseDTO>>($"Lỗi không xác định: {ex.Message}", false);
             }
         }
-    }
+
+        public async Task<ApiResult<List<StockInAndDetailDTO>>> GetListStockInToReport(int month, int year)
+        {
+            if (month < 1 || year < 1 || month > 12 || year > DateTime.Now.Year)
+            {
+                return new ApiResult<List<StockInAndDetailDTO>>("Dữ liệu nhận vào không hợp lệ", false);
+            }
+            try
+            {
+                UpdateWarehousePermissions();
+                var queryWarehousePermission = string.Join("&", warehousePermissions.Select(id => $"warehouseCodes={Uri.EscapeDataString(id)}"));
+                var response = await _httpClient.GetAsync($"StockIn/GetListStockInToReport?{queryWarehousePermission}&month={month}&year={year}").ConfigureAwait(false);
+                var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = JsonConvert.DeserializeObject<ApiResult<List<StockInAndDetailDTO>>>(jsonResponse);
+                    if (result == null || !result.Success)
+                    {
+                        return new ApiResult<List<StockInAndDetailDTO>>(result?.Message ?? "Không thể phân tích phản hồi", false);
+                    }
+                    return result;
+                }
+                var errorResult = JsonConvert.DeserializeObject<ApiResult<List<StockInAndDetailDTO>>>(jsonResponse);
+                var errorMessage = errorResult?.Message ?? "Không thể lấy danh sách phiếu nhập";
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    return new ApiResult<List<StockInAndDetailDTO>>(errorMessage, false);
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    return new ApiResult<List<StockInAndDetailDTO>>(errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không có quyền truy cập"
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return new ApiResult<List<StockInAndDetailDTO>>(errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không tồn tại"
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+                {
+                    return new ApiResult<List<StockInAndDetailDTO>>(errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Lỗi máy chủ nội bộ"
+                }
+                else
+                {
+                    return new ApiResult<List<StockInAndDetailDTO>>(errorMessage, false); // Trả về thông điệp lỗi chung
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                // Lỗi mạng
+                return new ApiResult<List<StockInAndDetailDTO>>($"Lỗi mạng: {ex.Message}", false);
+            }
+            catch (JsonException ex)
+            {
+                // Lỗi phân tích JSON
+                return new ApiResult<List<StockInAndDetailDTO>>($"Lỗi phân tích phản hồi: {ex.Message}", false);
+            }
+            catch (Exception ex)
+            {
+                // Lỗi không xác định
+                return new ApiResult<List<StockInAndDetailDTO>>($"Lỗi không xác định: {ex.Message}", false);
+            }
+        } 
+    }       
 }

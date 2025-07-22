@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Threading;
 
 namespace Chrome_WPF.ViewModels.MainWindowViewModel
 {
@@ -21,6 +22,8 @@ namespace Chrome_WPF.ViewModels.MainWindowViewModel
         private readonly IInventoryService _inventoryService;
         private List<string> _replenishWarnings = new List<string>();
         private int _warningCount;
+        private readonly DispatcherTimer _replenishTimer;
+
 
         private string _selectedWarning;
         public string SelectedWarning
@@ -60,6 +63,16 @@ namespace Chrome_WPF.ViewModels.MainWindowViewModel
             _inventoryService = inventoryService ?? throw new ArgumentNullException(nameof(inventoryService));
             _selectedWarning = "";
             CreateReplenishCommand = new RelayCommand(async p => await ExecuteCreateReplenishmentOrderAsync(p), CanExecuteCreateReplenishmentOrder);
+            _replenishTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMinutes(1)
+            };
+            _replenishTimer.Tick += async (s, e) =>
+            {
+                var warehousePermissions = Properties.Settings.Default.WarehousePermission?.Cast<string>().ToList();
+                if (warehousePermissions != null)
+                    await CheckReplenishWarnings(warehousePermissions);
+            };
         }
 
         public async Task InitializeAsync()

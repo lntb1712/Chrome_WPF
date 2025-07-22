@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:helper="clr-namespace:Chrome_WPF.Helpers"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:linq="clr-namespace:System.Linq;assembly=System.Core"
     xmlns:local="clr-namespace:Chrome_WPF.Views.UserControls.StockIn"
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -16,6 +17,7 @@
         <!--  Converters  -->
         <converters:PageEqualityConverter x:Key="PageEqualityConverter" />
         <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <converters:RangeConverter x:Key="RangeConverter" />
 
         <!--  PageItemTemplateSelector for pagination  -->
         <helper:PageItemTemplateSelector x:Key="PageItemTemplateSelector">
@@ -135,6 +137,9 @@
         </Style>
     </UserControl.Resources>
 
+
+
+
     <Grid Background="#F5F7FA">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -173,15 +178,8 @@
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <TextBox
-                        Grid.Column="1"
-                        Margin="0,0,10,0"
-                        Padding="8"
-                        materialDesign:HintAssist.Hint="Tìm kiếm nhập kho ..."
-                        Foreground="#A0AEC0"
-                        Style="{StaticResource MaterialDesignFloatingHintTextBox}"
-                        Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
                     <TabControl
                         Grid.Column="0"
                         Margin="10,0,10,0"
@@ -200,8 +198,27 @@
                             </DataTemplate>
                         </TabControl.ContentTemplate>
                     </TabControl>
+                    <TextBox
+                        Grid.Column="1"
+                        Margin="0,0,10,0"
+                        Padding="8"
+                        materialDesign:HintAssist.Hint="Tìm kiếm nhập kho ..."
+                        Foreground="#A0AEC0"
+                        Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                        Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
                     <Button
                         Grid.Column="2"
+                        Command="{Binding SearchCommand}"
+                        Style="{StaticResource FilterButtonStyle}">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon
+                                VerticalAlignment="Center"
+                                Foreground="#4B5EAA"
+                                Kind="Search" />
+                        </StackPanel>
+                    </Button>
+                    <Button
+                        Grid.Column="3"
                         Command="{Binding AddCommand}"
                         Style="{StaticResource FilterButtonStyle}">
                         <StackPanel Orientation="Horizontal">
@@ -217,23 +234,24 @@
                         </StackPanel>
                     </Button>
                     <Button
-                        Grid.Column="3"
-                        Command="{Binding SearchCommand}"
+                        Grid.Column="4"
+                        Command="{Binding PrintByMonthCommand}"
                         Style="{StaticResource FilterButtonStyle}">
                         <StackPanel Orientation="Horizontal">
                             <materialDesign:PackIcon
                                 Margin="0,0,5,0"
                                 VerticalAlignment="Center"
                                 Foreground="#4B5EAA"
-                                Kind="Search" />
+                                Kind="MicrosoftExcel" />
                             <TextBlock
                                 VerticalAlignment="Center"
                                 Foreground="#2D3748"
-                                Text="Tìm kiếm" />
+                                Text="Xuất báo cáo tháng" />
                         </StackPanel>
+
                     </Button>
                     <Button
-                        Grid.Column="4"
+                        Grid.Column="5"
                         HorizontalAlignment="Right"
                         Background="Transparent"
                         Command="{Binding RefreshCommand}"
@@ -300,17 +318,14 @@
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding StatusId}" Value="1">
                                         <Setter Property="Background" Value="#FF9999" />
-                                        <!--  Red  -->
                                         <Setter Property="Foreground" Value="White" />
                                     </DataTrigger>
                                     <DataTrigger Binding="{Binding StatusId}" Value="2">
                                         <Setter Property="Background" Value="#FFFF99" />
-                                        <!--  Yellow  -->
                                         <Setter Property="Foreground" Value="Black" />
                                     </DataTrigger>
                                     <DataTrigger Binding="{Binding StatusId}" Value="3">
                                         <Setter Property="Background" Value="#99FF99" />
-                                        <!--  Green  -->
                                         <Setter Property="Foreground" Value="Black" />
                                     </DataTrigger>
                                 </Style.Triggers>
@@ -393,4 +408,6 @@
                 MessageQueue="{materialDesign:MessageQueue}" />
         </Grid>
     </Grid>
+
+
 </UserControl>

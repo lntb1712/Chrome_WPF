@@ -5,6 +5,7 @@ using Chrome_WPF.Models.CustomerMasterDTO;
 using Chrome_WPF.Models.OrderTypeDTO;
 using Chrome_WPF.Models.PagedResponse;
 using Chrome_WPF.Models.StatusMasterDTO;
+using Chrome_WPF.Models.StockInDTO;
 using Chrome_WPF.Models.StockOutDTO;
 using Chrome_WPF.Models.WarehouseMasterDTO;
 using Chrome_WPF.Services.StockOutService;
@@ -647,6 +648,67 @@ namespace Chrome_WPF.Services.StockOutService
             catch (Exception ex)
             {
                 return new ApiResult<bool>($"Lỗi không xác định: {ex.Message}", false);
+            }
+        }
+
+        public async Task<ApiResult<List<StockOutAndDetailDTO>>> GetListStockOutToReport(int month, int year)
+        {
+            if (month < 1 || year < 1 || month > 12 || year > DateTime.Now.Year)
+            {
+                return new ApiResult<List<StockOutAndDetailDTO>>("Dữ liệu nhận vào không hợp lệ", false);
+            }
+            try
+            {
+                UpdateWarehousePermissions();
+                var queryWarehousePermission = string.Join("&", warehousePermissions.Select(id => $"warehouseCodes={Uri.EscapeDataString(id)}"));
+                var response = await _httpClient.GetAsync($"StockOut/GetListStockOutToReport?{queryWarehousePermission}&month={month}&year={year}").ConfigureAwait(false);
+                var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = JsonConvert.DeserializeObject<ApiResult<List<StockOutAndDetailDTO>>>(jsonResponse);
+                    if (result == null || !result.Success)
+                    {
+                        return new ApiResult<List<StockOutAndDetailDTO>>(result?.Message ?? "Không thể phân tích phản hồi", false);
+                    }
+                    return result;
+                }
+                var errorResult = JsonConvert.DeserializeObject<ApiResult<List<StockOutAndDetailDTO>>>(jsonResponse);
+                var errorMessage = errorResult?.Message ?? "Không thể lấy danh sách phiếu xuất";
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    return new ApiResult<List<StockOutAndDetailDTO>>(errorMessage, false);
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    return new ApiResult<List<StockOutAndDetailDTO>>(errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không có quyền truy cập"
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return new ApiResult<List<StockOutAndDetailDTO>>(errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Tài khoản không tồn tại"
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+                {
+                    return new ApiResult<List<StockOutAndDetailDTO>>(errorMessage, false); // Giữ nguyên thông điệp từ server, ví dụ: "Lỗi máy chủ nội bộ"
+                }
+                else
+                {
+                    return new ApiResult<List<StockOutAndDetailDTO>>(errorMessage, false); // Trả về thông điệp lỗi chung
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                // Lỗi mạng
+                return new ApiResult<List<StockOutAndDetailDTO>>($"Lỗi mạng: {ex.Message}", false);
+            }
+            catch (JsonException ex)
+            {
+                // Lỗi phân tích JSON
+                return new ApiResult<List<StockOutAndDetailDTO>>($"Lỗi phân tích phản hồi: {ex.Message}", false);
+            }
+            catch (Exception ex)
+            {
+                // Lỗi không xác định
+                return new ApiResult<List<StockOutAndDetailDTO>>($"Lỗi không xác định: {ex.Message}", false);
             }
         }
     }

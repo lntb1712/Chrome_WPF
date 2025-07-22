@@ -354,11 +354,20 @@
                             Padding="12,8"
                             materialDesign:HintAssist.Hint="Chọn vị trí nguồn"
                             materialDesign:HintAssist.IsFloating="True"
-                            DisplayMemberPath="LocationName"
                             FontSize="14"
                             ItemsSource="{Binding LstFromLocations}"
                             SelectedValue="{Binding MovementRequestDTO.FromLocation, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True}"
-                            SelectedValuePath="LocationCode" />
+                            SelectedValuePath="LocationCode">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock>
+                                        <Run Text="{Binding LocationCode}" />
+                                        <Run Text=" - " />
+                                        <Run Text="{Binding LocationName}" />
+                                    </TextBlock>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
                     </StackPanel>
                     <StackPanel
                         Grid.Row="1"
@@ -376,11 +385,20 @@
                             Padding="12,8"
                             materialDesign:HintAssist.Hint="Chọn vị trí đích"
                             materialDesign:HintAssist.IsFloating="True"
-                            DisplayMemberPath="LocationName"
                             FontSize="14"
                             ItemsSource="{Binding LstToLocations}"
                             SelectedValue="{Binding MovementRequestDTO.ToLocation, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True}"
-                            SelectedValuePath="LocationCode" />
+                            SelectedValuePath="LocationCode">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock>
+                                        <Run Text="{Binding LocationCode}" />
+                                        <Run Text=" - " />
+                                        <Run Text="{Binding LocationName}" />
+                                    </TextBlock>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
                     </StackPanel>
                     <StackPanel
                         Grid.Row="3"

@@ -59,6 +59,7 @@ namespace Chrome_WPF.ViewModels.StockInViewModel
         private bool _hasPutAway;
         private bool _allCompletedPutAway;
         private string _applicableLocation;
+
         public bool AllCompletedPutAway
         {
             get => _allCompletedPutAway;

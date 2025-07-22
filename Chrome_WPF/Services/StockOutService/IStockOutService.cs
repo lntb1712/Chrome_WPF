@@ -27,5 +27,6 @@ namespace Chrome_WPF.Services.StockOutService
         Task<ApiResult<bool>> AddStockOut(StockOutRequestDTO stockOut);
         Task<ApiResult<bool>> UpdateStockOut(StockOutRequestDTO stockOut);
         Task<ApiResult<bool>> DeleteStockOutAsync(string stockOutCode);
+        Task<ApiResult<List<StockOutAndDetailDTO>>> GetListStockOutToReport(int month, int year);
     }
 }

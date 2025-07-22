@@ -46,6 +46,7 @@ using Chrome_WPF.Services.WarehouseMasterService;
 using Chrome_WPF.ViewModels;
 using Chrome_WPF.ViewModels.BOMMasterViewModel;
 using Chrome_WPF.ViewModels.CustomerMasterViewModel;
+using Chrome_WPF.ViewModels.ExportExcelViewModels;
 using Chrome_WPF.ViewModels.GroupManagementViewModel;
 using Chrome_WPF.ViewModels.InventoryViewModel;
 using Chrome_WPF.ViewModels.MainWindowViewModel;
@@ -84,6 +85,7 @@ using Chrome_WPF.Views.UserControls.StockTake;
 using Chrome_WPF.Views.UserControls.SupplierMaster;
 using Chrome_WPF.Views.UserControls.Transfer;
 using Chrome_WPF.Views.UserControls.WarehouseMaster;
+using Chrome_WPF.Views.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Globalization;
@@ -230,6 +232,7 @@ namespace Chrome_WPF
             services.AddTransient<PurchaseOrderViewModel>();
             services.AddTransient<PurchaseOrderDetailViewModel>();
             services.AddTransient<ViewModels.PurchaseOrderViewModel.BackOrderDialogViewModel>();
+            services.AddTransient<ExportExcelViewModel>();
 
             // Register Views
             services.AddTransient<LoginWindow>(provider =>
@@ -468,6 +471,9 @@ namespace Chrome_WPF
             services.AddTransient<Views.UserControls.PurchaseOrder.BackOrderDialog>(provider =>
                 new Views.UserControls.PurchaseOrder.BackOrderDialog(
                     provider.GetRequiredService<ViewModels.PurchaseOrderViewModel.BackOrderDialogViewModel>()));
+
+            services.AddTransient<ExportExcel>(provider =>
+                new ExportExcel(provider.GetRequiredService<ExportExcelViewModel>()));
 
         }
 

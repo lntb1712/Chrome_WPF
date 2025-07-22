@@ -29,5 +29,6 @@ namespace Chrome_WPF.Services.StockInService
         Task<ApiResult<bool>> AddStockIn(StockInRequestDTO stockIn);
         Task<ApiResult<bool>> UpdateStockIn(StockInRequestDTO stockIn);
         Task<ApiResult<bool>> DeleteStockInAsync(string stockInCode);
+        Task<ApiResult<List<StockInAndDetailDTO>>> GetListStockInToReport(int month, int year);
     }
 }
