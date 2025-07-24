@@ -199,6 +199,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <TextBlock
                 Grid.Column="0"
@@ -211,8 +212,21 @@
                 <Run Text="{Binding ApplicableLocation}" />
                 <Run Text=")" />
             </TextBlock>
-            <ToggleButton
+            <TextBlock
                 Grid.Column="1"
+                Margin="0,0,20,0"
+                VerticalAlignment="Center"
+                FontSize="20"
+                FontWeight="Bold"
+                Foreground="#2D3748"
+                Style="{StaticResource MaterialDesignHeadline6TextBlock}">
+                <Run Text="Tổng giá trị kho:" />
+                <Run Text="{Binding TotalPriceWarehouse, StringFormat={}{0:N0}}" />
+                <Run Text="VNĐ" />
+            </TextBlock>
+
+            <ToggleButton
+                Grid.Column="2"
                 Margin="0,0,20,0"
                 IsChecked="{Binding ViewMode, Converter={StaticResource BoolToViewModeConverter}, Mode=TwoWay}"
                 Style="{StaticResource iOSSwitchToggleStyle}" />
@@ -346,20 +360,6 @@
                         <DataGridTextColumn
                             Width="100"
                             Binding="{Binding BaseQuantity, StringFormat={}{0:N2}}"
-                            Header="Số lượng">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="HorizontalAlignment" Value="Right" />
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
-                        <DataGridTextColumn
-                            Width="1*"
-                            Binding="{Binding BaseUOM}"
-                            Header="Đơn vị" />
-                        <DataGridTextColumn
-                            Width="130"
-                            Binding="{Binding Quantity}"
                             Header="Số lượng cơ bản">
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock">
@@ -369,8 +369,26 @@
                         </DataGridTextColumn>
                         <DataGridTextColumn
                             Width="1*"
-                            Binding="{Binding UOM}"
+                            Binding="{Binding BaseUOM}"
                             Header="Đơn vị cơ bản" />
+                        <DataGridTextColumn
+                            Width="130"
+                            Binding="{Binding Quantity}"
+                            Header="Số lượng ">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Right" />
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn
+                            Width="1*"
+                            Binding="{Binding UOM}"
+                            Header="Đơn vị" />
+                        <DataGridTextColumn
+                            Width="1*"
+                            Binding="{Binding TotalPrice, StringFormat={}{0:N0}}"
+                            Header="Tổng giá trị" />
                     </DataGrid.Columns>
                 </DataGrid>
 

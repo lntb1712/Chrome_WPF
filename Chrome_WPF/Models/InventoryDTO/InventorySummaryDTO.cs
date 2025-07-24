@@ -16,5 +16,6 @@ namespace Chrome_WPF.Models.InventoryDTO
         public string UOM { get; set; } = null!;
         public string BaseUOM { get; set; } = null!;
         public double? Quantity { get; set; }
+        public double? TotalPrice { get; set; }
     }
 }

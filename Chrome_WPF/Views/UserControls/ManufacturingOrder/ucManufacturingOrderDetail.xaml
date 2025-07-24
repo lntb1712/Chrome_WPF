@@ -640,7 +640,7 @@
                                     <DataGridTextColumn
                                         Width="*"
                                         Binding="{Binding ScraptRate}"
-                                        Header="Tỷ lệ phế phẩm" />
+                                        Header="Tỷ lệ hao hụt" />
                                     <DataGridTemplateColumn
                                         Width="120"
                                         Header="Dự báo hàng"

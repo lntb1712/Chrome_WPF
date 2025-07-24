@@ -3,15 +3,8 @@ using Chrome_WPF.Models.APIResult;
 using Chrome_WPF.Models.CategoryDTO;
 using Chrome_WPF.Models.InventoryDTO;
 using Chrome_WPF.Models.PagedResponse;
-using Chrome_WPF.Models.ProductMasterDTO;
-using DocumentFormat.OpenXml.Wordprocessing;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Chrome_WPF.Services.InventoryService
 {
@@ -33,7 +26,7 @@ namespace Chrome_WPF.Services.InventoryService
             _baseUrl = baseUrl;
             _httpClient = _baseUrl.GetHttpClient();
             _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", Properties.Settings.Default.AccessToken);
-            
+
         }
 
         public async Task<ApiResult<List<CategoryResponseDTO>>> GetAllCategories()
@@ -91,9 +84,9 @@ namespace Chrome_WPF.Services.InventoryService
             }
         }
 
-        public async Task<ApiResult<PagedResponse<InventorySummaryDTO>>> GetListProductInventory( int page, int pageSize)
+        public async Task<ApiResult<PagedResponse<InventorySummaryDTO>>> GetListProductInventory(int page, int pageSize)
         {
-            if(page<1 || pageSize<1)
+            if (page < 1 || pageSize < 1)
             {
                 return new ApiResult<PagedResponse<InventorySummaryDTO>>("Dữ liệu nhận vào không hợp lệ", false);
             }
@@ -370,11 +363,11 @@ namespace Chrome_WPF.Services.InventoryService
                     return new ApiResult<List<WarehouseUsageDTO>>(errorMessage, false);
                 }
             }
-            catch(HttpRequestException ex)
+            catch (HttpRequestException ex)
             {
                 return new ApiResult<List<WarehouseUsageDTO>>($"Lỗi mạng: {ex.Message}", false);
             }
-            
+
             catch (JsonException ex)
             {
                 return new ApiResult<List<WarehouseUsageDTO>>($"Lỗi phân tích phản hồi: {ex.Message}", false);
@@ -382,6 +375,61 @@ namespace Chrome_WPF.Services.InventoryService
             catch (Exception ex)
             {
                 return new ApiResult<List<WarehouseUsageDTO>>($"Lỗi không xác định: {ex.Message}", false);
+            }
+        }
+
+        public async Task<ApiResult<double>> GetTotalPriceOfWarehouse()
+        {
+            try
+            {
+                UpdateWarehousePermissions();
+                var queryWarehousePermission = string.Join("&", warehousePermissions.Select(id => $"warehouseCodes={Uri.EscapeDataString(id)}"));
+                var response = await _httpClient.GetAsync($"Inventory/GetTotalPriceOfWarehouse?{queryWarehousePermission}").ConfigureAwait(false);
+                var jsonResponse = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = JsonConvert.DeserializeObject<ApiResult<double>>(jsonResponse);
+                    if (result == null || !result.Success)
+                    {
+                        return new ApiResult<double>(result?.Message ?? "Không thể phân tích phản hồi", false);
+                    }
+                    return result;
+                }
+                var errorResult = JsonConvert.DeserializeObject <ApiResult<double>>(jsonResponse);
+                var errorMessage = errorResult?.Message ?? "Không thể lấy thông tin phần trăm sử dụng kho";
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    return new ApiResult<double>(errorMessage, false);
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    return new ApiResult<double>(errorMessage, false);
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return new ApiResult<double>(errorMessage, false);
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+                {
+                    return new ApiResult<double>(errorMessage, false);
+                }
+                else
+                {
+                    return new ApiResult<double>(errorMessage, false);
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                return new ApiResult<double>($"Lỗi mạng: {ex.Message}", false);
+            }
+
+            catch (JsonException ex)
+            {
+                return new ApiResult<double>($"Lỗi phân tích phản hồi: {ex.Message}", false);
+            }
+            catch (Exception ex)
+            {
+                return new ApiResult<double>($"Lỗi không xác định: {ex.Message}", false);
             }
         }
     }

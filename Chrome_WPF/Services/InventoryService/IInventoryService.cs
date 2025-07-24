@@ -18,5 +18,6 @@ namespace Chrome_WPF.Services.InventoryService
         Task<ApiResult<PagedResponse<InventorySummaryDTO>>> SearchProductInventory(string textToSearch, int page, int pageSize);
         Task<ApiResult<List<CategoryResponseDTO>>> GetAllCategories();
         Task<ApiResult<List<WarehouseUsageDTO>>> GetInventoryUsedPercent();
+        Task<ApiResult<double>> GetTotalPriceOfWarehouse();
     }
 }

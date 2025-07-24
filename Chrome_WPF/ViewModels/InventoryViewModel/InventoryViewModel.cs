@@ -42,6 +42,7 @@ namespace Chrome_WPF.ViewModels.InventoryViewModel
         private int _selectedCategoryIndex = 0; // 0 đại diện cho tab "Tất cả"
         private string _applicableLocation;
         private int _viewMode; // 0 cho "Vật lý", 1 cho "Trực quan"
+        private double _totalPriceWarehouse;
 
         public ObservableCollection<InventorySummaryDTO> InventoryList
         {
@@ -182,6 +183,15 @@ namespace Chrome_WPF.ViewModels.InventoryViewModel
             }
         }
 
+        public double TotalPriceWarehouse
+        {
+            get => _totalPriceWarehouse;
+            set
+            {
+                _totalPriceWarehouse = value;
+                OnPropertyChanged();
+            }
+        }
         public ICommand SearchCommand { get; }
         public ICommand RefreshCommand { get; }
         public ICommand NextPageCommand { get; }
@@ -228,8 +238,25 @@ namespace Chrome_WPF.ViewModels.InventoryViewModel
 
             _ = LoadCategoriesAsync();
             _ = LoadInventoryAsync();
+            _ = FetchTotalPrice();
         }
 
+
+        private async Task FetchTotalPrice()
+        {
+            try
+            {
+                var result = await _inventoryService.GetTotalPriceOfWarehouse();
+                if (result.Success && result.Data > 0)
+                {
+                    TotalPriceWarehouse = result.Data;
+                }
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowMessage($"Lỗi: {ex.Message}", "OK", isError: true);
+            }
+        }
         private async Task LoadCategoriesAsync()
         {
             try
