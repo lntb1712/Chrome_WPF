@@ -318,14 +318,14 @@
 
             <!--  Daily Stock Chart  -->
             <StackPanel Grid.Column="0">
-                <TextBlock Style="{StaticResource ChartTitleStyle}" Text="Đơn đặt hàng,nhập,xuất và kiểm kho trong 7 ngày" />
+                <TextBlock Style="{StaticResource ChartTitleStyle}" Text="Đơn đặt hàng,nhập,xuất và kiểm kho trong năm" />
                 <lvc:CartesianChart
                     Height="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Grid}, Converter={StaticResource HeightMinusTenConverter}}"
                     LegendLocation="Top"
                     Series="{Binding MonthlyStockSeries}">
                     <lvc:CartesianChart.AxisX>
                         <lvc:Axis
-                            Title="Ngày"
+                            Title="Tháng"
                             FontSize="12"
                             Foreground="{StaticResource TextPrimary}"
                             Labels="{Binding MonthlyStockLabels}"
