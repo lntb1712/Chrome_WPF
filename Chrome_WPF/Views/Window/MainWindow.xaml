@@ -244,7 +244,7 @@
                                 Height="24"
                                 Margin="10,0,10,0"
                                 Kind="AccountCircle" />
-                            <TextBlock Text="Quản lí người dùng" />
+                            <TextBlock Text="Quản lý người dùng" />
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem x:Name="ucGroupManagement" Visibility="{Binding CanGroupManagement, Converter={StaticResource BooleanToVisibilityConverter}}">
@@ -257,7 +257,7 @@
                                 Height="24"
                                 Margin="10,0,10,0"
                                 Kind="PersonGroup" />
-                            <TextBlock Text="Quản lí nhóm người dùng" />
+                            <TextBlock Text="Quản lý nhóm người dùng" />
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem Style="{StaticResource SeparatorItemStyle}">
@@ -290,7 +290,7 @@
                                 Height="24"
                                 Margin="10,0,10,0"
                                 Kind="Package" />
-                            <TextBlock Text="Quản lí sản phẩm" />
+                            <TextBlock Text="Quản lý sản phẩm" />
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem x:Name="ucSupplierMaster" Visibility="{Binding CanSupplierMaster, Converter={StaticResource BooleanToVisibilityConverter}}">
@@ -303,7 +303,7 @@
                                 Height="24"
                                 Margin="10,0,10,0"
                                 Kind="SourceBranch" />
-                            <TextBlock Text="Quản lí nhà cung cấp" />
+                            <TextBlock Text="Quản lý nhà cung cấp" />
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem x:Name="ucCustomerMaster" Visibility="{Binding CanCustomerMaster, Converter={StaticResource BooleanToVisibilityConverter}}">
@@ -316,7 +316,7 @@
                                 Height="24"
                                 Margin="10,0,10,0"
                                 Kind="Partnership" />
-                            <TextBlock Text="Quản lí khách hàng" />
+                            <TextBlock Text="Quản lý khách hàng" />
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem x:Name="ucWarehouseMaster" Visibility="{Binding CanWarehouseMaster, Converter={StaticResource BooleanToVisibilityConverter}}">
@@ -329,7 +329,7 @@
                                 Height="24"
                                 Margin="10,0,10,0"
                                 Kind="Warehouse" />
-                            <TextBlock Text="Quản lí danh mục kho" />
+                            <TextBlock Text="Quản lý danh mục kho" />
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem x:Name="ucBOMMaster" Visibility="{Binding CanBOMMaster, Converter={StaticResource BooleanToVisibilityConverter}}">
@@ -342,7 +342,7 @@
                                 Height="24"
                                 Margin="10,0,10,0"
                                 Kind="FileTree" />
-                            <TextBlock Text="Quản lí BOM" />
+                            <TextBlock Text="Quản lý BOM" />
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem Style="{StaticResource SeparatorItemStyle}">
@@ -370,7 +370,7 @@
                                 <Binding Path="CanStockTake" />
                             </MultiBinding>
                         </ListBoxItem.Visibility>
-                        Quản lí kho
+                        Quản lý kho
                     </ListBoxItem>
                     <ListBoxItem x:Name="ucInventory" Visibility="{Binding CanInventory, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <StackPanel
@@ -536,7 +536,7 @@
                                 <Binding Path="CanProductionOrder" />
                             </MultiBinding>
                         </ListBoxItem.Visibility>
-                        Quản lí sản xuất
+                        Quản lý sản xuất
                     </ListBoxItem>
                     <ListBoxItem x:Name="ucManufacturingOrder" Visibility="{Binding CanProductionOrder, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <StackPanel
@@ -548,7 +548,7 @@
                                 Height="24"
                                 Margin="10,0,10,0"
                                 Kind="Factory" />
-                            <TextBlock Text="Quản lí lệnh sản xuất" />
+                            <TextBlock Text="Quản lý lệnh sản xuất" />
                         </StackPanel>
                     </ListBoxItem>
                 </ListBox>
