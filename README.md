@@ -13,10 +13,14 @@ Chrome_WPF/
 ├── Chrome_WPF/             # Main WPF application project
 │   ├── App.xaml
 │   ├── App.xaml.cs
-│   ├── MainWindow.xaml
-│   ├── MainWindow.xaml.cs
-│   └── Controls/           # Custom UI controls
-├── Assets/                 # Images, icons, resources
+│   ├── Constants
+│   ├── Helpers
+│   ├── Models
+│   ├── Resources
+│   ├── Services
+│   ├── ViewModels
+│   ├── Views
+│   ├── ViewSelectors
 └── README.md
 ```
 
@@ -27,7 +31,6 @@ Chrome_WPF/
 - 🎨 **Custom window chrome** (custom title bar, buttons for minimize/maximize/close)  
 - 🌓 **Custom styles/themes** (light/dark mode, accent colors)  
 - 🖱 **Drag-to-move & custom resizing** without system chrome  
-- 🌫 **Blur, acrylic, transparency effects** (optional)  
 - 🏗 **MVVM-ready** structure separating UI and logic
 
 ---
@@ -37,7 +40,6 @@ Chrome_WPF/
 - **.NET (WPF)** – UI framework  
 - **C#** – application logic  
 - **XAML** – UI layout & styling  
-- Optional: [`FluentWPFChromes`](https://github.com/vbobroff-app/FluentWpfChromes), `ModernChrome`
 
 ---
 
@@ -70,16 +72,6 @@ Example: Remove default title bar & create custom buttons
 </Window>
 ```
 
-Optional: Acrylic/Blur Effects with FluentWPFChromes
-
-```xml
-xmlns:f="clr-namespace:FluentWpfChromes;assembly=FluentWpfChromes"
-
-<f:AcrylicChrome.AcrylicChrome>
-  <f:AcrylicChrome/>
-</f:AcrylicChrome.AcrylicChrome>
-```
-
 ---
 
 ## 🤝 Contributing
@@ -88,12 +80,6 @@ xmlns:f="clr-namespace:FluentWpfChromes;assembly=FluentWpfChromes"
 2. Create a feature branch  
 3. Commit your changes  
 4. Open a Pull Request  
-
----
-
-## 📜 License
-
-Licensed under the **MIT License** – see `LICENSE`.
 
 ---
 
